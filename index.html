@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#9f1717">
+<link rel="manifest" href="manifest.json">
+<title>Mie Ayam Soleh</title>
+<style>
+:root{--red:#a71919;--red2:#7d1010;--gold:#f5c542;--cream:#fff8e8;--ink:#27221d;--muted:#756d63;--green:#19733a;--blue:#185b9e;--line:#eadfca}
+*{box-sizing:border-box} body{margin:0;background:#f6f1e7;color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+.app{max-width:620px;margin:auto;min-height:100vh;background:#fff}.top{background:linear-gradient(135deg,var(--red2),var(--red));color:white;padding:18px 16px 16px;position:sticky;top:0;z-index:5;box-shadow:0 2px 12px #0002}
+.brand{display:flex;align-items:center;gap:12px}.brand img{width:62px;height:62px;object-fit:cover;border-radius:16px;background:#fff}.brand h1{font-size:23px;margin:0 0 2px}.brand p{margin:0;opacity:.85;font-size:12px}
+main{padding:16px 14px 92px}.tabs{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(620px,100%);background:#fff;border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(3,1fr);z-index:10}.tabs button{border:0;background:#fff;padding:10px 4px 12px;font-size:11px;color:#777}.tabs button.active{color:var(--red);font-weight:800}.tabs b{display:block;font-size:20px;line-height:20px}
+.view{display:none}.view.active{display:block}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.card{background:white;border:1px solid var(--line);border-radius:16px;padding:14px;box-shadow:0 2px 8px #4a32120d}.metric .label{font-size:12px;color:var(--muted)}.metric .value{font-size:23px;font-weight:800;margin-top:4px}.red{color:var(--red)}.green{color:var(--green)}.blue{color:var(--blue)}
+h2{font-size:18px;margin:6px 0 12px}h3{font-size:14px;margin:0 0 10px}.section{margin:18px 0}
+input,select{width:100%;padding:12px;border:1px solid #d8cdb9;border-radius:11px;background:#fff;font-size:15px}label{display:block;font-size:12px;font-weight:700;margin:10px 0 5px;color:#5d554c}
+button.primary{width:100%;padding:13px;border:0;border-radius:12px;background:var(--red);color:white;font-weight:800;font-size:15px;margin-top:12px}button.secondary{padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;font-weight:700}
+.row{display:flex;gap:8px;align-items:end}.row>div{flex:1}.list{display:grid;gap:8px}.item{display:flex;justify-content:space-between;gap:10px;padding:11px;border-bottom:1px solid var(--line);font-size:13px}.item:last-child{border-bottom:0}
+.big{font-size:30px;font-weight:900}.pill{display:inline-block;background:#f8e7a6;color:#6b4d00;padding:4px 8px;border-radius:999px;font-size:11px;font-weight:800}
+.notice{background:#fff6d8;border:1px solid #f1db8a;padding:11px;border-radius:12px;font-size:12px;color:#624c14}
+.small{font-size:11px;color:var(--muted)}.danger{color:#a71919}.empty{text-align:center;color:#888;padding:24px}
+</style>
+</head>
+<body>
+<div class="app">
+<header class="top"><div class="brand">
+<img src="logo.png" alt="Logo Mie Ayam Soleh" onerror="this.style.display='none'">
+<div><h1>Mie Ayam Soleh</h1><p>Catatan penjualan & profit</p></div>
+</div></header>
+
+<main>
+<section id="home" class="view active">
+<h2>Dashboard</h2>
+<div class="notice">Harga jual <b id="priceLabel"></b> • Biaya produksi <b id="costLabel"></b>/porsi</div>
+<div class="grid section">
+<div class="card metric"><div class="label">Porsi bulan ini</div><div id="mPorsi" class="value">0</div></div>
+<div class="card metric"><div class="label">Omzet bulan ini</div><div id="mOmzet" class="value red">Rp0</div></div>
+<div class="card metric"><div class="label">Total biaya</div><div id="mBiaya" class="value">Rp0</div></div>
+<div class="card metric"><div class="label">Profit bersih</div><div id="mProfit" class="value green">Rp0</div></div>
+</div>
+<div class="card section">
+<h3>Hari ini</h3>
+<div class="big" id="todayProfit">Rp0</div>
+<div class="small" id="todayInfo">Belum ada penjualan hari ini.</div>
+</div>
+<div class="card section"><h3>7 hari terakhir</h3><div id="recent"></div></div>
+</section>
+
+<section id="input" class="view">
+<h2>Catat Penjualan</h2>
+<div class="card">
+<label>Tanggal</label><input id="date" type="date">
+<label>Jumlah porsi terjual</label><input id="portions" type="number" min="0" value="20" inputmode="numeric">
+<div class="row">
+<div><label>Harga / porsi</label><input id="price" type="number" min="0" value="12000"></div>
+<div><label>Biaya produksi / porsi</label><input id="unitCost" type="number" min="0" value="5750"></div>
+</div>
+<label>Rokok + kopi hari ini</label><input id="coffee" type="number" min="0" value="60000" inputmode="numeric">
+<label>Pengeluaran lain hari ini</label><input id="otherDaily" type="number" min="0" value="0" inputmode="numeric">
+<button class="primary" onclick="saveSale()">Simpan penjualan</button>
+</div>
+<div class="card section"><h3>Data tersimpan bulan ini</h3><div id="salesList"></div></div>
+</section>
+
+<section id="report" class="view">
+<h2>Laporan</h2>
+<div class="card">
+<label>Pilih bulan</label><input id="month" type="month" onchange="renderAll()">
+<div class="list section">
+<div class="item"><span>Total porsi</span><b id="rPorsi">0</b></div>
+<div class="item"><span>Omzet</span><b id="rOmzet">Rp0</b></div>
+<div class="item"><span>Biaya produksi</span><b id="rProd">Rp0</b></div>
+<div class="item"><span>Rokok + kopi</span><b id="rCoffee">Rp0</b></div>
+<div class="item"><span>Bensin</span><b id="rGas">Rp0</b></div>
+<div class="item"><span>Listrik</span><b id="rElec">Rp0</b></div>
+<div class="item"><span>Lain-lain</span><b id="rOther">Rp0</b></div>
+<div class="item"><span>Total semua biaya</span><b id="rCost">Rp0</b></div>
+<div class="item"><span>Profit bersih</span><b class="green" id="rProfit">Rp0</b></div>
+<div class="item"><span>Margin profit</span><b id="rMargin">0%</b></div>
+</div>
+</div>
+<div class="card section"><h3>Pengeluaran bulanan</h3>
+<label>Bensin</label><input id="monthlyGas" type="number" min="0" value="100000" onchange="saveSettings()">
+<label>Listrik</label><input id="monthlyElec" type="number" min="0" value="150000" onchange="saveSettings()">
+<label>Lain-lain</label><input id="monthlyOther" type="number" min="0" value="100000" onchange="saveSettings()">
+</div>
+<div class="card section">
+<h3>Pengaturan harga & biaya</h3>
+<label>Harga jual / porsi</label><input id="setPrice" type="number" min="0" value="12000" onchange="saveSettings()">
+<label>Biaya produksi / porsi</label><input id="setCost" type="number" min="0" value="5750" onchange="saveSettings()">
+</div>
+</section>
+</main>
+
+<nav class="tabs">
+<button class="active" onclick="show('home',this)"><b>⌂</b>Dashboard</button>
+<button onclick="show('input',this)"><b>＋</b>Penjualan</button>
+<button onclick="show('report',this)"><b>▦</b>Laporan</button>
+</nav>
+</div>
+
+<script>
+const KEY='mieAyamSoleh_v1';
+let db=JSON.parse(localStorage.getItem(KEY)||'{"sales":[],"settings":{"price":12000,"unitCost":5750,"coffeeDaily":60000,"gasMonthly":100000,"elecMonthly":150000,"otherMonthly":100000}}');
+const rupiah=n=>new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(Number(n)||0);
+const todayISO=()=>{let d=new Date();return d.toISOString().slice(0,10)};
+const ym=d=>d.slice(0,7);
+function save(){localStorage.setItem(KEY,JSON.stringify(db));}
+function show(id,btn){document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('active'));btn.classList.add('active');renderAll()}
+function getMonth(){return document.getElementById('month').value||ym(todayISO())}
+function monthlyData(month){
+ let s=db.sales.filter(x=>ym(x.date)===month), p=s.reduce((a,x)=>a+x.portions,0);
+ let om=s.reduce((a,x)=>a+x.omzet,0), prod=s.reduce((a,x)=>a+x.prodCost,0), coffee=s.reduce((a,x)=>a+x.coffee+x.otherDaily,0);
+ let fixed=db.settings.gasMonthly+db.settings.elecMonthly+db.settings.otherMonthly;
+ let total=prod+coffee+fixed;
+ return {s,p,om,prod,coffee,fixed,total,profit:om-total,margin:om?((om-total)/om*100):0};
+}
+function saveSale(){
+ let date=document.getElementById('date').value||todayISO(), portions=+document.getElementById('portions').value||0;
+ let price=+document.getElementById('price').value||db.settings.price, unitCost=+document.getElementById('unitCost').value||db.settings.unitCost;
+ let coffee=+document.getElementById('coffee').value||0, otherDaily=+document.getElementById('otherDaily').value||0;
+ if(!portions)return alert('Masukkan jumlah porsi terlebih dahulu.');
+ db.sales.push({id:Date.now(),date,portions,omzet:portions*price,prodCost:portions*unitCost,coffee,otherDaily});
+ save(); alert('Penjualan tersimpan.'); document.getElementById('portions').value=20; renderAll();
+}
+function saveSettings(){
+ db.settings.price=+document.getElementById('setPrice').value||0;
+ db.settings.unitCost=+document.getElementById('setCost').value||0;
+ db.settings.gasMonthly=+document.getElementById('monthlyGas').value||0;
+ db.settings.elecMonthly=+document.getElementById('monthlyElec').value||0;
+ db.settings.otherMonthly=+document.getElementById('monthlyOther').value||0;
+ save(); renderAll();
+}
+function renderHome(){
+ let m=monthlyData(ym(todayISO())); document.getElementById('mPorsi').textContent=m.p;document.getElementById('mOmzet').textContent=rupiah(m.om);document.getElementById('mBiaya').textContent=rupiah(m.total);document.getElementById('mProfit').textContent=rupiah(m.profit);
+ let t=m.s.filter(x=>x.date===todayISO()), p=t.reduce((a,x)=>a+x.portions,0), o=t.reduce((a,x)=>a+x.omzet,0), c=t.reduce((a,x)=>a+x.prodCost+x.coffee+x.otherDaily,0);
+ document.getElementById('todayProfit').textContent=rupiah(o-c);document.getElementById('todayInfo').textContent=p?`${p} porsi • omzet ${rupiah(o)} • biaya harian ${rupiah(c)}`:'Belum ada penjualan hari ini.';
+ let recent=db.sales.slice(-7).reverse(); document.getElementById('recent').innerHTML=recent.length?recent.map(x=>`<div class="item"><span>${x.date}<br><small>${x.portions} porsi</small></span><b>${rupiah(x.omzet)}</b></div>`).join(''):'<div class="empty">Belum ada data.</div>';
+ document.getElementById('priceLabel').textContent=rupiah(db.settings.price);document.getElementById('costLabel').textContent=rupiah(db.settings.unitCost);
+}
+function renderInput(){
+ document.getElementById('date').value=todayISO();document.getElementById('price').value=db.settings.price;document.getElementById('unitCost').value=db.settings.unitCost;document.getElementById('coffee').value=db.settings.coffeeDaily;
+ let m=getMonth(), s=db.sales.filter(x=>ym(x.date)===m).slice().reverse();
+ document.getElementById('salesList').innerHTML=s.length?s.map(x=>`<div class="item"><span>${x.date}<br>${x.portions} porsi</span><b>${rupiah(x.omzet)}</b></div>`).join(''):'<div class="empty">Belum ada penjualan bulan ini.</div>';
+}
+function renderReport(){
+ let m=monthlyData(getMonth());document.getElementById('rPorsi').textContent=m.p;document.getElementById('rOmzet').textContent=rupiah(m.om);document.getElementById('rProd').textContent=rupiah(m.prod);document.getElementById('rCoffee').textContent=rupiah(m.coffee);document.getElementById('rGas').textContent=rupiah(db.settings.gasMonthly);document.getElementById('rElec').textContent=rupiah(db.settings.elecMonthly);document.getElementById('rOther').textContent=rupiah(db.settings.otherMonthly);document.getElementById('rCost').textContent=rupiah(m.total);document.getElementById('rProfit').textContent=rupiah(m.profit);document.getElementById('rMargin').textContent=m.margin.toFixed(2)+'%';
+ document.getElementById('monthlyGas').value=db.settings.gasMonthly;document.getElementById('monthlyElec').value=db.settings.elecMonthly;document.getElementById('monthlyOther').value=db.settings.otherMonthly;document.getElementById('setPrice').value=db.settings.price;document.getElementById('setCost').value=db.settings.unitCost;
+}
+function renderAll(){renderHome();renderInput();renderReport()}
+document.getElementById('month').value=ym(todayISO());renderAll();
+if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script>
+</body></html>
