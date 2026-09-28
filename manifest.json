@@ -1,20 +1,9 @@
 {
-  "name": "Mie Ayam Soleh",
-  "short_name": "Mie Ayam Soleh",
-  "start_url": "./",
-  "display": "standalone",
-  "background_color": "#fff8e8",
-  "theme_color": "#a71919",
-  "icons": [
-    {
-      "src": "logo.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "logo.png",
-      "sizes": "512x512",
-      "type": "image/png"
-    }
-  ]
+  "name":"Mie Ayam Soleh",
+  "short_name":"Mie Ayam Soleh",
+  "start_url":"./",
+  "display":"standalone",
+  "background_color":"#fff8e8",
+  "theme_color":"#9f1717",
+  "icons":[{"src":"logo.png","sizes":"192x192","type":"image/png"}]
 }
