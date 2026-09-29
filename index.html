@@ -584,6 +584,50 @@ button.add{
  .production-total-value{font-size:20px}
 }
 
+
+.production-history-actions{display:flex;gap:6px;justify-content:flex-end;margin-top:6px;flex-wrap:wrap}
+.production-history-actions button{padding:7px 9px;font-size:10px;border-radius:9px}
+.production-history-right{min-width:145px;text-align:right}
+@media(max-width:370px){.production-history-right{min-width:125px}.production-history-actions{gap:4px}.production-history-actions button{padding:6px 7px;font-size:9px}}
+
+
+/* ---------- STOCK TAB ---------- */
+.stock-hero{background:linear-gradient(135deg,#fff8f2,#fff);border:1px solid #f0dfd1}
+.stock-balance{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:10px}
+.stock-stat{padding:11px;border-radius:12px;background:#faf8f5;border:1px solid #eee8e1}
+.stock-stat-label{font-size:9px;color:var(--muted);font-weight:750}
+.stock-stat-value{font-size:17px;font-weight:900;margin-top:3px;color:var(--primary-dark)}
+.stock-item{padding:12px 0;border-bottom:1px solid var(--line)}
+.stock-item:last-child{border-bottom:0}
+.stock-item-top{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.stock-name{font-size:12px;font-weight:850}
+.stock-qty{font-size:12px;font-weight:900;color:var(--success);white-space:nowrap}
+.stock-meta{display:flex;justify-content:space-between;gap:8px;margin-top:4px;font-size:9.5px;color:var(--muted)}
+.stock-low{color:var(--danger)!important}
+.stock-unit{display:grid;grid-template-columns:1fr 110px;gap:8px;align-items:end;margin-top:8px}
+.stock-purchase{padding:12px;background:#faf8f5;border:1px solid var(--line);border-radius:14px;margin-top:10px}
+.stock-purchase-grid{display:grid;grid-template-columns:1.1fr .75fr .7fr .9fr;gap:7px}
+.stock-purchase-grid label{font-size:8.5px}
+.stock-purchase-grid input,.stock-purchase-grid select{padding:9px 8px;font-size:12px}
+.stock-production-row{background:#fff;border:1px solid var(--line);border-radius:13px;padding:10px;margin-bottom:7px}
+.stock-production-top{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:8px}
+.stock-production-name{font-size:12px;font-weight:800}
+.stock-available{font-size:9px;color:var(--muted);white-space:nowrap}
+.stock-production-fields{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.stock-production-fields label{font-size:8.5px;margin:0 0 4px}
+.stock-production-fields input{padding:9px 8px;font-size:12px}
+.stock-cost{font-size:11px;font-weight:850;color:var(--primary-dark);text-align:right;margin-top:7px}
+.stock-warning{font-size:10px;color:var(--danger);background:#fff2f1;border:1px solid #f1d2d0;border-radius:10px;padding:8px;margin-top:8px}
+.stock-history-item{padding:11px 0;border-bottom:1px solid var(--line)}
+.stock-history-item:last-child{border-bottom:0}
+.stock-history-head{display:flex;justify-content:space-between;gap:8px}
+.stock-history-date{font-size:12px;font-weight:850}
+.stock-history-amount{font-size:12px;font-weight:900;color:var(--primary-dark)}
+.stock-history-sub{font-size:9.5px;color:var(--muted);margin-top:3px}
+.stock-history-actions{display:flex;gap:6px;justify-content:flex-end;margin-top:7px}
+.stock-history-actions button{padding:7px 9px;font-size:10px}
+@media(max-width:370px){.stock-purchase-grid{grid-template-columns:1fr 1fr}.stock-purchase-grid>div:last-child{grid-column:1/-1}.stock-unit{grid-template-columns:1fr 96px}}
+
 /* ---------- REPORT ---------- */
 
 .report-summary{
@@ -626,7 +670,7 @@ button.add{
   -webkit-backdrop-filter:blur(16px);
   border-top:1px solid rgba(233,231,227,.95);
   display:grid;
-  grid-template-columns:repeat(3,1fr);
+  grid-template-columns:repeat(4,1fr);
   z-index:30;
   box-shadow:0 -7px 24px rgba(50,30,15,.075);
   padding:5px 6px calc(5px + env(safe-area-inset-bottom));
@@ -784,6 +828,73 @@ button.add{
 </section>
 
 
+
+<section id="stock" class="view">
+  <div class="page-head">
+    <h2>Stok</h2>
+    <div class="head-note">Persediaan &amp;<br>produksi</div>
+  </div>
+
+  <div class="card stock-hero">
+    <h3>Ringkasan stok</h3>
+    <div class="small">Pembelian menambah stok. Produksi mengurangi stok. Sisa otomatis dibawa ke hari berikutnya.</div>
+    <div class="stock-balance">
+      <div class="stock-stat"><div class="stock-stat-label">ITEM TERSEDIA</div><div class="stock-stat-value" id="stockItemCount">0</div></div>
+      <div class="stock-stat"><div class="stock-stat-label">NILAI STOK</div><div class="stock-stat-value" id="stockValue">Rp0</div></div>
+    </div>
+  </div>
+
+  <div class="card section">
+    <h3>Stok Bahan</h3>
+    <div id="stockList"></div>
+  </div>
+
+  <div class="card section">
+    <h3>Pembelian Stok</h3>
+    <div class="small">Catat pembelian baru. Jumlahnya langsung ditambahkan ke stok yang sudah ada.</div>
+    <div class="stock-purchase">
+      <div class="stock-purchase-grid">
+        <div><label>Bahan</label><select id="purchaseIngredient"></select></div>
+        <div><label>Tanggal</label><input id="purchaseDate" type="date"></div>
+        <div><label>Jumlah</label><input id="purchaseQty" type="number" min="0" step="any" inputmode="decimal" placeholder="0"></div>
+        <div><label>Total harga beli</label><input id="purchaseCost" type="number" min="0" step="100" inputmode="numeric" placeholder="Rp0"></div>
+      </div>
+      <button class="primary" onclick="saveStockPurchase()">＋ Simpan Pembelian</button>
+    </div>
+    <div class="small" id="purchaseUnitHint"></div>
+  </div>
+
+  <div class="card section production-card">
+    <h3>Produksi Harian</h3>
+    <div class="production-intro">Masukkan jumlah bahan yang <b>benar-benar dipakai hari ini</b>. Stok akan berkurang otomatis dan biaya dihitung dari stok yang digunakan.</div>
+    <div class="production-date-row">
+      <div class="date-icon">📅</div>
+      <div><label>Tanggal produksi</label><input id="stockProductionDate" type="date"></div>
+    </div>
+    <div id="stockProductionRows"></div>
+    <div class="production-summary">
+      <div class="production-summary-grid">
+        <div><div class="production-total-label">TOTAL PRODUKSI HARI INI</div><div class="production-total-value" id="stockProductionTotal">Rp0</div></div>
+        <div class="production-per">Biaya / porsi<b id="stockProductionPer">Rp0</b></div>
+      </div>
+      <div class="production-portions"><label>Jumlah porsi yang diproduksi</label><input id="stockProductionPortions" type="number" min="1" value="20" inputmode="numeric"></div>
+    </div>
+    <div id="stockProductionWarning"></div>
+    <button class="primary production-save" id="stockProductionSaveBtn" onclick="saveStockProduction()">💾 Simpan Produksi Hari Ini</button>
+  </div>
+
+  <div class="card section">
+    <h3>Riwayat Produksi</h3>
+    <div class="small">Edit akan mengembalikan pemakaian lama ke stok lalu menerapkan pemakaian baru. Hapus juga mengembalikan stok.</div>
+    <div id="stockProductionHistory"></div>
+  </div>
+
+  <div class="card section">
+    <h3>Riwayat Pembelian</h3>
+    <div id="stockPurchaseHistory"></div>
+  </div>
+</section>
+
 <section id="report" class="view">
   <div class="page-head">
     <h2>Laporan</h2>
@@ -810,50 +921,8 @@ button.add{
     </div>
   </div>
 
-  <div class="card section">
-    <h3>Rincian Produksi Harian</h3>
-    <div id="monthlyProductionHistory"></div>
-  </div>
-
-  <div class="card section production-card">
-    <h3>Biaya Produksi Mie Ayam</h3>
-    <div class="production-intro">Masukkan <b>harga beli</b>, <b>jumlah beli</b>, dan <b>pemakaian</b>. Sistem menghitung biaya bahan yang benar-benar terpakai secara otomatis.</div>
-
-    <div class="production-date-row">
-      <div class="date-icon">📅</div>
-      <div>
-        <label>Tanggal produksi</label>
-        <input id="productionDate" type="date">
-      </div>
-    </div>
-
-    <div class="prod-mobile-head"><span>Rincian bahan</span><span>Biaya terpakai</span></div>
-    <div id="productionRows"></div>
-
-    <div class="production-summary">
-      <div class="production-summary-grid">
-        <div>
-          <div class="production-total-label">TOTAL PRODUKSI HARI INI</div>
-          <div class="production-total-value" id="productionTotal">Rp0</div>
-        </div>
-        <div class="production-per">
-          Biaya / porsi
-          <b id="productionPerPortion">Rp0</b>
-        </div>
-      </div>
-      <div class="production-portions">
-        <label>Jumlah porsi yang diproduksi</label>
-        <input id="productionPortions" type="number" min="1" value="20" onchange="saveProductionSettings()">
-      </div>
-    </div>
-
-    <button class="primary production-save" onclick="saveProductionRecord()">💾 Simpan Produksi Hari Ini</button>
-  </div>
-
-  <div class="card section">
-    <h3>Riwayat Biaya Produksi Harian</h3>
-    <div class="small">Setiap tanggal memiliki satu total produksi. Jika disimpan lagi pada tanggal yang sama, catatan akan diperbarui.</div>
-    <div id="productionHistory"></div>
+  <div class="card section notice">
+    <div class="notice-icon">📦</div><div class="notice-text"><b>Produksi &amp; stok</b><br>Catatan pembelian, stok tersisa, dan biaya produksi harian sekarang dikelola di tab <b>Stok</b>.</div>
   </div>
 
   <div class="card section">
@@ -902,6 +971,9 @@ button.add{
   <button onclick="show('input',this)">
     <b>＋</b>Pemasukan
   </button>
+  <button onclick="show('stock',this)">
+    <b>▤</b>Stok
+  </button>
   <button onclick="show('report',this)">
     <b>▦</b>Laporan
   </button>
@@ -922,11 +994,20 @@ if(!db){
 save();
 }
 if(!Array.isArray(db.productionRecords)) db.productionRecords=[];
+if(!Array.isArray(db.stockPurchases)) db.stockPurchases=[];
+if(!Array.isArray(db.stockMovements)) db.stockMovements=[];
+db.ingredients.forEach((x,i)=>{
+  if(x.stockQty==null)x.stockQty=0;
+  if(x.unitCost==null)x.unitCost=Number(x.buyQty)>0?Number(x.buyPrice||0)/Number(x.buyQty):0;
+  if(!x.unit)x.unit='unit';
+});
+save();
 const rupiah=n=>new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(Number(n)||0);
 const todayISO=()=>{let d=new Date();return d.toISOString().slice(0,10)};const ym=d=>d.slice(0,7);function save(){localStorage.setItem(KEY,JSON.stringify(db))}
 function show(id,btn){document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('active'));btn.classList.add('active');renderAll()}
 function getMonth(){return document.getElementById('month').value||ym(todayISO())}
-function productionTotal(){return db.ingredients.reduce((sum,x)=>{let buyQty=Number(x.buyQty)||0;return sum+(buyQty>0?(Number(x.buyPrice)||0)*(Number(x.useQty)||0)/buyQty:0)},0)}
+function ingredientUnitCost(x){return Number(x.unitCost)||0}
+function productionTotal(){return db.ingredients.reduce((sum,x)=>sum+(Number(x.useQty)||0)*ingredientUnitCost(x),0)}
 function productionPerPortion(){return productionTotal()/(Number(db.settings.productionPortions)||1)}
 function dailyProductionTotal(date){return db.productionRecords.filter(x=>x.date===date).reduce((s,x)=>s+Number(x.amount||0),0)}
 function monthlyProductionTotal(month){
@@ -940,21 +1021,81 @@ function legacyDailyProductionTotal(date){
  if(db.productionRecords.some(x=>x.date===date)) return 0;
  return db.sales.filter(x=>x.date===date).reduce((s,x)=>s+Number(x.prodCost||0),0);
 }
-function captureProductionSettings(){
- db.settings.productionPortions=Number(document.getElementById('productionPortions').value||1);
- db.ingredients.forEach(x=>{let b=document.getElementById('buy_'+x.id),q=document.getElementById('bqty_'+x.id),u=document.getElementById('use_'+x.id);if(b)x.buyPrice=Number(b.value||0);if(q)x.buyQty=Number(q.value||0);if(u)x.useQty=Number(u.value||0)});
+function stockValue(){return db.ingredients.reduce((s,x)=>s+(Number(x.stockQty)||0)*ingredientUnitCost(x),0)}
+function stockUsageForRecord(record){return Array.isArray(record.items)?record.items:[]}
+function recalculateStockFromRecords(){
+ db.ingredients.forEach(x=>{x.stockQty=0;x.unitCost=0});
+ const buys=db.stockPurchases.slice().sort((a,b)=>(a.date||'').localeCompare(b.date||'')||Number(a.id)-Number(b.id));
+ for(const p of buys){const x=db.ingredients.find(i=>i.id===p.ingredientId);if(!x)continue;const qty=Number(p.qty)||0,cost=Number(p.totalCost)||0,oldQty=Number(x.stockQty)||0,oldCost=Number(x.unitCost)||0,unit=qty>0?cost/qty:0;x.unitCost=oldQty>0?(oldQty*oldCost+qty*unit)/(oldQty+qty):unit;x.stockQty=oldQty+qty;}
+ const uses=db.productionRecords.slice().sort((a,b)=>(a.date||'').localeCompare(b.date||'')||Number(a.id)-Number(b.id));
+ for(const r of uses){for(const it of stockUsageForRecord(r)){const x=db.ingredients.find(i=>i.id===it.ingredientId);if(x)x.stockQty=(Number(x.stockQty)||0)-Number(it.qty||0);}}
 }
-function saveProductionRecord(){
- captureProductionSettings();
- let date=document.getElementById('productionDate').value||todayISO();
- let amount=productionTotal();
- if(amount<=0)return alert('Isi rincian bahan produksi terlebih dahulu.');
- let portions=Number(document.getElementById('productionPortions').value||1);
- let existing=db.productionRecords.find(x=>x.date===date);
- if(existing){existing.amount=amount;existing.portions=portions;}else db.productionRecords.push({id:Date.now(),date,amount,portions});
- save(); renderAll(); alert('Biaya produksi harian tersimpan.');
+function captureLegacyProductionSettings(){
+ db.settings.productionPortions=Number(document.getElementById('stockProductionPortions')?.value||db.settings.productionPortions||20);
 }
-function removeProductionRecord(id){if(!confirm('Hapus catatan produksi ini?'))return;db.productionRecords=db.productionRecords.filter(x=>x.id!==id);save();renderAll()}
+function saveStockPurchase(){
+ const ingredientId=document.getElementById('purchaseIngredient').value;
+ const qty=Number(document.getElementById('purchaseQty').value||0);
+ const purchaseDate=document.getElementById('purchaseDate').value||todayISO();
+ const totalCost=Number(document.getElementById('purchaseCost').value||0);
+ if(!ingredientId||qty<=0)return alert('Isi bahan dan jumlah pembelian.');
+ if(totalCost<0)return alert('Harga beli tidak valid.');
+ const x=db.ingredients.find(i=>i.id===ingredientId);if(!x)return;
+ const oldQty=Number(x.stockQty)||0,oldCost=ingredientUnitCost(x),unitCost=totalCost/qty;
+ x.unitCost=(oldQty>0?(oldQty*oldCost+qty*unitCost)/(oldQty+qty):unitCost);
+ x.stockQty=oldQty+qty;
+ db.stockPurchases.push({id:Date.now(),date:purchaseDate,ingredientId,qty,totalCost,unitCost});
+ save();renderAll();
+ document.getElementById('purchaseQty').value='';document.getElementById('purchaseCost').value='';
+ alert('Pembelian stok tersimpan dan stok bertambah.');
+}
+function stockProductionDraft(){
+ return db.ingredients.map(x=>{const qty=Number(document.getElementById('stockuse_'+x.id)?.value||0);return{ingredientId:x.id,qty,unitCost:ingredientUnitCost(x),cost:qty*ingredientUnitCost(x)}}).filter(x=>x.qty>0);
+}
+function validateStockDraft(items,editingId){
+ const available={};db.ingredients.forEach(x=>available[x.id]=Number(x.stockQty)||0);
+ if(editingId){const old=db.productionRecords.find(r=>r.id===editingId);if(old)old.items?.forEach(it=>available[it.ingredientId]=(available[it.ingredientId]||0)+Number(it.qty||0));}
+ const bad=[];items.forEach(it=>{if(it.qty>(available[it.ingredientId]||0))bad.push({it,available:available[it.ingredientId]||0})});
+ return bad;
+}
+function saveStockProduction(){
+ captureLegacyProductionSettings();
+ const date=document.getElementById('stockProductionDate').value||todayISO();
+ const items=stockProductionDraft();
+ if(!items.length)return alert('Isi jumlah bahan yang benar-benar dipakai hari ini.');
+ const editingId=window.editingStockProductionId||null;
+ const bad=validateStockDraft(items,editingId);
+ if(bad.length)return alert('Stok tidak cukup untuk: '+bad.map(b=>{const x=db.ingredients.find(i=>i.id===b.it.ingredientId);return `${x?.name||'bahan'} (tersedia ${b.available} ${x?.unit||'unit'})`}).join(', '));
+ const amount=items.reduce((s,x)=>s+x.cost,0),portions=Number(document.getElementById('stockProductionPortions').value||1);
+ let record=editingId?db.productionRecords.find(x=>x.id===editingId):null;
+ if(!record){record=db.productionRecords.find(x=>x.date===date);if(record)window.editingStockProductionId=record.id;}
+ if(record){record.date=date;record.items=items;record.amount=amount;record.portions=portions;}
+ else db.productionRecords.push({id:Date.now(),date,items,amount,portions});
+ recalculateStockFromRecords();save();window.editingStockProductionId=null;renderAll();alert('Produksi tersimpan. Stok otomatis berkurang.');
+}
+function editStockProduction(id){const r=db.productionRecords.find(x=>x.id===id);if(!r)return;window.editingStockProductionId=id;const d=document.getElementById('stockProductionDate');if(d)d.value=r.date;document.getElementById('stockProductionPortions').value=r.portions||20;db.ingredients.forEach(x=>{const it=r.items?.find(i=>i.ingredientId===x.id);const el=document.getElementById('stockuse_'+x.id);if(el)el.value=it?.qty||''});const btn=document.getElementById('stockProductionSaveBtn');if(btn)btn.textContent='✓ Simpan Perubahan Produksi';document.getElementById('stock')?.scrollIntoView({behavior:'smooth',block:'start'});renderStockProduction();}
+function removeStockProduction(id){if(!confirm('Hapus catatan produksi ini? Stok yang terpakai akan dikembalikan.'))return;db.productionRecords=db.productionRecords.filter(x=>x.id!==id);if(window.editingStockProductionId===id)window.editingStockProductionId=null;recalculateStockFromRecords();save();renderAll()}
+function deleteStockPurchase(id){if(!confirm('Hapus pembelian ini? Stok akan dihitung ulang.'))return;db.stockPurchases=db.stockPurchases.filter(x=>x.id!==id);recalculateStockFromRecords();save();renderAll()}
+function renderStock(){
+ const list=document.getElementById('stockList');
+ const active=db.ingredients.filter(x=>Number(x.stockQty||0)>0);
+ document.getElementById('stockItemCount').textContent=active.length+' item';document.getElementById('stockValue').textContent=rupiah(stockValue());
+ list.innerHTML=db.ingredients.map(x=>{const q=Number(x.stockQty)||0,c=ingredientUnitCost(x),low=q<=0;return `<div class="stock-item"><div class="stock-item-top"><div class="stock-name">${x.name}</div><div class="stock-qty ${low?'stock-low':''}">${q} ${x.unit}</div></div><div class="stock-meta"><span>${low?'Stok habis':'Stok tersedia'}</span><span>${rupiah(c)}/${x.unit}</span></div><div class="stock-unit"><div><label>Satuan</label><select onchange="changeStockUnit('${x.id}',this.value)">${['unit','kg','gram','liter','ml','pcs','pack','botol','ikat'].map(u=>`<option value="${u}" ${x.unit===u?'selected':''}>${u}</option>`).join('')}</select></div><div><label>Stok minimum</label><input type="number" min="0" step="any" value="${x.minStock||0}" onchange="changeMinStock('${x.id}',this.value)"></div></div></div>`}).join('');
+ const pd=document.getElementById('purchaseDate');if(pd&&!pd.value)pd.value=todayISO();const sel=document.getElementById('purchaseIngredient');sel.innerHTML=db.ingredients.map(x=>`<option value="${x.id}">${x.name}</option>`).join('');updatePurchaseHint();
+}
+function updatePurchaseHint(){const x=db.ingredients.find(i=>i.id===document.getElementById('purchaseIngredient')?.value);const el=document.getElementById('purchaseUnitHint');if(el&&x)el.textContent=`Stok sekarang: ${Number(x.stockQty||0)} ${x.unit} • harga rata-rata ${rupiah(ingredientUnitCost(x))}/${x.unit}`;}
+function changeStockUnit(id,val){const x=db.ingredients.find(i=>i.id===id);if(x){x.unit=val;save();renderStock()}}
+function changeMinStock(id,val){const x=db.ingredients.find(i=>i.id===id);if(x){x.minStock=Number(val||0);save();renderStock()}}
+function renderStockProduction(){
+ const dateEl=document.getElementById('stockProductionDate');if(dateEl&&!dateEl.value)dateEl.value=todayISO();
+ const rows=document.getElementById('stockProductionRows');
+ rows.innerHTML=db.ingredients.map(x=>{const q=Number(x.stockQty)||0;const old=window.editingStockProductionId?db.productionRecords.find(r=>r.id===window.editingStockProductionId)?.items?.find(i=>i.ingredientId===x.id):null;const val=document.getElementById('stockuse_'+x.id)?.value ?? (old?.qty||'');const cost=Number(val||0)*ingredientUnitCost(x);return `<div class="stock-production-row"><div class="stock-production-top"><div class="stock-production-name">${x.name}</div><div class="stock-available">tersedia: <b>${q} ${x.unit}</b></div></div><div class="stock-production-fields"><div><label>Dipakai (${x.unit})</label><input id="stockuse_${x.id}" type="number" min="0" step="any" value="${val}" placeholder="0" inputmode="decimal" oninput="updateStockProductionTotal()"></div><div><label>Harga rata-rata / ${x.unit}</label><input type="text" value="${rupiah(ingredientUnitCost(x))}" disabled></div></div><div class="stock-cost">Biaya: ${rupiah(cost)}</div></div>`}).join('');
+ updateStockProductionTotal();
+}
+function updateStockProductionTotal(){const items=stockProductionDraft();const total=items.reduce((s,x)=>s+x.cost,0);document.getElementById('stockProductionTotal').textContent=rupiah(total);const p=Number(document.getElementById('stockProductionPortions')?.value||1);document.getElementById('stockProductionPer').textContent=rupiah(total/p);const warnings=items.filter(it=>it.qty>(Number(db.ingredients.find(x=>x.id===it.ingredientId)?.stockQty)||0)&&!(window.editingStockProductionId));document.getElementById('stockProductionWarning').innerHTML=warnings.length?`<div class="stock-warning">⚠️ ${warnings.map(it=>{const x=db.ingredients.find(a=>a.id===it.ingredientId);return `${x.name}: pemakaian ${it.qty} ${x.unit}, stok ${x.stockQty||0} ${x.unit}`}).join('<br>')}</div>`:''}
+function renderStockHistory(){const h=db.productionRecords.slice().sort((a,b)=>b.date.localeCompare(a.date));document.getElementById('stockProductionHistory').innerHTML=h.length?h.map(x=>`<div class="stock-history-item"><div class="stock-history-head"><div class="stock-history-date">${x.date}</div><div class="stock-history-amount">${rupiah(x.amount)}</div></div><div class="stock-history-sub">${x.items?.map(it=>{const i=db.ingredients.find(a=>a.id===it.ingredientId);return `${i?.name||'Bahan'} ${it.qty} ${i?.unit||'unit'}`}).join(' • ')||((x.portions||'-')+' porsi')}</div><div class="stock-history-actions"><button class="secondary" onclick="editStockProduction(${x.id})">✏️ Edit</button><button class="secondary danger" onclick="removeStockProduction(${x.id})">🗑 Hapus</button></div></div>`).join(''):'<div class="empty">Belum ada produksi.</div>';}
+function renderStockPurchases(){const h=db.stockPurchases.slice().sort((a,b)=>b.date.localeCompare(a.date)||b.id-a.id);document.getElementById('stockPurchaseHistory').innerHTML=h.length?h.map(x=>{const i=db.ingredients.find(a=>a.id===x.ingredientId);return `<div class="item"><span>${x.date}<br><span class="sub">${i?.name||'Bahan'} • +${x.qty} ${i?.unit||'unit'} • ${rupiah(x.unitCost)}/${i?.unit||'unit'}</span></span><div class="actions"><b>${rupiah(x.totalCost)}</b><button class="secondary danger" onclick="deleteStockPurchase(${x.id})">Hapus</button></div></div>`}).join(''):'<div class="empty">Belum ada pembelian stok.</div>';}
+function renderStockTab(){recalculateStockFromRecords();renderStock();renderStockProduction();renderStockHistory();renderStockPurchases();}
 function dailyExpenseTotal(month){let dynamic=db.dailyExpenses.filter(x=>x.month===month).reduce((s,x)=>s+Number(x.amount||0),0);let legacy=db.sales.filter(x=>ym(x.date)===month).reduce((s,x)=>s+Number(x.dailyCoffee||0),0);return dynamic+legacy}
 function monthlyExpenseTotal(){return Number(db.settings.gasMonthly||0)+Number(db.settings.elecMonthly||0)+Number(db.settings.rentMonthly||0)+Number(db.settings.internetMonthly||0)+db.monthlyExpenses.reduce((s,x)=>s+Number(x.amount||0),0)}
 function monthlyData(month){let sales=db.sales.filter(x=>ym(x.date)===month),items=sales.reduce((a,x)=>a+x.items.reduce((s,i)=>s+Number(i.qty||0),0),0),om=sales.reduce((a,x)=>a+Number(x.omzet||0),0);let prod=monthlyProductionTotal(month);let daily=dailyExpenseTotal(month);let monthly=monthlyExpenseTotal();let total=prod+daily+monthly;return{sales,items,om,prod,daily,monthly,total,profit:om-total,margin:om?((om-total)/om*100):0}}
@@ -964,27 +1105,7 @@ function saveProductionSettings(){captureProductionSettings();save();renderAll()
 function renderSalesChart(){const el=document.getElementById('salesChart');if(!el)return;const days=[];for(let i=6;i>=0;i--){let d=new Date();d.setDate(d.getDate()-i);let iso=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');days.push({iso,label:d.toLocaleDateString('id-ID',{weekday:'short'}).replace('.',''),omzet:0})}db.sales.forEach(sale=>{let day=days.find(x=>x.iso===sale.date);if(day)day.omzet+=Number(sale.omzet)||0});let max=Math.max(...days.map(x=>x.omzet),1);el.innerHTML=days.map(day=>{let height=day.omzet>0?Math.max(8,(day.omzet/max)*100):5;let value=day.omzet>=1000000?'Rp'+(day.omzet/1000000).toFixed(1)+'jt':day.omzet>=1000?'Rp'+Math.round(day.omzet/1000)+'rb':'Rp0';return `<div class="sales-bar-wrap"><div class="sales-value">${value}</div><div class="sales-bar" style="height:${height}%" title="${rupiah(day.omzet)}"></div><div class="sales-day">${day.label}</div></div>`}).join('')}
 function renderHome(){let m=monthlyData(ym(todayISO()));document.getElementById('mPorsi').textContent=m.items;document.getElementById('mOmzet').textContent=rupiah(m.om);document.getElementById('mBiaya').textContent=rupiah(m.total);document.getElementById('mProfit').textContent=rupiah(m.profit);let t=m.sales.filter(x=>x.date===todayISO()),o=t.reduce((a,x)=>a+x.omzet,0),pc=dailyProductionTotal(todayISO())+legacyDailyProductionTotal(todayISO()),de=db.dailyExpenses.filter(x=>x.date===todayISO()).reduce((s,x)=>s+Number(x.amount||0),0)+t.reduce((s,x)=>s+Number(x.dailyCoffee||0),0);document.getElementById('todayProfit').textContent=rupiah(o-pc-de);document.getElementById('todayInfo').textContent=(t.length||pc||de)?`${t.reduce((s,x)=>s+x.items.reduce((a,i)=>a+i.qty,0),0)} item • omzet ${rupiah(o)} • produksi ${rupiah(pc)} • biaya lain ${rupiah(de)}`:'Belum ada pemasukan hari ini.';let recent=db.sales.slice(-7).reverse();document.getElementById('recent').innerHTML=recent.length?recent.map(x=>`<div class="item"><span>${x.date}<br><small>${x.items.map(i=>{let p=db.products.find(p=>p.id===i.productId);return `${p?.name||i.productId} × ${i.qty}`}).join(', ')}</small></span><b>${rupiah(x.omzet)}</b></div>`).join(''):'<div class="empty">Belum ada data.</div>';let mie=db.products.find(p=>p.id==='mie');document.getElementById('priceLabel').textContent=rupiah(mie?.price||0);document.getElementById('costLabel').textContent=rupiah(productionPerPortion());renderSalesChart()}
 function renderInput(){document.getElementById('date').value=todayISO();document.getElementById('productSales').innerHTML=db.products.map(p=>`<div class="row"><div><label>${p.name}</label><input id="qty_${p.id}" type="number" min="0" value="0" inputmode="numeric"></div><div style="max-width:130px"><label>Harga</label><input type="number" value="${p.price}" disabled></div></div>`).join('');let s=db.sales.filter(x=>ym(x.date)===getMonth()).slice().reverse();document.getElementById('salesList').innerHTML=s.length?s.map(x=>`<div class="item"><span>${x.date}<br><small>${x.items.map(i=>{let p=db.products.find(p=>p.id===i.productId);return `${p?.name||i.productId} × ${i.qty}`}).join(', ')}</small></span><b>${rupiah(x.omzet)}</b></div>`).join(''):'<div class="empty">Belum ada pemasukan bulan ini.</div>'}
-function renderProduction(){
- const dateEl=document.getElementById('productionDate');
- if(dateEl&&!dateEl.value)dateEl.value=todayISO();
- document.getElementById('productionRows').innerHTML=db.ingredients.map(x=>{
-   const buy=Number(x.buyPrice)||0, qty=Number(x.buyQty)||0, use=Number(x.useQty)||0;
-   const cost=qty>0?buy*use/qty:0;
-   return `<div class="prod-mobile-row">
-     <div class="prod-mobile-top"><div class="prod-mobile-name">${x.name}</div><div class="prod-mobile-cost">${rupiah(cost)}</div></div>
-     <div class="prod-mobile-fields">
-       <div class="prod-field"><label>Harga beli</label><input id="buy_${x.id}" type="number" min="0" inputmode="numeric" placeholder="Rp" value="${x.buyPrice||''}" onchange="saveProductionSettings()"></div>
-       <div class="prod-field"><label>Jumlah beli</label><input id="bqty_${x.id}" type="number" min="0" inputmode="decimal" placeholder="0" value="${x.buyQty||''}" onchange="saveProductionSettings()"></div>
-       <div class="prod-field"><label>Pemakaian</label><input id="use_${x.id}" type="number" min="0" inputmode="decimal" placeholder="0" value="${x.useQty||''}" onchange="saveProductionSettings()"></div>
-     </div>
-   </div>`;
- }).join('');
- document.getElementById('productionTotal').textContent=rupiah(productionTotal());
- document.getElementById('productionPortions').value=db.settings.productionPortions||20;
- document.getElementById('productionPerPortion').textContent=rupiah(productionPerPortion());
- let history=db.productionRecords.slice().sort((a,b)=>b.date.localeCompare(a.date));
- document.getElementById('productionHistory').innerHTML=history.length?history.map(x=>`<div class="production-history-item"><div><div class="production-history-date">${x.date}</div><div class="production-history-sub">${x.portions||'-'} porsi produksi</div></div><div class="production-history-right"><div class="production-history-amount">${rupiah(x.amount)}</div><button class="secondary danger" onclick="removeProductionRecord(${x.id})">Hapus</button></div></div>`).join(''):'<div class="empty">Belum ada catatan produksi harian.</div>'
-}
+function renderProduction(){renderStockProduction()}
 function renderExpenses(){document.getElementById('dailyCoffee').value=(db.dailyExpenses.find(x=>x.date===todayISO()&&x.name==='Rokok + kopi')?.amount)||0;document.getElementById('monthlyGas').value=db.settings.gasMonthly||0;document.getElementById('monthlyElec').value=db.settings.elecMonthly||0;document.getElementById('monthlyRent').value=db.settings.rentMonthly||0;document.getElementById('monthlyInternet').value=db.settings.internetMonthly||0;document.getElementById('dailyExpenseRows').innerHTML=db.dailyExpenses.map((x,i)=>`<div class="item"><span>${x.name}<br><span class="sub">${x.date}</span></span><div class="actions"><b>${rupiah(x.amount)}</b><button class="secondary danger" onclick="removeDaily(${i})">Hapus</button></div></div>`).join('');document.getElementById('monthlyExpenseRows').innerHTML=db.monthlyExpenses.map((x,i)=>`<div class="item"><span>${x.name}</span><div class="actions"><b>${rupiah(x.amount)}</b><button class="secondary danger" onclick="removeMonthly(${i})">Hapus</button></div></div>`).join('')}
 function renderProducts(){document.getElementById('productSettings').innerHTML=db.products.map((p,i)=>`<div class="item"><div><b>${p.name}</b><div class="sub">Harga jual</div></div><div class="actions"><input style="width:120px;padding:8px" type="number" min="0" value="${p.price}" onchange="updateProductPrice('${p.id}',this.value)">${i>=5?`<button class="secondary danger" onclick="removeProduct('${p.id}')">Hapus</button>`:''}</div></div>`).join('')}
 function renderReport(){let m=monthlyData(getMonth());document.getElementById('rPorsi').textContent=m.items;document.getElementById('rOmzet').textContent=rupiah(m.om);document.getElementById('rProd').textContent=rupiah(m.prod);document.getElementById('rDaily').textContent=rupiah(m.daily);document.getElementById('rMonthly').textContent=rupiah(m.monthly);document.getElementById('rCost').textContent=rupiah(m.total);document.getElementById('rProfit').textContent=rupiah(m.profit);document.getElementById('rMargin').textContent=m.margin.toFixed(2)+'%';let records=db.productionRecords.filter(x=>ym(x.date)===getMonth()).sort((a,b)=>b.date.localeCompare(a.date));document.getElementById('monthlyProductionHistory').innerHTML=records.length?records.map(x=>`<div class="item"><span>${x.date}</span><b>${rupiah(x.amount)}</b></div>`).join(''):'<div class="empty">Belum ada catatan produksi untuk bulan ini.</div>'}
@@ -996,7 +1117,7 @@ function addDailyExpensePrompt(){let name=prompt('Nama biaya harian:');if(!name)
 function removeDaily(i){if(!confirm('Hapus biaya ini?'))return;db.dailyExpenses.splice(i,1);save();renderAll()}
 function addMonthlyExpensePrompt(){let name=prompt('Nama biaya bulanan:');if(!name)return;let amount=Number(prompt('Nominal per bulan:','0'));if(isNaN(amount))return;db.monthlyExpenses.push({name:name.trim(),amount});save();renderAll()}
 function removeMonthly(i){if(!confirm('Hapus biaya ini?'))return;db.monthlyExpenses.splice(i,1);save();renderAll()}
-function renderAll(){renderHome();renderInput();renderProduction();renderExpenses();renderProducts();renderReport()}
+function renderAll(){renderHome();renderInput();renderStockTab();renderExpenses();renderProducts();renderReport()}
 document.getElementById('month').value=ym(todayISO());renderAll();if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script>
 </body>
