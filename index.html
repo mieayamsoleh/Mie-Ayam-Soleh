@@ -981,6 +981,79 @@ button.add{
 
 </div>
 
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+  import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+
+  // ============================================================
+  // FIREBASE CONFIG
+  // Tempel konfigurasi Firebase Web milik project kamu di sini.
+  // ============================================================
+  const firebaseConfig = {
+    apiKey: "PASTE_API_KEY",
+    authDomain: "PASTE_PROJECT_ID.firebaseapp.com",
+    projectId: "PASTE_PROJECT_ID",
+    storageBucket: "PASTE_PROJECT_ID.firebasestorage.app",
+    messagingSenderId: "PASTE_MESSAGING_SENDER_ID",
+    appId: "PASTE_APP_ID"
+  };
+
+  try {
+    const validConfig =
+      firebaseConfig.apiKey !== "PASTE_API_KEY" &&
+      firebaseConfig.projectId !== "PASTE_PROJECT_ID" &&
+      firebaseConfig.appId !== "PASTE_APP_ID";
+
+    if (validConfig) {
+      const firebaseApp = initializeApp(firebaseConfig);
+      const firestore = getFirestore(firebaseApp);
+      const dataRef = doc(firestore, "mieAyamSoleh", "data");
+      let syncing = false;
+
+      async function loadFirebaseData() {
+        if (syncing) return;
+        syncing = true;
+        try {
+          const snap = await getDoc(dataRef);
+          if (snap.exists()) {
+            const remote = snap.data()?.data;
+            if (remote && typeof remote === "object") {
+              db = remote;
+              window.db = db;
+              localStorage.setItem("mieAyamSoleh_v2", JSON.stringify(db));
+              if (typeof window.renderAll === "function") window.renderAll();
+            }
+          } else {
+            await setDoc(dataRef, { data: db, updatedAt: serverTimestamp() });
+          }
+        } catch (e) {
+          console.warn("Firebase tidak bisa dibaca. Data lokal tetap digunakan.", e);
+        } finally {
+          syncing = false;
+        }
+      }
+
+      async function saveFirebaseData(localDb) {
+        if (!localDb || syncing) return;
+        try {
+          await setDoc(dataRef, { data: localDb, updatedAt: serverTimestamp() });
+        } catch (e) {
+          console.warn("Firebase tidak bisa disimpan. Data lokal tetap tersimpan.", e);
+        }
+      }
+
+      window.__mieFirebase = { enabled:true, load:loadFirebaseData, save:saveFirebaseData };
+      window.dispatchEvent(new Event("mie-firebase-ready"));
+      loadFirebaseData();
+    } else {
+      console.info("Firebase belum dikonfigurasi. Aplikasi tetap menggunakan localStorage.");
+    }
+  } catch (e) {
+    console.warn("Firebase belum aktif. Aplikasi tetap berjalan.", e);
+  }
+</script>
+
 <script>
 const KEY='mieAyamSoleh_v2';
 const defaultProducts=[{id:'mie',name:'Mie Ayam',price:12000},{id:'bakso',name:'Bakso',price:0},{id:'pangsit',name:'Pangsit',price:0},{id:'kopi',name:'Kopi',price:0},{id:'teh',name:'Teh',price:0}];
@@ -1003,7 +1076,14 @@ db.ingredients.forEach((x,i)=>{
 });
 save();
 const rupiah=n=>new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(Number(n)||0);
-const todayISO=()=>{let d=new Date();return d.toISOString().slice(0,10)};const ym=d=>d.slice(0,7);function save(){localStorage.setItem(KEY,JSON.stringify(db))}
+window.db=db;
+const todayISO=()=>{let d=new Date();return d.toISOString().slice(0,10)};const ym=d=>d.slice(0,7);function save(){
+  localStorage.setItem(KEY,JSON.stringify(db));
+  window.db=db;
+  if(window.__mieFirebase?.enabled && typeof window.__mieFirebase.save==='function'){
+    window.__mieFirebase.save(db);
+  }
+}
 function show(id,btn){document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('active'));btn.classList.add('active');renderAll()}
 function getMonth(){return document.getElementById('month').value||ym(todayISO())}
 function ingredientUnitCost(x){return Number(x.unitCost)||0}
@@ -1116,8 +1196,18 @@ function addDailyExpensePrompt(){let name=prompt('Nama biaya harian:');if(!name)
 function removeDaily(i){if(!confirm('Hapus biaya ini?'))return;db.dailyExpenses.splice(i,1);save();renderAll()}
 function addMonthlyExpensePrompt(){let name=prompt('Nama biaya bulanan:');if(!name)return;let amount=Number(prompt('Nominal per bulan:','0'));if(isNaN(amount))return;db.monthlyExpenses.push({name:name.trim(),amount});save();renderAll()}
 function removeMonthly(i){if(!confirm('Hapus biaya ini?'))return;db.monthlyExpenses.splice(i,1);save();renderAll()}
-function renderAll(){renderHome();renderInput();renderStockTab();renderExpenses();renderProducts();renderReport()}
+function renderAll(){
+  window.db=db;
+  renderHome();renderInput();renderStockTab();renderExpenses();renderProducts();renderReport()
+}
+window.renderAll=renderAll;
 document.getElementById('month').value=ym(todayISO());renderAll();if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script>
+<script>
+window.addEventListener("mie-firebase-ready",function(){
+  if(window.db) db=window.db;
+  if(typeof renderAll==="function") renderAll();
+});
 </script>
 </body>
 </html>
