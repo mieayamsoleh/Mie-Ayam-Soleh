@@ -719,6 +719,144 @@ button.add{
     box-shadow:0 0 45px rgba(50,35,20,.06);
   }
 }
+
+/* ================= TEMA PROFESIONAL ================= */
+:root{
+  --primary:#b0512c;--primary-dark:#7a3219;--primary-soft:#f6ebe5;
+  --success:#2f6f4e;--success-soft:#e9f3ed;
+  --ink:#1c1917;--muted:#6b645d;--line:#e4e1dc;--bg:#f2f1ee;--cream:#faf7f3;
+  --header:#261a14;--radius:12px;--radius-sm:10px;
+  --shadow:0 1px 2px rgba(28,25,23,.06);--shadow-soft:0 1px 2px rgba(28,25,23,.04);
+}
+body{background:var(--bg);font-variant-numeric:tabular-nums}
+.top{background:var(--header);border-radius:0;box-shadow:none;border-bottom:3px solid var(--primary);padding:14px 16px}
+.brand img{width:44px;height:44px;border-radius:12px;box-shadow:none}
+.brand h1{font-size:18px;font-weight:750;letter-spacing:-.2px;margin:0 0 2px}
+.brand p{font-size:12px;opacity:.7}
+main{padding:20px 14px 108px}
+.page-head h2,h2{font-size:22px;font-weight:750;letter-spacing:-.3px}
+.page-head .head-note{font-size:12px}
+h3{font-size:15px;font-weight:700}
+.card{border-radius:var(--radius);padding:16px;box-shadow:var(--shadow)}
+.notice{border-radius:var(--radius-sm);background:#fff;border:1px solid var(--line);border-left:3px solid var(--primary);box-shadow:none;font-size:12.5px}
+.notice-icon{border-radius:8px}
+.metric{min-height:104px;padding:15px}
+.metric::after{display:none}
+.metric-icon{border-radius:8px;width:28px;height:28px}
+.metric .label{font-size:12px;font-weight:600}
+.metric .value{font-size:22px;font-weight:750;letter-spacing:-.3px}
+.today-card,.report-summary,.stock-hero{background:#fff;border:1px solid var(--line)}
+.today-title{font-size:14px;font-weight:700}
+.today-pill,.sales-chart-badge{font-size:11px;font-weight:650;border-radius:6px}
+.big{font-size:30px;font-weight:750;letter-spacing:-.6px}
+.small{font-size:12px}
+.sales-chart-title{font-size:15px;font-weight:700}
+.sales-chart-sub{font-size:12px}
+.sales-bar{border-radius:5px 5px 2px 2px;background:var(--primary);box-shadow:none}
+.sales-day{font-size:11px}.sales-value{font-size:9.5px}
+.item{font-size:14px;padding:13px 0}
+.item .sub{font-size:12px}
+.empty{font-size:13px}
+label{font-size:12.5px;font-weight:600;color:#4a443f}
+input,select{border-radius:var(--radius-sm);border-color:#d6d2cb;font-size:15px;padding:12px}
+input:focus,select:focus{box-shadow:0 0 0 3px rgba(176,81,44,.16)}
+button.primary{background:var(--primary);border-radius:var(--radius-sm);box-shadow:none;font-weight:700;font-size:15px;padding:14px}
+button.primary:active{background:var(--primary-dark)}
+button.secondary{border-radius:8px;font-weight:600;font-size:12px;padding:8px 11px}
+button.add{border-radius:var(--radius-sm);background:#fff;border:1px dashed #c9b8aa;font-weight:650}
+.actions button{font-size:12px}
+.prod-head,.prod-mobile-head{font-size:11px;font-weight:650}
+.prod-mobile-row,.stock-production-row{border-radius:var(--radius-sm);box-shadow:none}
+.prod-mobile-name,.stock-production-name{font-size:14px;font-weight:650}
+.prod-mobile-cost,.stock-cost{font-size:12px}
+.prod-field label,.stock-production-fields label,.stock-purchase-grid label{font-size:11px}
+.production-intro,.stock-stat,.stock-purchase{background:var(--cream);border-color:var(--line);border-radius:var(--radius-sm);font-size:12px}
+.production-date-row{background:var(--cream);border-color:var(--line);border-radius:var(--radius-sm)}
+.production-date-row label{font-size:11px}
+.production-summary{background:var(--cream);border-color:var(--line);border-radius:var(--radius-sm)}
+.production-total-label,.stock-stat-label{font-size:11px}
+.production-total-value{font-size:24px;font-weight:750}
+.production-per{font-size:11.5px}
+.production-history-date,.stock-history-date{font-size:14px;font-weight:650}
+.production-history-sub,.stock-history-sub,.stock-meta{font-size:11.5px}
+.production-history-amount,.stock-history-amount{font-size:14px;font-weight:700}
+.stock-name{font-size:14px;font-weight:650}.stock-qty{font-size:14px;font-weight:700}
+.stock-stat-value{font-size:18px;font-weight:750}
+.report-profit{border-radius:var(--radius-sm)}
+.report-profit-label{font-size:12px}
+.tabs{background:#fff;backdrop-filter:none;-webkit-backdrop-filter:none;border-top:1px solid var(--line);box-shadow:none;padding:0 6px calc(4px + env(safe-area-inset-bottom))}
+.tabs button{font-size:11.5px;font-weight:600;border-radius:0;padding:9px 4px 8px;background:transparent!important}
+.tabs button.active{color:var(--primary-dark);font-weight:700;box-shadow:inset 0 3px 0 var(--primary)}
+.tabs b{font-size:19px;margin-bottom:2px}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+
+/* ================= TEMA V2: APLIKASI KASIR MODERN ================= */
+:root{--espresso:#1d1310;--espresso-2:#2c1e18;--cream:#f7f2ea;--chili:#c4432a;--saffron:#f0b03c;--bg:#f4f0ea;--line:#e6dfd4;--primary:#c4432a;--primary-dark:#8f2e1a;--primary-soft:#fbe9e4}
+body{background:var(--bg);font-family:"Segoe UI",Roboto,system-ui,-apple-system,sans-serif}
+.app{background:var(--bg)}
+.top{background:var(--espresso);border:0;padding:16px 18px 62px;position:relative}
+.brand img{width:40px;height:40px;border-radius:50%;padding:0;background:var(--cream)}
+.brand h1{font-size:17px;font-weight:700;color:var(--cream)}
+.brand p{color:var(--saffron);opacity:1;font-size:11.5px;font-weight:600}
+main{padding:0 14px 120px;margin-top:-46px;position:relative;z-index:21}
+#home.active{display:flex;flex-direction:column}
+#home .today-card{order:-2;margin-top:0}
+#home .page-head{order:-1;margin:18px 4px 4px}
+#home .page-head h2{font-size:18px}
+#home .notice{order:0}
+.today-card{background:var(--espresso-2);border:0;border-radius:20px;padding:20px;box-shadow:0 14px 30px rgba(29,19,16,.28)}
+.today-title{color:#d9cbbd;font-size:13px;font-weight:600}
+.today-pill{background:var(--saffron);color:var(--espresso);border-radius:99px;font-size:11px;font-weight:700}
+.today-card .big{color:var(--cream);font-size:40px;font-weight:800;letter-spacing:-1.5px;margin-top:6px}
+.today-card .small{color:#b8a898;font-size:12.5px;margin-top:8px}
+.page-head h2,h2{color:var(--espresso);font-weight:800}
+.notice{background:transparent;border:0;border-left:0;box-shadow:none;padding:4px 2px;font-size:12.5px;color:var(--muted)}
+.notice-icon{background:var(--espresso);color:var(--saffron);border-radius:50%;width:28px;height:28px;flex-basis:28px;font-size:11px}
+#home .grid{gap:0;background:#fff;border:1px solid var(--line);border-radius:18px;overflow:hidden;box-shadow:none}
+#home .grid .card{border:0;border-radius:0;box-shadow:none;background:transparent;min-height:98px;padding:16px}
+#home .grid .card:nth-child(odd){border-right:1px solid var(--line)}
+#home .grid .card:nth-child(-n+2){border-bottom:1px solid var(--line)}
+.metric-icon{background:transparent;padding:0;width:auto;height:auto;justify-content:start;font-size:16px;margin-bottom:8px}
+.metric .label{color:var(--muted);font-size:12px;font-weight:600}
+.metric .value{font-size:22px;font-weight:800;letter-spacing:-.6px;color:var(--espresso)}
+.metric .value.red{color:var(--chili)}.metric .value.green{color:var(--success)}
+.card{border-radius:18px;box-shadow:none;border:1px solid var(--line)}
+.sales-chart{height:150px;border-top:0;gap:9px;padding-top:6px}
+.sales-bar{max-width:26px;background:#e4d6c8;border-radius:8px}
+.sales-bar-wrap:last-child .sales-bar{background:var(--chili)}
+.sales-bar-wrap:last-child .sales-day{color:var(--chili);font-weight:700}
+.sales-chart-badge{background:var(--cream);color:var(--espresso-2);border-radius:99px}
+h3{font-size:15px;font-weight:800;color:var(--espresso)}
+.item{padding:14px 0}
+.item b{font-weight:700}
+input,select{border-radius:14px;background:#fbf9f5;border:1.5px solid #e2d9cc;font-size:16px;padding:13px 14px}
+input:focus,select:focus{border-color:var(--chili);background:#fff;box-shadow:0 0 0 4px rgba(196,67,42,.12)}
+button.primary{background:var(--espresso);color:var(--cream);border-radius:16px;height:54px;padding:0;font-size:16px;font-weight:700;letter-spacing:.1px;box-shadow:0 8px 18px rgba(29,19,16,.22)}
+button.primary:active{background:var(--chili);transform:scale(.99)}
+button.secondary{border-radius:99px;background:var(--cream);border-color:var(--line);color:var(--espresso-2)}
+button.add{border-radius:14px;border-color:#d8c8b6;background:transparent;color:var(--chili)}
+.production-summary,.production-intro,.production-date-row,.stock-stat,.stock-purchase{background:var(--cream);border-color:var(--line);border-radius:14px}
+.production-total-value,.stock-stat-value,.prod-mobile-cost,.stock-cost,.production-history-amount,.stock-history-amount{color:var(--chili)}
+.report-profit{background:var(--espresso-2);border:0;border-radius:16px}
+.report-profit-label{color:#b8a898}
+.report-profit .green,.report-profit-value{color:var(--saffron)}
+.tabs{left:50%;bottom:calc(12px + env(safe-area-inset-bottom));width:min(420px,calc(100% - 28px));background:var(--espresso);border:0;border-radius:24px;padding:6px;box-shadow:0 14px 30px rgba(29,19,16,.35);gap:2px}
+.tabs button{color:#a99a8c;border-radius:18px;padding:8px 2px 7px;font-size:11px;box-shadow:none!important}
+.tabs button.active{background:var(--espresso-2)!important;color:var(--cream);font-weight:700}
+.tabs button.active b{color:var(--saffron)}
+
+.sec-title{margin:22px 4px 10px;font-size:15px;font-weight:800;color:var(--espresso)}
+.daily-card{padding:18px 16px 8px}
+.daily-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.daily-head h3{margin:0}
+.daily-head input{width:auto;max-width:158px;padding:8px 10px;font-size:14px;border-radius:12px}
+.daily-profit{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:14px;border-radius:14px;background:var(--cream);margin-bottom:4px}
+.daily-profit span{font-size:12.5px;color:var(--muted);font-weight:600}
+.daily-profit b{font-size:26px;font-weight:800;letter-spacing:-.8px}
+.daily-sub{font-size:12px;font-weight:700;color:var(--muted);margin:14px 0 8px}
+.daily-chips{display:flex;flex-wrap:wrap;gap:7px;padding-bottom:12px}
+.daily-chips span{background:var(--cream);border:1px solid var(--line);border-radius:99px;padding:7px 12px;font-size:13px}
+.daily-chips b{margin-left:5px;color:var(--chili)}
 </style>
 </head>
 
@@ -752,6 +890,7 @@ button.add{
     </div>
   </div>
 
+  <h3 class="sec-title">Ringkasan bulan ini</h3>
   <div class="grid section">
     <div class="card metric">
       <div class="metric-icon">🍜</div>
@@ -778,10 +917,20 @@ button.add{
     </div>
   </div>
 
+  <div class="card section daily-card">
+    <div class="daily-head">
+      <h3>Laporan harian</h3>
+      <input type="date" id="dayDate" onchange="renderDaily()" aria-label="Pilih tanggal">
+    </div>
+    <div class="daily-profit"><span>Profit hari ini</span><b id="dProfit">Rp0</b></div>
+    <div id="dRows"></div>
+    <div id="dProducts"></div>
+  </div>
+
   <div class="card section today-card">
     <div class="today-top">
-      <div class="today-title">Hari ini</div>
-      <div class="today-pill">TODAY</div>
+      <div class="today-title">Profit hari ini</div>
+      <div class="today-pill">Bersih</div>
     </div>
     <div class="big" id="todayProfit">Rp0</div>
     <div class="small" id="todayInfo">Belum ada penjualan hari ini.</div>
@@ -983,7 +1132,7 @@ button.add{
 
 <script>
 const KEY='mieAyamSoleh_v2';
-const defaultProducts=[{id:'mie',name:'Mie Ayam',price:12000},{id:'bakso',name:'Bakso',price:0},{id:'pangsit',name:'Pangsit',price:0},{id:'kopi',name:'Kopi',price:0},{id:'teh',name:'Teh',price:0}];
+const defaultProducts=[{id:'mie',name:'Mie Ayam',price:12000},{id:'bakso',name:'Bakso',price:0},{id:'pangsit',name:'Pangsit',price:0},{id:'kopi',name:'Kopi',price:0},{id:'teh',name:'Teh Tawar',price:0},{id:'teh_manis',name:'Teh Manis',price:0},{id:'es_teh_manis',name:'Es Teh Manis',price:0},{id:'es_teh_tawar',name:'Es Teh Tawar',price:0}];
 const defaultIngredients=['Mie','Bumbu','Minyak goreng','Saos Tiram','Ayam','Kecap manis','Kecap asin','Sawi','Daun bawang','Bawang goreng','Saos','Sambal','Gas','Packing plastik & styrofoam','Sumpit','Tissue','Sabun Cuci Piring'];
 let db=JSON.parse(localStorage.getItem(KEY)||'null');
 if(!db){
@@ -996,6 +1145,7 @@ save();
 if(!Array.isArray(db.productionRecords)) db.productionRecords=[];
 if(!Array.isArray(db.stockPurchases)) db.stockPurchases=[];
 if(!Array.isArray(db.stockMovements)) db.stockMovements=[];
+if(!db.teaMigrated){const t=db.products.find(p=>p.id==='teh');if(t&&t.name==='Teh')t.name='Teh Tawar';[['teh_manis','Teh Manis'],['es_teh_manis','Es Teh Manis'],['es_teh_tawar','Es Teh Tawar']].forEach(([id,name])=>{if(!db.products.some(p=>p.id===id))db.products.push({id,name,price:0})});db.teaMigrated=true}
 db.ingredients.forEach((x,i)=>{
   if(x.stockQty==null)x.stockQty=0;
   if(x.unitCost==null)x.unitCost=Number(x.buyQty)>0?Number(x.buyPrice||0)/Number(x.buyQty):0;
@@ -1003,7 +1153,7 @@ db.ingredients.forEach((x,i)=>{
 });
 save();
 const rupiah=n=>new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(Number(n)||0);
-const todayISO=()=>{let d=new Date();return d.toISOString().slice(0,10)};const ym=d=>d.slice(0,7);function save(){localStorage.setItem(KEY,JSON.stringify(db))}
+const todayISO=()=>{let d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};const ym=d=>d.slice(0,7);function save(){localStorage.setItem(KEY,JSON.stringify(db))}
 function show(id,btn){document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('active'));btn.classList.add('active');renderAll()}
 function getMonth(){return document.getElementById('month').value||ym(todayISO())}
 function ingredientUnitCost(x){return Number(x.unitCost)||0}
@@ -1102,7 +1252,10 @@ function saveSale(){let date=document.getElementById('date').value||todayISO();l
 function saveSettings(){db.settings.dailyCoffee=Number(document.getElementById('dailyCoffee').value||0);db.settings.gasMonthly=Number(document.getElementById('monthlyGas').value||0);db.settings.elecMonthly=Number(document.getElementById('monthlyElec').value||0);db.settings.rentMonthly=Number(document.getElementById('monthlyRent').value||0);db.settings.internetMonthly=Number(document.getElementById('monthlyInternet').value||0);save();renderAll()}
 function saveProductionSettings(){captureProductionSettings();save();renderAll()}
 function renderSalesChart(){const el=document.getElementById('salesChart');if(!el)return;const days=[];for(let i=6;i>=0;i--){let d=new Date();d.setDate(d.getDate()-i);let iso=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');days.push({iso,label:d.toLocaleDateString('id-ID',{weekday:'short'}).replace('.',''),omzet:0})}db.sales.forEach(sale=>{let day=days.find(x=>x.iso===sale.date);if(day)day.omzet+=Number(sale.omzet)||0});let max=Math.max(...days.map(x=>x.omzet),1);el.innerHTML=days.map(day=>{let height=day.omzet>0?Math.max(8,(day.omzet/max)*100):5;let value=day.omzet>=1000000?'Rp'+(day.omzet/1000000).toFixed(1)+'jt':day.omzet>=1000?'Rp'+Math.round(day.omzet/1000)+'rb':'Rp0';return `<div class="sales-bar-wrap"><div class="sales-value">${value}</div><div class="sales-bar" style="height:${height}%" title="${rupiah(day.omzet)}"></div><div class="sales-day">${day.label}</div></div>`}).join('')}
-function renderHome(){let m=monthlyData(ym(todayISO()));document.getElementById('mPorsi').textContent=m.items;document.getElementById('mOmzet').textContent=rupiah(m.om);document.getElementById('mBiaya').textContent=rupiah(m.total);document.getElementById('mProfit').textContent=rupiah(m.profit);let t=m.sales.filter(x=>x.date===todayISO()),o=t.reduce((a,x)=>a+x.omzet,0),pc=dailyProductionTotal(todayISO())+legacyDailyProductionTotal(todayISO()),de=db.dailyExpenses.filter(x=>x.date===todayISO()).reduce((s,x)=>s+Number(x.amount||0),0)+t.reduce((s,x)=>s+Number(x.dailyCoffee||0),0);document.getElementById('todayProfit').textContent=rupiah(o-pc-de);document.getElementById('todayInfo').textContent=(t.length||pc||de)?`${t.reduce((s,x)=>s+x.items.reduce((a,i)=>a+i.qty,0),0)} item • omzet ${rupiah(o)} • produksi ${rupiah(pc)} • biaya lain ${rupiah(de)}`:'Belum ada pemasukan hari ini.';let recent=db.sales.slice(-7).reverse();document.getElementById('recent').innerHTML=recent.length?recent.map(x=>`<div class="item"><span>${x.date}<br><small>${x.items.map(i=>{let p=db.products.find(p=>p.id===i.productId);return `${p?.name||i.productId} × ${i.qty}`}).join(', ')}</small></span><b>${rupiah(x.omzet)}</b></div>`).join(''):'<div class="empty">Belum ada data.</div>';let mie=db.products.find(p=>p.id==='mie');document.getElementById('priceLabel').textContent=rupiah(mie?.price||0);document.getElementById('costLabel').textContent=rupiah(productionPerPortion());renderSalesChart()}
+function fmtTgl(iso){const [y,m,d]=iso.split('-');return new Date(y,m-1,d).toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}
+function dayData(date){const sales=db.sales.filter(x=>x.date===date);const om=sales.reduce((a,x)=>a+Number(x.omzet||0),0);const prod=dailyProductionTotal(date)+legacyDailyProductionTotal(date);const other=db.dailyExpenses.filter(x=>x.date===date).reduce((s,x)=>s+Number(x.amount||0),0)+sales.reduce((s,x)=>s+Number(x.dailyCoffee||0),0);const byProd={};sales.forEach(x=>x.items.forEach(i=>{byProd[i.productId]=(byProd[i.productId]||0)+Number(i.qty||0)}));const items=Object.values(byProd).reduce((a,b)=>a+b,0);const profit=om-prod-other;return{sales,om,prod,other,byProd,items,profit,margin:om?profit/om*100:0}}
+function renderDaily(){const inp=document.getElementById('dayDate');if(!inp)return;if(!inp.value)inp.value=todayISO();const d=dayData(inp.value);const pe=document.getElementById('dProfit');pe.textContent=rupiah(d.profit);pe.className=d.profit<0?'danger':'green';document.querySelector('.daily-profit span').textContent=inp.value===todayISO()?'Profit hari ini':'Profit '+fmtTgl(inp.value);document.getElementById('dRows').innerHTML=`<div class="item"><span>Transaksi</span><b>${d.sales.length}</b></div><div class="item"><span>Produk terjual</span><b>${d.items}</b></div><div class="item"><span>Omzet</span><b>${rupiah(d.om)}</b></div><div class="item"><span>Biaya produksi</span><b>${rupiah(d.prod)}</b></div><div class="item"><span>Biaya harian lain</span><b>${rupiah(d.other)}</b></div><div class="item"><span>Margin</span><b>${d.margin.toFixed(1)}%</b></div>`;const names=Object.keys(d.byProd);document.getElementById('dProducts').innerHTML=names.length?`<div class="daily-sub">Rincian produk</div><div class="daily-chips">${names.map(id=>{const p=db.products.find(p=>p.id===id);return `<span>${p?.name||id} <b>${d.byProd[id]}</b></span>`}).join('')}</div>`:'<div class="empty">Belum ada penjualan di tanggal ini.</div>'}
+function renderHome(){let m=monthlyData(ym(todayISO()));document.getElementById('mPorsi').textContent=m.items;document.getElementById('mOmzet').textContent=rupiah(m.om);document.getElementById('mBiaya').textContent=rupiah(m.total);document.getElementById('mProfit').textContent=rupiah(m.profit);let t=m.sales.filter(x=>x.date===todayISO()),o=t.reduce((a,x)=>a+x.omzet,0),pc=dailyProductionTotal(todayISO())+legacyDailyProductionTotal(todayISO()),de=db.dailyExpenses.filter(x=>x.date===todayISO()).reduce((s,x)=>s+Number(x.amount||0),0)+t.reduce((s,x)=>s+Number(x.dailyCoffee||0),0);document.getElementById('todayProfit').textContent=rupiah(o-pc-de);document.getElementById('todayInfo').textContent=(t.length||pc||de)?`${t.reduce((s,x)=>s+x.items.reduce((a,i)=>a+i.qty,0),0)} item • omzet ${rupiah(o)} • produksi ${rupiah(pc)} • biaya lain ${rupiah(de)}`:'Belum ada pemasukan hari ini.';let recent=db.sales.slice(-7).reverse();document.getElementById('recent').innerHTML=recent.length?recent.map(x=>`<div class="item"><span>${x.date}<br><small>${x.items.map(i=>{let p=db.products.find(p=>p.id===i.productId);return `${p?.name||i.productId} × ${i.qty}`}).join(', ')}</small></span><b>${rupiah(x.omzet)}</b></div>`).join(''):'<div class="empty">Belum ada data.</div>';let mie=db.products.find(p=>p.id==='mie');document.getElementById('priceLabel').textContent=rupiah(mie?.price||0);document.getElementById('costLabel').textContent=rupiah(productionPerPortion());renderSalesChart();renderDaily()}
 function renderInput(){document.getElementById('date').value=todayISO();document.getElementById('productSales').innerHTML=db.products.map(p=>`<div class="row"><div><label>${p.name}</label><input id="qty_${p.id}" type="number" min="0" value="0" inputmode="numeric"></div><div style="max-width:130px"><label>Harga</label><input type="number" value="${p.price}" disabled></div></div>`).join('');let s=db.sales.filter(x=>ym(x.date)===getMonth()).slice().reverse();document.getElementById('salesList').innerHTML=s.length?s.map(x=>`<div class="item"><span>${x.date}<br><small>${x.items.map(i=>{let p=db.products.find(p=>p.id===i.productId);return `${p?.name||i.productId} × ${i.qty}`}).join(', ')}</small></span><b>${rupiah(x.omzet)}</b></div>`).join(''):'<div class="empty">Belum ada pemasukan bulan ini.</div>'}
 function renderProduction(){renderStockProduction()}
 function renderExpenses(){document.getElementById('dailyCoffee').value=(db.dailyExpenses.find(x=>x.date===todayISO()&&x.name==='Rokok + kopi')?.amount)||0;document.getElementById('monthlyGas').value=db.settings.gasMonthly||0;document.getElementById('monthlyElec').value=db.settings.elecMonthly||0;document.getElementById('monthlyRent').value=db.settings.rentMonthly||0;document.getElementById('monthlyInternet').value=db.settings.internetMonthly||0;document.getElementById('dailyExpenseRows').innerHTML=db.dailyExpenses.map((x,i)=>`<div class="item"><span>${x.name}<br><span class="sub">${x.date}</span></span><div class="actions"><b>${rupiah(x.amount)}</b><button class="secondary danger" onclick="removeDaily(${i})">Hapus</button></div></div>`).join('');document.getElementById('monthlyExpenseRows').innerHTML=db.monthlyExpenses.map((x,i)=>`<div class="item"><span>${x.name}</span><div class="actions"><b>${rupiah(x.amount)}</b><button class="secondary danger" onclick="removeMonthly(${i})">Hapus</button></div></div>`).join('')}
