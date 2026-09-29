@@ -670,7 +670,7 @@ button.add{
   -webkit-backdrop-filter:blur(16px);
   border-top:1px solid rgba(233,231,227,.95);
   display:grid;
-  grid-template-columns:repeat(4,1fr);
+  grid-template-columns:repeat(5,1fr);
   z-index:30;
   box-shadow:0 -7px 24px rgba(50,30,15,.075);
   padding:5px 6px calc(5px + env(safe-area-inset-bottom));
@@ -818,7 +818,8 @@ button.add{
     <div id="productSales"></div>
 
     <button class="add" onclick="addProductPrompt()">＋ Tambah produk</button>
-    <button class="primary" onclick="saveSale()">Simpan pemasukan</button>
+    <button class="primary" id="saleSaveBtn" onclick="saveSale()">Simpan pemasukan</button>
+    <button class="secondary" id="saleCancelBtn" onclick="cancelEditSale()" style="display:none;width:100%;margin-top:8px">Batal edit</button>
   </div>
 
   <div class="card section">
@@ -895,34 +896,10 @@ button.add{
   </div>
 </section>
 
-<section id="report" class="view">
+<section id="expense" class="view">
   <div class="page-head">
-    <h2>Laporan</h2>
-    <div class="head-note">Laporan &amp;<br>pengaturan</div>
-  </div>
-
-  <div class="card report-summary">
-    <label>Pilih bulan</label>
-    <input id="month" type="month" onchange="renderAll()">
-
-    <div class="list section">
-      <div class="item"><span>Total item terjual</span><b id="rPorsi">0</b></div>
-      <div class="item"><span>Omzet</span><b id="rOmzet">Rp0</b></div>
-      <div class="item"><span>Biaya produksi</span><b id="rProd">Rp0</b></div>
-      <div class="item"><span>Pengeluaran harian</span><b id="rDaily">Rp0</b></div>
-      <div class="item"><span>Pengeluaran bulanan</span><b id="rMonthly">Rp0</b></div>
-      <div class="item"><span>Total semua biaya</span><b id="rCost">Rp0</b></div>
-      <div class="item"><span>Margin profit</span><b id="rMargin">0%</b></div>
-    </div>
-
-    <div class="report-profit">
-      <div class="report-profit-label">PROFIT BERSIH</div>
-      <div class="report-profit-value" id="rProfit">Rp0</div>
-    </div>
-  </div>
-
-  <div class="card section notice">
-    <div class="notice-icon">📦</div><div class="notice-text"><b>Produksi &amp; stok</b><br>Catatan pembelian, stok tersisa, dan biaya produksi harian sekarang dikelola di tab <b>Stok</b>.</div>
+    <h2>Pengeluaran</h2>
+    <div class="head-note">Catat biaya<br>harian & bulanan</div>
   </div>
 
   <div class="card section">
@@ -954,6 +931,42 @@ button.add{
     <div id="monthlyExpenseRows"></div>
     <button class="add" onclick="addMonthlyExpensePrompt()">＋ Tambah biaya pengeluaran bulanan</button>
   </div>
+</section>
+
+<section id="report" class="view">
+  <div class="page-head">
+    <h2>Laporan</h2>
+    <div class="head-note">Laporan &amp;<br>pengaturan</div>
+  </div>
+
+  <div class="card report-summary">
+    <label>Pilih bulan</label>
+    <input id="month" type="month" onchange="renderAll()">
+
+    <div class="list section">
+      <div class="item"><span>Total item terjual</span><b id="rPorsi">0</b></div>
+      <div class="item"><span>Omzet</span><b id="rOmzet">Rp0</b></div>
+      <div class="item"><span>Biaya produksi</span><b id="rProd">Rp0</b></div>
+      <div class="item"><span>Pengeluaran harian</span><b id="rDaily">Rp0</b></div>
+      <div class="item"><span>Pengeluaran bulanan</span><b id="rMonthly">Rp0</b></div>
+      <div class="item"><span>Total semua biaya</span><b id="rCost">Rp0</b></div>
+      <div class="item"><span>Margin profit</span><b id="rMargin">0%</b></div>
+    </div>
+
+    <div class="report-profit">
+      <div class="report-profit-label">PROFIT BERSIH</div>
+      <div class="report-profit-value" id="rProfit">Rp0</div>
+    </div>
+  </div>
+
+  <div class="card section notice">
+    <div class="notice-icon">📦</div><div class="notice-text"><b>Produksi &amp; stok</b><br>Catatan pembelian, stok tersisa, dan biaya produksi harian sekarang dikelola di tab <b>Stok</b>.</div>
+  </div>
+
+  <div class="card section notice">
+    <div class="notice-icon">−</div>
+    <div class="notice-text"><b>Pengeluaran</b><br>Catat dan kelola pengeluaran harian maupun bulanan di tab <b>Pengeluaran</b>.</div>
+  </div>
 
   <div class="card section">
     <h3>Harga Jual Produk</h3>
@@ -973,6 +986,9 @@ button.add{
   </button>
   <button onclick="show('stock',this)">
     <b>▤</b>Stok
+  </button>
+  <button onclick="show('expense',this)">
+    <b>−</b>Pengeluaran
   </button>
   <button onclick="show('report',this)">
     <b>▦</b>Laporan
@@ -1178,12 +1194,55 @@ function renderStockTab(){recalculateStockFromRecords();renderStock();renderStoc
 function dailyExpenseTotal(month){let dynamic=db.dailyExpenses.filter(x=>x.month===month).reduce((s,x)=>s+Number(x.amount||0),0);let legacy=db.sales.filter(x=>ym(x.date)===month).reduce((s,x)=>s+Number(x.dailyCoffee||0),0);return dynamic+legacy}
 function monthlyExpenseTotal(){return Number(db.settings.gasMonthly||0)+Number(db.settings.elecMonthly||0)+Number(db.settings.rentMonthly||0)+Number(db.settings.internetMonthly||0)+db.monthlyExpenses.reduce((s,x)=>s+Number(x.amount||0),0)}
 function monthlyData(month){let sales=db.sales.filter(x=>ym(x.date)===month),items=sales.reduce((a,x)=>a+x.items.reduce((s,i)=>s+Number(i.qty||0),0),0),om=sales.reduce((a,x)=>a+Number(x.omzet||0),0);let prod=monthlyProductionTotal(month);let daily=dailyExpenseTotal(month);let monthly=monthlyExpenseTotal();let total=prod+daily+monthly;return{sales,items,om,prod,daily,monthly,total,profit:om-total,margin:om?((om-total)/om*100):0}}
-function saveSale(){let date=document.getElementById('date').value||todayISO();let items=db.products.map(p=>{let q=Number(document.getElementById('qty_'+p.id)?.value||0);return{productId:p.id,qty:q,price:Number(p.price)||0}}).filter(x=>x.qty>0);if(!items.length)return alert('Masukkan jumlah produk yang terjual.');let omzet=items.reduce((s,x)=>s+x.qty*x.price,0);db.sales.push({id:Date.now(),date,items,omzet,prodCost:0});save();alert('Pemasukan tersimpan.');renderAll()}
+function saveSale(){
+ let date=document.getElementById('date').value||todayISO();
+ let items=db.products.map(p=>{let q=Number(document.getElementById('qty_'+p.id)?.value||0);return{productId:p.id,qty:q,price:Number(p.price)||0}}).filter(x=>x.qty>0);
+ if(!items.length)return alert('Masukkan jumlah produk yang terjual.');
+ let omzet=items.reduce((s,x)=>s+x.qty*x.price,0);
+ let editingId=window.editingSaleId||null;
+ if(editingId){
+   let sale=db.sales.find(x=>x.id===editingId);if(!sale)return cancelEditSale();
+   sale.date=date;sale.items=items;sale.omzet=omzet;
+   window.editingSaleId=null;save();alert('Pemasukan berhasil diubah.');renderAll();
+ }else{
+   db.sales.push({id:Date.now(),date,items,omzet,prodCost:0});
+   save();alert('Pemasukan tersimpan.');renderAll();
+ }
+}
+function editSale(id){
+ let sale=db.sales.find(x=>x.id===id);if(!sale)return;
+ window.editingSaleId=id;renderInput();
+ document.getElementById('date').value=sale.date;
+ db.products.forEach(p=>{let item=sale.items?.find(i=>i.productId===p.id);let el=document.getElementById('qty_'+p.id);if(el)el.value=item?.qty||0;});
+ let btn=document.getElementById('saleSaveBtn');if(btn)btn.textContent='✓ Simpan Perubahan';
+ let cancel=document.getElementById('saleCancelBtn');if(cancel)cancel.style.display='block';
+ document.getElementById('input')?.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function cancelEditSale(){window.editingSaleId=null;renderAll()}
+function deleteSale(id){
+ let sale=db.sales.find(x=>x.id===id);if(!sale)return;
+ if(!confirm('Hapus transaksi pemasukan ini? Data akan dihapus dari laporan juga.'))return;
+ db.sales=db.sales.filter(x=>x.id!==id);
+ if(window.editingSaleId===id)window.editingSaleId=null;
+ save();renderAll();
+}
 function saveSettings(){db.settings.dailyCoffee=Number(document.getElementById('dailyCoffee').value||0);db.settings.gasMonthly=Number(document.getElementById('monthlyGas').value||0);db.settings.elecMonthly=Number(document.getElementById('monthlyElec').value||0);db.settings.rentMonthly=Number(document.getElementById('monthlyRent').value||0);db.settings.internetMonthly=Number(document.getElementById('monthlyInternet').value||0);save();renderAll()}
 function saveProductionSettings(){captureProductionSettings();save();renderAll()}
 function renderSalesChart(){const el=document.getElementById('salesChart');if(!el)return;const days=[];for(let i=6;i>=0;i--){let d=new Date();d.setDate(d.getDate()-i);let iso=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');days.push({iso,label:d.toLocaleDateString('id-ID',{weekday:'short'}).replace('.',''),omzet:0})}db.sales.forEach(sale=>{let day=days.find(x=>x.iso===sale.date);if(day)day.omzet+=Number(sale.omzet)||0});let max=Math.max(...days.map(x=>x.omzet),1);el.innerHTML=days.map(day=>{let height=day.omzet>0?Math.max(8,(day.omzet/max)*100):5;let value=day.omzet>=1000000?'Rp'+(day.omzet/1000000).toFixed(1)+'jt':day.omzet>=1000?'Rp'+Math.round(day.omzet/1000)+'rb':'Rp0';return `<div class="sales-bar-wrap"><div class="sales-value">${value}</div><div class="sales-bar" style="height:${height}%" title="${rupiah(day.omzet)}"></div><div class="sales-day">${day.label}</div></div>`}).join('')}
 function renderHome(){let m=monthlyData(ym(todayISO()));document.getElementById('mPorsi').textContent=m.items;document.getElementById('mOmzet').textContent=rupiah(m.om);document.getElementById('mBiaya').textContent=rupiah(m.total);document.getElementById('mProfit').textContent=rupiah(m.profit);let t=m.sales.filter(x=>x.date===todayISO()),o=t.reduce((a,x)=>a+x.omzet,0),pc=dailyProductionTotal(todayISO())+legacyDailyProductionTotal(todayISO()),de=db.dailyExpenses.filter(x=>x.date===todayISO()).reduce((s,x)=>s+Number(x.amount||0),0)+t.reduce((s,x)=>s+Number(x.dailyCoffee||0),0);document.getElementById('todayProfit').textContent=rupiah(o-pc-de);document.getElementById('todayInfo').textContent=(t.length||pc||de)?`${t.reduce((s,x)=>s+x.items.reduce((a,i)=>a+i.qty,0),0)} item • omzet ${rupiah(o)} • produksi ${rupiah(pc)} • biaya lain ${rupiah(de)}`:'Belum ada pemasukan hari ini.';let recent=db.sales.slice(-7).reverse();document.getElementById('recent').innerHTML=recent.length?recent.map(x=>`<div class="item"><span>${x.date}<br><small>${x.items.map(i=>{let p=db.products.find(p=>p.id===i.productId);return `${p?.name||i.productId} × ${i.qty}`}).join(', ')}</small></span><b>${rupiah(x.omzet)}</b></div>`).join(''):'<div class="empty">Belum ada data.</div>';let mie=db.products.find(p=>p.id==='mie');document.getElementById('priceLabel').textContent=rupiah(mie?.price||0);document.getElementById('costLabel').textContent=rupiah(productionPerPortion());renderSalesChart()}
-function renderInput(){document.getElementById('date').value=todayISO();document.getElementById('productSales').innerHTML=db.products.map(p=>`<div class="row"><div><label>${p.name}</label><input id="qty_${p.id}" type="number" min="0" value="0" inputmode="numeric"></div><div style="max-width:130px"><label>Harga</label><input type="number" value="${p.price}" disabled></div></div>`).join('');let s=db.sales.filter(x=>ym(x.date)===getMonth()).slice().reverse();document.getElementById('salesList').innerHTML=s.length?s.map(x=>`<div class="item"><span>${x.date}<br><small>${x.items.map(i=>{let p=db.products.find(p=>p.id===i.productId);return `${p?.name||i.productId} × ${i.qty}`}).join(', ')}</small></span><b>${rupiah(x.omzet)}</b></div>`).join(''):'<div class="empty">Belum ada pemasukan bulan ini.</div>'}
+function renderInput(){
+ const editing=window.editingSaleId?db.sales.find(x=>x.id===window.editingSaleId):null;
+ document.getElementById('date').value=editing?.date||todayISO();
+ document.getElementById('productSales').innerHTML=db.products.map(p=>{
+   const item=editing?.items?.find(i=>i.productId===p.id);
+   return `<div class="row"><div><label>${p.name}</label><input id="qty_${p.id}" type="number" min="0" value="${item?.qty||0}" inputmode="numeric"></div><div style="max-width:130px"><label>Harga</label><input type="number" value="${p.price}" disabled></div></div>`;
+ }).join('');
+ const saveBtn=document.getElementById('saleSaveBtn'),cancelBtn=document.getElementById('saleCancelBtn');
+ if(saveBtn)saveBtn.textContent=editing?'✓ Simpan Perubahan':'Simpan pemasukan';
+ if(cancelBtn)cancelBtn.style.display=editing?'block':'none';
+ let s=db.sales.filter(x=>ym(x.date)===getMonth()).slice().reverse();
+ document.getElementById('salesList').innerHTML=s.length?s.map(x=>`<div class="item"><span>${x.date}<br><small>${x.items.map(i=>{let p=db.products.find(p=>p.id===i.productId);return `${p?.name||i.productId} × ${i.qty}`}).join(', ')}</small></span><div class="actions"><b>${rupiah(x.omzet)}</b><button class="secondary" onclick="editSale(${x.id})">✏️ Edit</button><button class="secondary danger" onclick="deleteSale(${x.id})">🗑 Hapus</button></div></div>`).join(''):'<div class="empty">Belum ada pemasukan bulan ini.</div>';
+}
 function renderProduction(){renderStockProduction()}
 function renderExpenses(){document.getElementById('dailyCoffee').value=(db.dailyExpenses.find(x=>x.date===todayISO()&&x.name==='Rokok + kopi')?.amount)||0;document.getElementById('monthlyGas').value=db.settings.gasMonthly||0;document.getElementById('monthlyElec').value=db.settings.elecMonthly||0;document.getElementById('monthlyRent').value=db.settings.rentMonthly||0;document.getElementById('monthlyInternet').value=db.settings.internetMonthly||0;document.getElementById('dailyExpenseRows').innerHTML=db.dailyExpenses.map((x,i)=>`<div class="item"><span>${x.name}<br><span class="sub">${x.date}</span></span><div class="actions"><b>${rupiah(x.amount)}</b><button class="secondary danger" onclick="removeDaily(${i})">Hapus</button></div></div>`).join('');document.getElementById('monthlyExpenseRows').innerHTML=db.monthlyExpenses.map((x,i)=>`<div class="item"><span>${x.name}</span><div class="actions"><b>${rupiah(x.amount)}</b><button class="secondary danger" onclick="removeMonthly(${i})">Hapus</button></div></div>`).join('')}
 function renderProducts(){document.getElementById('productSettings').innerHTML=db.products.map((p,i)=>`<div class="item"><div><b>${p.name}</b><div class="sub">Harga jual</div></div><div class="actions"><input style="width:120px;padding:8px" type="number" min="0" value="${p.price}" onchange="updateProductPrice('${p.id}',this.value)">${i>=5?`<button class="secondary danger" onclick="removeProduct('${p.id}')">Hapus</button>`:''}</div></div>`).join('')}
