@@ -9,6 +9,8 @@
 <title>Mie Ayam Soleh</title>
 
 <style>
+html,body{margin:0 !important;padding:0 !important;width:100%;min-height:100%;}
+
 :root{
   --primary:#b85c38;
   --primary-dark:#8f4025;
@@ -939,6 +941,29 @@ label{color:#9aa6af!important}
  .report-kpi .k-value{font-size:15.5px}
 }
 
+
+/* Full-screen landing page */
+.splash{
+  position:fixed !important;
+  inset:0 !important;
+  width:100vw !important;
+  height:100dvh !important;
+  min-height:100svh !important;
+  max-height:none !important;
+  overflow:hidden !important;
+  margin:0 !important;
+  border-radius:0 !important;
+}
+.splash img{
+  width:100% !important;
+  height:100% !important;
+  object-fit:cover !important;
+  object-position:center center !important;
+}
+@supports not (height: 100dvh){
+  .splash{height:100vh !important;}
+}
+
 </style>
 
 <style id="dashboard-premium-overrides">
@@ -1165,7 +1190,14 @@ main{padding:0 14px 108px!important;background:#050b10!important}
   .top .brand-copy p{font-size:12px!important;margin-top:4px!important;}
 }
 /* Landing page: never crop the original full artwork */
-.splash-screen .splash-art{object-fit:contain!important;object-position:center center!important;}
+.splash-screen .splash-art{
+  width:100vw!important;
+  height:100dvh!important;
+  max-width:none!important;
+  object-fit:cover!important;
+  object-position:center center!important;
+  box-shadow:none!important;
+}
 .splash-screen .splash-welcome,.splash-screen .splash-sub,.splash-screen .splash-loader{display:none!important;}
 </style>
 
