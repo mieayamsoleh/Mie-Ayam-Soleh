@@ -2205,22 +2205,22 @@ requestAnimationFrame(frame);
   </div>
 
   <div class="card section">
-    <div class="ref-section-title"><div class="ico">▤</div>Daftar Pengeluaran Terbaru</div>
+    <div class="ref-section-title"><div class="ico">▤</div>Daftar Pengeluaran Hari Ini</div>
     <div id="expenseRecent"></div>
   </div>
 
   <div class="card section">
     <div class="ref-section-title"><div class="ico">＋</div>Input Pengeluaran</div>
     <label>Rokok + kopi</label><input id="dailyCoffee" type="number" min="0" onchange="saveDailyCoffeeToday()">
+    <label>Bensin</label><input id="dailyGas" type="number" min="0" onchange="saveDailyGasToday()">
     <div id="dailyExpenseRows"></div>
     <button class="add" onclick="addDailyExpensePrompt()">＋ Tambah biaya pengeluaran harian</button>
     <div style="height:10px"></div>
-    <label>Bensin / bulan</label><input id="monthlyGas" type="number" min="0" onchange="saveSettings()">
-    <label>Listrik / bulan</label><input id="monthlyElec" type="number" min="0" onchange="saveSettings()">
-    <label>Sewa tempat / bulan</label><input id="monthlyRent" type="number" min="0" onchange="saveSettings()">
-    <label>Internet / bulan</label><input id="monthlyInternet" type="number" min="0" onchange="saveSettings()">
+    <label>Listrik (dibayar hari ini)</label><input id="dailyElec" type="number" min="0" onchange="saveDailyNamed('Listrik','dailyElec')">
+    <label>Sewa tempat (dibayar hari ini)</label><input id="dailyRent" type="number" min="0" onchange="saveDailyNamed('Sewa Tempat','dailyRent')">
+    <label>Internet (dibayar hari ini)</label><input id="dailyInternet" type="number" min="0" onchange="saveDailyNamed('Internet','dailyInternet')">
     <div id="monthlyExpenseRows"></div>
-    <button class="add" onclick="addMonthlyExpensePrompt()">＋ Tambah biaya pengeluaran bulanan</button>
+    <button class="add" onclick="addMonthlyExpensePrompt()">＋ Tambah pembayaran bulanan lain (dibayar hari ini)</button>
   </div>
 </section>
 
@@ -2251,7 +2251,7 @@ requestAnimationFrame(frame);
   <div class="report-kpis">
     <div class="card report-kpi"><div class="k-icon">◉</div><div class="k-label">Total Penjualan</div><div class="k-value" id="rOmzet">Rp0</div><div class="k-split"><span>💵 Cash <b id="rCash">Rp0</b></span><span>📱 QRIS <b id="rQris">Rp0</b></span></div></div>
     <div class="card report-kpi"><div class="k-icon" style="background:#103c2d;color:#31dc91">◈</div><div class="k-label">Total Transaksi</div><div class="k-value" id="rPorsi">0</div></div>
-    <div class="card report-kpi"><div class="k-icon" style="background:#12324b;color:#55aaff">◫</div><div class="k-label">Rata-rata Transaksi</div><div class="k-value" id="rAvg">Rp0</div></div>
+    <div class="card report-kpi"><div class="k-icon" style="background:#12324b;color:#55aaff">◫</div><div class="k-label">Total Pengeluaran</div><div class="k-value" id="rAvg">Rp0</div></div>
     <div class="card report-kpi"><div class="k-icon" style="background:#2a1740;color:#bd8cff">↗</div><div class="k-label">Profit Bersih</div><div class="k-value green" id="rProfit">Rp0</div></div>
   </div>
 
@@ -2640,7 +2640,7 @@ normalizeTeaProducts();
 save();
 const rupiah=n=>new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(Number(n)||0);
 window.db=db;
-const todayISO=()=>{let d=new Date();return d.toISOString().slice(0,10)};const ym=d=>d.slice(0,7);function save(){
+const todayISO=()=>{let d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};const ym=d=>d.slice(0,7);function save(){
   localStorage.setItem(KEY,JSON.stringify(db));
   window.db=db;
   if(window.__mieFirebase?.enabled && typeof window.__mieFirebase.save==='function'){
@@ -2821,7 +2821,7 @@ function renderStockHistory(){const h=db.productionRecords.slice().sort((a,b)=>b
 function renderStockPurchases(){const h=db.stockPurchases.slice().sort((a,b)=>b.date.localeCompare(a.date)||b.id-a.id);document.getElementById('stockPurchaseHistory').innerHTML=h.length?h.map(x=>{const i=db.ingredients.find(a=>a.id===x.ingredientId);return `<div class="item"><span>${x.date}<br><span class="sub">${i?.name||'Bahan'} • +${x.qty} ${i?.unit||'unit'} • ${rupiah(x.unitCost)}/${i?.unit||'unit'}</span></span><div class="actions"><b>${rupiah(x.totalCost)}</b><button class="secondary danger" onclick="deleteStockPurchase(${x.id})">Hapus</button></div></div>`}).join(''):'<div class="empty">Belum ada pembelian stok.</div>';}
 function renderStockTab(){recalculateStockFromRecords();renderStock();renderStockProduction();renderStockHistory();renderStockPurchases();}
 function dailyExpenseTotal(month){let dynamic=db.dailyExpenses.filter(x=>x.month===month).reduce((s,x)=>s+Number(x.amount||0),0);let legacy=db.sales.filter(x=>ym(x.date)===month).reduce((s,x)=>s+Number(x.dailyCoffee||0),0);return dynamic+legacy}
-function monthlyExpenseTotal(){return Number(db.settings.gasMonthly||0)+Number(db.settings.elecMonthly||0)+Number(db.settings.rentMonthly||0)+Number(db.settings.internetMonthly||0)+db.monthlyExpenses.reduce((s,x)=>s+Number(x.amount||0),0)}
+function monthlyExpenseTotal(){return 0}
 function monthlyData(month){let sales=db.sales.filter(x=>ym(x.date)===month),items=sales.reduce((a,x)=>a+x.items.reduce((s,i)=>s+Number(i.qty||0),0),0),om=sales.reduce((a,x)=>a+Number(x.omzet||0),0);let prod=monthlyProductionTotal(month);let daily=dailyExpenseTotal(month);let monthly=monthlyExpenseTotal();let total=prod+daily+monthly;return{sales,items,om,prod,daily,monthly,total,profit:om-total,margin:om?((om-total)/om*100):0}}
 function saveSale(method){
  method=(method==='qris')?'qris':'cash';
@@ -2861,7 +2861,7 @@ function deleteSale(id){
  if(window.editingSaleId===id)window.editingSaleId=null;
  save();renderAll();
 }
-function saveSettings(){db.settings.dailyCoffee=Number(document.getElementById('dailyCoffee').value||0);db.settings.gasMonthly=Number(document.getElementById('monthlyGas').value||0);db.settings.elecMonthly=Number(document.getElementById('monthlyElec').value||0);db.settings.rentMonthly=Number(document.getElementById('monthlyRent').value||0);db.settings.internetMonthly=Number(document.getElementById('monthlyInternet').value||0);save();renderAll()}
+function saveSettings(){db.settings.dailyCoffee=Number(document.getElementById('dailyCoffee').value||0);db.settings.elecMonthly=Number(document.getElementById('monthlyElec').value||0);db.settings.rentMonthly=Number(document.getElementById('monthlyRent').value||0);db.settings.internetMonthly=Number(document.getElementById('monthlyInternet').value||0);save();renderAll()}
 function saveProductionSettings(){captureProductionSettings();save();renderAll()}
 function renderSalesChart(){
   const el=document.getElementById('salesChart'); if(!el)return;
@@ -2924,7 +2924,7 @@ function renderInput(){
  document.getElementById('salesList').innerHTML=s.length?s.map(x=>`<div class="item"><span>${x.date}<br><small>${x.items.map(i=>{let p=db.products.find(p=>p.id===i.productId);return `${p?.name||i.productId} × ${i.qty}`}).join(', ')}</small></span><div class="actions"><b>${rupiah(x.omzet)}</b><button class="secondary" onclick="editSale(${x.id})">✏️ Edit</button><button class="secondary danger" onclick="deleteSale(${x.id})">🗑 Hapus</button></div></div>`).join(''):'<div class="empty">Belum ada pemasukan bulan ini.</div>';
 }
 function renderProduction(){renderStockProduction()}
-function renderExpenses(){document.getElementById('dailyCoffee').value=(db.dailyExpenses.find(x=>x.date===todayISO()&&x.name==='Rokok + kopi')?.amount)||0;document.getElementById('monthlyGas').value=db.settings.gasMonthly||0;document.getElementById('monthlyElec').value=db.settings.elecMonthly||0;document.getElementById('monthlyRent').value=db.settings.rentMonthly||0;document.getElementById('monthlyInternet').value=db.settings.internetMonthly||0;document.getElementById('dailyExpenseRows').innerHTML=db.dailyExpenses.map((x,i)=>`<div class="item"><span>${x.name}<br><span class="sub">${x.date}</span></span><div class="actions"><b>${rupiah(x.amount)}</b><button class="secondary danger" onclick="removeDaily(${i})">Hapus</button></div></div>`).join('');document.getElementById('monthlyExpenseRows').innerHTML=db.monthlyExpenses.map((x,i)=>`<div class="item"><span>${x.name}</span><div class="actions"><b>${rupiah(x.amount)}</b><button class="secondary danger" onclick="removeMonthly(${i})">Hapus</button></div></div>`).join('')}
+function renderExpenses(){document.getElementById('dailyCoffee').value=(db.dailyExpenses.find(x=>x.date===todayISO()&&x.name==='Rokok + kopi')?.amount)||0;document.getElementById('monthlyElec').value=db.settings.elecMonthly||0;document.getElementById('monthlyRent').value=db.settings.rentMonthly||0;document.getElementById('monthlyInternet').value=db.settings.internetMonthly||0;document.getElementById('dailyExpenseRows').innerHTML=db.dailyExpenses.map((x,i)=>`<div class="item"><span>${x.name}<br><span class="sub">${x.date}</span></span><div class="actions"><b>${rupiah(x.amount)}</b><button class="secondary danger" onclick="removeDaily(${i})">Hapus</button></div></div>`).join('');document.getElementById('monthlyExpenseRows').innerHTML=db.monthlyExpenses.map((x,i)=>`<div class="item"><span>${x.name}</span><div class="actions"><b>${rupiah(x.amount)}</b><button class="secondary danger" onclick="removeMonthly(${i})">Hapus</button></div></div>`).join('')}
 function renderProducts(){document.getElementById('productSettings').innerHTML=db.products.map((p,i)=>`<div class="item"><div><b>${p.name}</b><div class="sub">Harga jual</div></div><div class="actions"><input style="width:120px;padding:8px" type="number" min="0" value="${p.price}" onchange="updateProductPrice('${p.id}',this.value)"><button type="button" class="secondary danger" onclick="removeProduct('${p.id}')">Hapus</button></div></div>`).join('')}
 function renderReport(){let m=monthlyData(getMonth());document.getElementById('rPorsi').textContent=m.items;document.getElementById('rOmzet').textContent=rupiah(m.om);document.getElementById('rProd').textContent=rupiah(m.prod);document.getElementById('rDaily').textContent=rupiah(m.daily);document.getElementById('rMonthly').textContent=rupiah(m.monthly);document.getElementById('rCost').textContent=rupiah(m.total);document.getElementById('rProfit').textContent=rupiah(m.profit);document.getElementById('rMargin').textContent=m.margin.toFixed(2)+'%';let records=db.productionRecords.filter(x=>ym(x.date)===getMonth()).sort((a,b)=>b.date.localeCompare(a.date));document.getElementById('monthlyProductionHistory').innerHTML=records.length?records.map(x=>`<div class="item"><span>${x.date}</span><b>${rupiah(x.amount)}</b></div>`).join(''):'<div class="empty">Belum ada catatan produksi untuk bulan ini.</div>'}
 function updateProductPrice(id,val){let p=db.products.find(x=>x.id===id);if(p){p.price=Number(val||0);save();renderAll()}}
@@ -2938,10 +2938,12 @@ function removeProduct(id){
   if(k&&!db.removedProducts.includes(k))db.removedProducts.push(k);
   save();renderAll();
 }
+function saveDailyNamed(name,inputId){let amount=Number(document.getElementById(inputId).value||0),idx=db.dailyExpenses.findIndex(x=>x.date===todayISO()&&x.name===name);if(idx>=0)db.dailyExpenses[idx].amount=amount;else if(amount>0)db.dailyExpenses.push({name,amount,date:todayISO(),month:ym(todayISO())});save();renderAll()}
+function saveDailyGasToday(){let amount=Number(document.getElementById('dailyGas').value||0),idx=db.dailyExpenses.findIndex(x=>x.date===todayISO()&&x.name==='Bensin');if(idx>=0)db.dailyExpenses[idx].amount=amount;else if(amount>0)db.dailyExpenses.push({name:'Bensin',amount,date:todayISO(),month:ym(todayISO())});save();renderAll()}
 function saveDailyCoffeeToday(){let amount=Number(document.getElementById('dailyCoffee').value||0),idx=db.dailyExpenses.findIndex(x=>x.date===todayISO()&&x.name==='Rokok + kopi');if(idx>=0)db.dailyExpenses[idx].amount=amount;else if(amount>0)db.dailyExpenses.push({name:'Rokok + kopi',amount,date:todayISO(),month:ym(todayISO())});save();renderAll()}
 function addDailyExpensePrompt(){let name=prompt('Nama biaya harian:');if(!name)return;let amount=Number(prompt('Nominal hari ini:','0'));if(isNaN(amount))return;db.dailyExpenses.push({name:name.trim(),amount,date:todayISO(),month:ym(todayISO())});save();renderAll()}
 function removeDaily(i){if(!confirm('Hapus biaya ini?'))return;db.dailyExpenses.splice(i,1);save();renderAll()}
-function addMonthlyExpensePrompt(){let name=prompt('Nama biaya bulanan:');if(!name)return;let amount=Number(prompt('Nominal per bulan:','0'));if(isNaN(amount))return;db.monthlyExpenses.push({name:name.trim(),amount});save();renderAll()}
+function addMonthlyExpensePrompt(){let name=prompt('Nama pembayaran (misal: PDAM, Cicilan):');if(!name)return;let amount=Number(prompt('Nominal yang dibayar hari ini:','0'));if(isNaN(amount)||amount<=0)return;db.dailyExpenses.push({name:name.trim(),amount,date:todayISO(),month:ym(todayISO())});save();renderAll()}
 function removeMonthly(i){if(!confirm('Hapus biaya ini?'))return;db.monthlyExpenses.splice(i,1);save();renderAll()}
 
 /* ===== REFERENCE UI RENDER OVERRIDES ===== */
@@ -2984,14 +2986,15 @@ function previousISO(date){
 }
 function renderHome(){
   const m=monthlyData(ym(todayISO()));
-  document.getElementById('mPorsi').textContent=m.items;
-  document.getElementById('mOmzet').textContent=rupiah(m.om);
-  document.getElementById('mBiaya').textContent=rupiah(m.total);
-  document.getElementById('mProfit').textContent=rupiah(m.profit);
   const t=m.sales.filter(x=>x.date===todayISO());
   const o=t.reduce((a,x)=>a+Number(x.omzet||0),0);
-  const pc=dailyProductionTotal(todayISO())+legacyDailyProductionTotal(todayISO());
-  const de=db.dailyExpenses.filter(x=>x.date===todayISO()).reduce((s,x)=>s+Number(x.amount||0),0);
+  const pc=0;
+  const de=Math.round(dayExpenseBreakdown(todayISO()).total);
+  // Kartu dashboard = data HARI INI saja
+  document.getElementById('mPorsi').textContent=t.reduce((s,x)=>s+x.items.reduce((a,i)=>a+Number(i.qty||0),0),0);
+  document.getElementById('mOmzet').textContent=rupiah(o);
+  document.getElementById('mBiaya').textContent=rupiah(pc+de);
+  document.getElementById('mProfit').textContent=rupiah(o-pc-de);
   document.getElementById('todayProfit').textContent=rupiah(o-pc-de);
 
   // Perubahan omzet hari ini dibanding hari kemarin, dihitung dari transaksi nyata.
@@ -3061,28 +3064,45 @@ function renderInput(){
   const s=sales.slice().sort((a,b)=>String(b.date).localeCompare(String(a.date))||Number(b.id)-Number(a.id));
   document.getElementById('salesList').innerHTML=s.length?s.map(x=>`<div class="item"><span>${x.date}<span class="pay-badge ${x.method==='qris'?'qris':'cash'}">${x.method==='qris'?'QRIS':'Cash'}</span><br><span class="sub">${x.items.map(i=>{let p=db.products.find(p=>p.id===i.productId);return `${p?.name||i.productId} × ${i.qty}`}).join(', ')}</span></span><div class="actions"><b>${rupiah(x.omzet)}</b><button class="secondary" onclick="editSale(${x.id})">✏️</button><button class="secondary danger" onclick="deleteSale(${x.id})">🗑</button></div></div>`).join(''):'<div class="empty">Belum ada pemasukan bulan ini.</div>';
 }
+function daysInMonthOf(iso){const a=String(iso).split('-').map(Number);return new Date(a[0],a[1],0).getDate()}
+function dayExpenseBreakdown(date){
+  const items=[];
+  const bahan=dailyProductionTotal(date)+legacyDailyProductionTotal(date);
+  if(bahan>0)items.push({name:'Bahan Baku',value:bahan});
+  const grouped={};
+  db.dailyExpenses.filter(x=>x.date===date).forEach(x=>{
+    const nm=String(x.name||'Lainnya').trim()||'Lainnya';const k=nm.toLowerCase();
+    if(!grouped[k])grouped[k]={name:nm,value:0};
+    grouped[k].value+=Number(x.amount||0);
+  });
+  Object.values(grouped).forEach(g=>{if(g.value>0)items.push(g)});
+  return {items,total:items.reduce((s,x)=>s+x.value,0)};
+}
 function renderExpenses(){
-  const month=ym(todayISO());
-  const m=monthlyData(month), total=m.daily+m.monthly;
+  const today=todayISO();
+  const todayExp=db.dailyExpenses.filter(x=>x.date===today);
+  const bd=dayExpenseBreakdown(today);
+  const total=bd.total;
   document.getElementById('expenseHero').textContent=rupiah(total);
-  document.getElementById('expenseChange').textContent='↓ '+(total?Math.min(99,Math.round(total/10000)):'0')+'%';
+  const noteEl=document.querySelector('#expense .page-head .head-note:not([style])');
+  if(noteEl)noteEl.textContent='Hari ini';
+  const yTotal=dayExpenseBreakdown(previousISO(today)).total;
+  const chEl=document.getElementById('expenseChange');
+  if(yTotal>0){const pct=(total-yTotal)/yTotal*100;chEl.textContent=(pct>=0?'↑ ':'↓ ')+Math.abs(pct).toFixed(0)+'% vs kemarin';}
+  else chEl.textContent=total>0?'Belum ada data kemarin':'Belum ada pengeluaran';
   document.getElementById('donutCenter').textContent=rupiah(total);
-  const cats=[
-    {name:'Bahan Baku',value:m.prod,color:'#FEC440'},
-    {name:'Listrik & Air',value:Number(db.settings.elecMonthly||0),color:'#7ED08B'},
-    {name:'Gas',value:Number(db.settings.gasMonthly||0),color:'#E0694A'},
-    {name:'Kemasan',value:db.dailyExpenses.filter(x=>/kemas/i.test(x.name)).reduce((s,x)=>s+Number(x.amount||0),0),color:'#B58AA5'},
-    {name:'Lainnya',value:Math.max(0,total-m.prod-Number(db.settings.elecMonthly||0)-Number(db.settings.gasMonthly||0)),color:'#9C8A72'}
-  ].filter(x=>x.value>0);
+  const palette=['#FEC440','#7ED08B','#E0694A','#B58AA5','#6FB7E9','#F08CAE','#A3C95B','#D9A066','#8E9BFF','#9C8A72'];
+  const cats=bd.items.slice().sort((x,y)=>y.value-x.value).map((c,i)=>({...c,color:palette[i%palette.length]}));
   let acc=0, stops=cats.map(c=>{let start=acc;acc+=total?c.value/total*100:0;return `${c.color} ${start}% ${acc}%`}).join(',');
   document.querySelector('.donut').style.background=cats.length?`conic-gradient(${stops})`:'conic-gradient(#4A2F1A 0 100%)';
-  document.getElementById('expenseLegend').innerHTML=cats.length?cats.map(c=>`<div class="legend-row"><span class="dot" style="background:${c.color}"></span><span>${c.name}</span><b>${rupiah(c.value)}</b></div>`).join(''):'<div class="empty">Belum ada pengeluaran.</div>';
+  document.getElementById('expenseLegend').innerHTML=cats.length?cats.map(c=>`<div class="legend-row"><span class="dot" style="background:${c.color}"></span><span>${escHtml(c.name)} <small style="opacity:.7">${(c.value/total*100).toFixed(0)}%</small></span><b>${rupiah(Math.round(c.value))}</b></div>`).join(''):'<div class="empty">Belum ada pengeluaran hari ini.</div>';
+  document.getElementById('dailyGas').value=(db.dailyExpenses.find(x=>x.date===todayISO()&&x.name==='Bensin')?.amount)||0;
   document.getElementById('dailyCoffee').value=(db.dailyExpenses.find(x=>x.date===todayISO()&&x.name==='Rokok + kopi')?.amount)||0;
-  document.getElementById('monthlyGas').value=db.settings.gasMonthly||0;document.getElementById('monthlyElec').value=db.settings.elecMonthly||0;document.getElementById('monthlyRent').value=db.settings.rentMonthly||0;document.getElementById('monthlyInternet').value=db.settings.internetMonthly||0;
+  [['dailyElec','Listrik'],['dailyRent','Sewa Tempat'],['dailyInternet','Internet']].forEach(([id,nm])=>{const el=document.getElementById(id);if(el)el.value=(db.dailyExpenses.find(x=>x.date===todayISO()&&x.name===nm)?.amount)||0});
   document.getElementById('dailyExpenseRows').innerHTML=db.dailyExpenses.slice().reverse().slice(0,5).map((x,i)=>`<div class="item"><span>${x.name}<br><span class="sub">${x.date}</span></span><div class="actions"><b>${rupiah(x.amount)}</b><button class="secondary danger" onclick="removeDaily(${db.dailyExpenses.indexOf(x)})">Hapus</button></div></div>`).join('');
-  document.getElementById('monthlyExpenseRows').innerHTML=db.monthlyExpenses.map((x,i)=>`<div class="item"><span>${x.name}</span><div class="actions"><b>${rupiah(x.amount)}</b><button class="secondary danger" onclick="removeMonthly(${i})">Hapus</button></div></div>`).join('');
-  const recent=[...db.dailyExpenses].sort((a,b)=>String(b.date).localeCompare(String(a.date))).slice(0,5);
-  document.getElementById('expenseRecent').innerHTML=recent.length?recent.map(x=>`<div class="ref-list-item"><div class="ref-icon red">▣</div><div><div class="name">${x.name}</div><div class="count">${x.date}</div></div><div class="amount">${rupiah(x.amount)}</div><div class="chev">›</div></div>`).join(''):'<div class="empty">Belum ada pengeluaran terbaru.</div>';
+  document.getElementById('monthlyExpenseRows').innerHTML='';
+  const list=cats;
+  document.getElementById('expenseRecent').innerHTML=list.length?list.map(x=>`<div class="ref-list-item"><div class="ref-icon red">▣</div><div><div class="name">${escHtml(x.name)}</div><div class="count">${today}</div></div><div class="amount">${rupiah(Math.round(x.value))}</div><div class="chev">›</div></div>`).join(''):'<div class="empty">Belum ada pengeluaran hari ini.</div>';
 }
 function setStockCategory(category,btn){
   window.stockCategory=category;
@@ -3188,7 +3208,7 @@ function renderReport(){
   const m=rangeData(rb.from,rb.to);
   document.getElementById('rPorsi').textContent=m.sales.length;
   document.getElementById('rOmzet').textContent=rupiah(m.om);{const q=m.sales.filter(x=>x.method==='qris').reduce((a,x)=>a+Number(x.omzet||0),0);document.getElementById('rQris').textContent=rupiah(q);document.getElementById('rCash').textContent=rupiah(m.om-q);}
-  document.getElementById('rAvg').textContent=rupiah(m.sales.length?m.om/m.sales.length:0);
+  document.getElementById('rAvg').textContent=rupiah(m.total);
   document.getElementById('rProd').textContent=rupiah(m.prod);document.getElementById('rDaily').textContent=rupiah(m.daily);document.getElementById('rMonthly').textContent=rupiah(m.monthly);document.getElementById('rCost').textContent=rupiah(m.total);document.getElementById('rProfit').textContent=rupiah(m.profit);document.getElementById('rMargin').textContent=m.margin.toFixed(1)+'%';
   const days=rpTrend(rb.from,rb.to,m.sales);
   const max=Math.max(...days.map(x=>x.omzet),1);
