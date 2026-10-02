@@ -965,7 +965,7 @@ label{color:#9aa6af!important}
   .splash{height:100vh !important;}
 }
 
-#stockList .sx-icon{overflow:hidden;padding:0}#stockList .sx-icon .sx-img{width:100%;height:100%;object-fit:cover;display:block}
+#stockList .sx-icon,#productionList .sx-icon{overflow:hidden;padding:0}#stockList .sx-icon .sx-img,#productionList .sx-icon .sx-img{width:100%;height:100%;object-fit:cover;display:block}
 </style>
 
 <style id="dashboard-premium-overrides">
@@ -1152,9 +1152,9 @@ main{padding:0 14px 108px!important;background:#050b10!important}
 /* Keep every functional page visible and its controls usable */
 .view.active{display:block!important;visibility:visible!important;opacity:1!important;}
 .view.active input,.view.active select,.view.active button{visibility:visible!important;opacity:1!important;pointer-events:auto!important;}
-#input .row,#input .row>div,#stockList .stock-item,#expenseRecent .item,#dailyExpenseRows .item,#monthlyExpenseRows .item{visibility:visible!important;}
-#input label,#stockList .stock-name,#stockList .stock-qty,#stockList .stock-meta,#expenseRecent .item,#dailyExpenseRows .item,#monthlyExpenseRows .item{color:#eef2f4!important;}
-#input .card.section,#expense .card.section,#stock .card.section,#report .card{position:relative;z-index:1;}
+#input .row,#input .row>div,#stockList .stock-item,#expenseRecent .item,#dailyExpenseRows .item,#monthlyExpenseRows .item,#productionList .stock-item{visibility:visible!important;}
+#input label,#stockList .stock-name,#stockList .stock-qty,#stockList .stock-meta,#expenseRecent .item,#dailyExpenseRows .item,#monthlyExpenseRows .item,#productionList .stock-name,#productionList .stock-qty,#productionList .stock-meta{color:#eef2f4!important;}
+#input .card.section,#expense .card.section,#stock .card.section,#report .card,#production .card.section{position:relative;z-index:1;}
 
 /* Premium item rows */
 #incomeBreakdown .ref-list-item{display:grid!important;grid-template-columns:52px 1fr auto 18px!important;align-items:center!important;gap:10px!important;min-height:66px!important;padding:10px 4px!important;border-bottom:1px solid #26313a!important;}
@@ -1167,12 +1167,12 @@ main{padding:0 14px 108px!important;background:#050b10!important}
 #incomeBreakdown .trend{color:#24d88b!important;font-size:11px!important;text-align:right!important;margin-top:3px!important;}
 
 /* Stock rows: make names/quantities impossible to miss */
-#stockList .stock-item{padding:13px 4px!important;border-bottom:1px solid #25313a!important;background:transparent!important;}
-#stockList .stock-item-top{display:flex!important;justify-content:space-between!important;align-items:center!important;gap:10px!important;}
-#stockList .stock-name{font-size:14px!important;font-weight:850!important;color:#f4f6f7!important;}
-#stockList .stock-qty{font-size:14px!important;font-weight:850!important;color:#fff!important;}
-#stockList .stock-meta{display:flex!important;justify-content:space-between!important;color:#8d99a3!important;font-size:11px!important;margin-top:5px!important;}
-#stockList select,#stockList input{visibility:visible!important;color:#fff!important;background:#111a20!important;}
+#stockList .stock-item,#productionList .stock-item{padding:13px 4px!important;border-bottom:1px solid #25313a!important;background:transparent!important;}
+#stockList .stock-item-top,#productionList .stock-item-top{display:flex!important;justify-content:space-between!important;align-items:center!important;gap:10px!important;}
+#stockList .stock-name,#productionList .stock-name{font-size:14px!important;font-weight:850!important;color:#f4f6f7!important;}
+#stockList .stock-qty,#productionList .stock-qty{font-size:14px!important;font-weight:850!important;color:#fff!important;}
+#stockList .stock-meta,#productionList .stock-meta{display:flex!important;justify-content:space-between!important;color:#8d99a3!important;font-size:11px!important;margin-top:5px!important;}
+#stockList select,#stockList input,#productionList select,#productionList input{visibility:visible!important;color:#fff!important;background:#111a20!important;}
 .stock-list-head{display:flex!important;justify-content:space-between!important;align-items:center!important;gap:10px!important}
 .stock-add-btn{white-space:nowrap!important;padding:9px 12px!important;font-size:11px!important}
 .stock-tools .chip{cursor:pointer;flex:0 0 auto}
@@ -1456,10 +1456,10 @@ body:has(#home.active) .tabs button.active:after{background:var(--lg-yellow)!imp
 #purchaseUnitHint{margin-top:8px}
 </style>
 <style id="purchase-history-style">
-#stockPurchaseHistory .ph-day{margin-bottom:14px}
-#stockPurchaseHistory .ph-day:last-child{margin-bottom:0}
-#stockPurchaseHistory .ph-head{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 11px;margin-bottom:4px;border-radius:10px;background:rgba(254,196,64,.12);border:1px solid rgba(254,196,64,.28);font-size:12px;font-weight:800;color:#FEC440}
-#stockPurchaseHistory .ph-head b{font-size:12px;white-space:nowrap}
+#stockPurchaseHistory .ph-day,#salesList .ph-day,#productionPurchaseHistory .ph-day{margin-bottom:14px}
+#stockPurchaseHistory .ph-day:last-child,#salesList .ph-day:last-child,#productionPurchaseHistory .ph-day:last-child{margin-bottom:0}
+#stockPurchaseHistory .ph-head,#salesList .ph-head,#productionPurchaseHistory .ph-head{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 11px;margin-bottom:4px;border-radius:10px;background:rgba(254,196,64,.12);border:1px solid rgba(254,196,64,.28);font-size:12px;font-weight:800;color:#FEC440}
+#stockPurchaseHistory .ph-head b,#salesList .ph-head b,#productionPurchaseHistory .ph-head b{font-size:12px;white-space:nowrap}
 </style>
 <style id="dash-4cards">
 html body #home .dashboard-mini-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
@@ -1485,52 +1485,52 @@ html body #home .dashboard-mini-grid{grid-template-columns:repeat(2,minmax(0,1fr
 </style>
 <style id="stock-redesign">
 /* ===== Tampilan Stok baru (gaya mockup) ===== */
-#stock .sx-head{align-items:center}
-#stock .sx-title{display:flex;align-items:center;gap:12px;min-width:0}
-#stock .sx-title-ico{width:46px;height:46px;flex:0 0 46px;border-radius:15px;display:grid;place-items:center;font-size:25px;background:linear-gradient(145deg,#3b2a0b,#24180a);border:1px solid rgba(254,196,64,.35)}
-#stock .sx-pill{white-space:nowrap;font-size:11px;color:#c9d1d6;padding:9px 12px;border:1px solid #2d3a44;border-radius:99px;background:#0b1319}
-#stock .stock-search input{border-radius:16px!important;padding:14px 16px!important;background:#0b1319!important;border:1px solid #2a3640!important;margin-bottom:12px}
-#stock .stock-stats{grid-template-columns:repeat(2,1fr)!important;gap:10px!important}
-@media(min-width:560px){#stock .stock-stats{grid-template-columns:repeat(4,1fr)!important}}
-#stock .stock-stat-card{display:flex!important;align-items:center;gap:11px;min-height:0!important;padding:13px 12px!important;border-radius:18px!important;cursor:pointer;background:linear-gradient(150deg,#0e171e,#0a1117)!important;border:1px solid #27333d!important}
-#stock .stock-stat-card .s-icon{width:40px;height:40px;flex:0 0 40px;margin:0!important;border-radius:50%!important;font-size:19px;font-weight:900;color:#fff!important}
-#stock .s-gold .s-icon{background:linear-gradient(145deg,#FEC440,#C9921C)!important;color:#271103!important}
-#stock .s-red .s-icon{background:#e5484d!important}
-#stock .s-green .s-icon{background:#1f8f5f!important}
-#stock .s-x .s-icon{background:#e5484d!important}
-#stock .stock-stat-card .s-label{font-size:11px;color:#c3ccd2;line-height:1.2}
-#stock .stock-stat-card .s-value{font-size:26px;line-height:1.1;font-weight:900;color:#fff;margin-top:2px}
-#stock .sx-stat-note{font-size:10px;color:#8d99a3;margin-top:2px}
-#stock .sx-stat-note.warn{color:#ffb347}#stock .sx-stat-note.ok{color:#31dc91}#stock .sx-stat-note.bad{color:#ff6b6b}
-#stock .stock-stat-card.sx-on{box-shadow:0 0 0 2px #FEC440!important}
-#stock .sx-sortbar{display:flex;justify-content:flex-end;align-items:center;gap:8px;margin:2px 0 6px;font-size:11px;color:#8d99a3}
-#stock .sx-sortbar select{width:auto!important;padding:7px 10px!important;font-size:11px!important;border-radius:99px!important}
-#stockList .sx-item{display:grid;grid-template-columns:48px 1fr auto;grid-template-areas:"icon main badge" "icon qty actions" "detail detail detail";gap:6px 11px;align-items:center;padding:13px 2px;border-bottom:1px solid #25313a}
-#stockList .sx-item:last-child{border-bottom:0}
-#stockList .sx-icon{grid-area:icon;align-self:start;width:48px;height:48px;border-radius:14px;display:grid;place-items:center;font-size:26px;background:linear-gradient(145deg,#3a2a14,#22170b);border:1px solid rgba(254,196,64,.22)}
-#stockList .sx-main{grid-area:main;min-width:0}
-#stockList .sx-name{font-size:14px;font-weight:850;color:#f4f6f7}
-#stockList .sx-cat{font-size:11px;color:#8d99a3;margin-top:2px}
-#stockList .sx-badge{grid-area:badge;font-size:10px;font-weight:800;padding:5px 10px;border-radius:99px;white-space:nowrap}
-#stockList .sx-badge.safe{background:rgba(31,143,95,.22);color:#3be39b}
-#stockList .sx-badge.low{background:rgba(229,72,77,.2);color:#ff7b7f}
-#stockList .sx-badge.out{background:#e5484d;color:#fff}
-#stockList .sx-qtybox{grid-area:qty;min-width:0}
-#stockList .sx-qlabel{font-size:9.5px;color:#8d99a3}
-#stockList .sx-qty{font-size:14px;font-weight:850;color:#fff;margin-top:1px}
-#stockList .sx-qty.low,#stockList .sx-qty.out{color:#ff7b7f}
-#stockList .sx-min{font-size:10px;font-weight:500;color:#8d99a3}
-#stockList .sx-bar{height:6px;border-radius:9px;background:#26313a;margin-top:6px;overflow:hidden;max-width:230px}
-#stockList .sx-bar span{display:block;height:100%;border-radius:9px}
-#stockList .sx-bar span.safe{background:linear-gradient(90deg,#1fb877,#3be39b)}
-#stockList .sx-bar span.low,#stockList .sx-bar span.out{background:#ff5a5f}
-#stockList .sx-actions{grid-area:actions;display:flex;align-items:center;gap:4px}
-#stockList .sx-restock{padding:7px 11px;border-radius:99px;border:1px solid #EEB31B;background:transparent!important;color:#FFD15A!important;font-size:11px;font-weight:800;white-space:nowrap}
-#stockList .sx-chev{border:0;background:transparent!important;color:#8d99a3!important;font-size:24px;line-height:1;padding:2px 6px;transition:transform .15s}
-#stockList .sx-chev.open{transform:rotate(90deg);color:#FFD15A!important}
-#stockList .sx-detail{grid-area:detail;display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:11px;border-radius:14px;background:#0f1a21;border:1px solid #26333d}
-#stockList .sx-detail label{font-size:10px;color:#8d99a3;display:block;margin-bottom:4px}
-#stockList .sx-detail-note{grid-column:1/-1;font-size:10px;color:#8d99a3}
+#stock .sx-head,#production .sx-head{align-items:center}
+#stock .sx-title,#production .sx-title{display:flex;align-items:center;gap:12px;min-width:0}
+#stock .sx-title-ico,#production .sx-title-ico{width:46px;height:46px;flex:0 0 46px;border-radius:15px;display:grid;place-items:center;font-size:25px;background:linear-gradient(145deg,#3b2a0b,#24180a);border:1px solid rgba(254,196,64,.35)}
+#stock .sx-pill,#production .sx-pill{white-space:nowrap;font-size:11px;color:#c9d1d6;padding:9px 12px;border:1px solid #2d3a44;border-radius:99px;background:#0b1319}
+#stock .stock-search input,#production .stock-search input{border-radius:16px!important;padding:14px 16px!important;background:#0b1319!important;border:1px solid #2a3640!important;margin-bottom:12px}
+#stock .stock-stats,#production .stock-stats{grid-template-columns:repeat(2,1fr)!important;gap:10px!important}
+@media(min-width:560px){#stock .stock-stats,#production .stock-stats{grid-template-columns:repeat(4,1fr)!important}}
+#stock .stock-stat-card,#production .stock-stat-card{display:flex!important;align-items:center;gap:11px;min-height:0!important;padding:13px 12px!important;border-radius:18px!important;cursor:pointer;background:linear-gradient(150deg,#0e171e,#0a1117)!important;border:1px solid #27333d!important}
+#stock .stock-stat-card .s-icon,#production .stock-stat-card .s-icon{width:40px;height:40px;flex:0 0 40px;margin:0!important;border-radius:50%!important;font-size:19px;font-weight:900;color:#fff!important}
+#stock .s-gold .s-icon,#production .s-gold .s-icon{background:linear-gradient(145deg,#FEC440,#C9921C)!important;color:#271103!important}
+#stock .s-red .s-icon,#production .s-red .s-icon{background:#e5484d!important}
+#stock .s-green .s-icon,#production .s-green .s-icon{background:#1f8f5f!important}
+#stock .s-x .s-icon,#production .s-x .s-icon{background:#e5484d!important}
+#stock .stock-stat-card .s-label,#production .stock-stat-card .s-label{font-size:11px;color:#c3ccd2;line-height:1.2}
+#stock .stock-stat-card .s-value,#production .stock-stat-card .s-value{font-size:26px;line-height:1.1;font-weight:900;color:#fff;margin-top:2px}
+#stock .sx-stat-note,#production .sx-stat-note{font-size:10px;color:#8d99a3;margin-top:2px}
+#stock .sx-stat-note.warn,#production .sx-stat-note.warn{color:#ffb347}#stock .sx-stat-note.ok,#production .sx-stat-note.ok{color:#31dc91}#stock .sx-stat-note.bad,#production .sx-stat-note.bad{color:#ff6b6b}
+#stock .stock-stat-card.sx-on,#production .stock-stat-card.sx-on{box-shadow:0 0 0 2px #FEC440!important}
+#stock .sx-sortbar,#production .sx-sortbar{display:flex;justify-content:flex-end;align-items:center;gap:8px;margin:2px 0 6px;font-size:11px;color:#8d99a3}
+#stock .sx-sortbar select,#production .sx-sortbar select{width:auto!important;padding:7px 10px!important;font-size:11px!important;border-radius:99px!important}
+#stockList .sx-item,#productionList .sx-item{display:grid;grid-template-columns:48px 1fr auto;grid-template-areas:"icon main badge" "icon qty actions" "detail detail detail";gap:6px 11px;align-items:center;padding:13px 2px;border-bottom:1px solid #25313a}
+#stockList .sx-item:last-child,#productionList .sx-item:last-child{border-bottom:0}
+#stockList .sx-icon,#productionList .sx-icon{grid-area:icon;align-self:start;width:48px;height:48px;border-radius:14px;display:grid;place-items:center;font-size:26px;background:linear-gradient(145deg,#3a2a14,#22170b);border:1px solid rgba(254,196,64,.22)}
+#stockList .sx-main,#productionList .sx-main{grid-area:main;min-width:0}
+#stockList .sx-name,#productionList .sx-name{font-size:14px;font-weight:850;color:#f4f6f7}
+#stockList .sx-cat,#productionList .sx-cat{font-size:11px;color:#8d99a3;margin-top:2px}
+#stockList .sx-badge,#productionList .sx-badge{grid-area:badge;font-size:10px;font-weight:800;padding:5px 10px;border-radius:99px;white-space:nowrap}
+#stockList .sx-badge.safe,#productionList .sx-badge.safe{background:rgba(31,143,95,.22);color:#3be39b}
+#stockList .sx-badge.low,#productionList .sx-badge.low{background:rgba(229,72,77,.2);color:#ff7b7f}
+#stockList .sx-badge.out,#productionList .sx-badge.out{background:#e5484d;color:#fff}
+#stockList .sx-qtybox,#productionList .sx-qtybox{grid-area:qty;min-width:0}
+#stockList .sx-qlabel,#productionList .sx-qlabel{font-size:9.5px;color:#8d99a3}
+#stockList .sx-qty,#productionList .sx-qty{font-size:14px;font-weight:850;color:#fff;margin-top:1px}
+#stockList .sx-qty.low,#stockList .sx-qty.out,#productionList .sx-qty.low,#productionList .sx-qty.out{color:#ff7b7f}
+#stockList .sx-min,#productionList .sx-min{font-size:10px;font-weight:500;color:#8d99a3}
+#stockList .sx-bar,#productionList .sx-bar{height:6px;border-radius:9px;background:#26313a;margin-top:6px;overflow:hidden;max-width:230px}
+#stockList .sx-bar span,#productionList .sx-bar span{display:block;height:100%;border-radius:9px}
+#stockList .sx-bar span.safe,#productionList .sx-bar span.safe{background:linear-gradient(90deg,#1fb877,#3be39b)}
+#stockList .sx-bar span.low,#stockList .sx-bar span.out,#productionList .sx-bar span.low,#productionList .sx-bar span.out{background:#ff5a5f}
+#stockList .sx-actions,#productionList .sx-actions{grid-area:actions;display:flex;align-items:center;gap:4px}
+#stockList .sx-restock,#productionList .sx-restock{padding:7px 11px;border-radius:99px;border:1px solid #EEB31B;background:transparent!important;color:#FFD15A!important;font-size:11px;font-weight:800;white-space:nowrap}
+#stockList .sx-chev,#productionList .sx-chev{border:0;background:transparent!important;color:#8d99a3!important;font-size:24px;line-height:1;padding:2px 6px;transition:transform .15s}
+#stockList .sx-chev.open,#productionList .sx-chev.open{transform:rotate(90deg);color:#FFD15A!important}
+#stockList .sx-detail,#productionList .sx-detail{grid-area:detail;display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:11px;border-radius:14px;background:#0f1a21;border:1px solid #26333d}
+#stockList .sx-detail label,#productionList .sx-detail label{font-size:10px;color:#8d99a3;display:block;margin-bottom:4px}
+#stockList .sx-detail-note,#productionList .sx-detail-note{grid-column:1/-1;font-size:10px;color:#8d99a3}
 </style>
 <style id="unified-logo-theme">
 /* =====================================================================
@@ -1574,7 +1574,7 @@ label{color:var(--lg-sand)!important}
 .hero-value,.k-value,.s-value,.sx-qty,.amount,.production-total-value,.dash-today-value{font-variant-numeric:tabular-nums}
 
 /* ---------- Kartu ---------- */
-#input .card,#stock .card,#expense .card,#report .card{
+#input .card,#stock .card,#expense .card,#report .card,#production .card{
   background:var(--lg-panel)!important;border:1px solid var(--lg-line)!important;border-radius:20px!important;
   box-shadow:0 10px 26px rgba(0,0,0,.30),inset 0 1px 0 rgba(254,196,64,.06)!important;color:var(--lg-cream)!important;
 }
@@ -1603,8 +1603,8 @@ label{color:var(--lg-sand)!important}
 /* ---------- Form ---------- */
 .view input,.view select{background:var(--lg-field)!important;border:1px solid rgba(254,196,64,.26)!important;color:var(--lg-cream)!important;border-radius:12px!important}
 .view input:focus,.view select:focus{border-color:var(--lg-yellow)!important;box-shadow:0 0 0 3px rgba(254,196,64,.16)!important;outline:none!important}
-#stockList select,#stockList input{background:var(--lg-field)!important;color:var(--lg-cream)!important}
-#stock .stock-search input{background:var(--lg-field)!important;border:1px solid rgba(254,196,64,.26)!important}
+#stockList select,#stockList input,#productionList select,#productionList input{background:var(--lg-field)!important;color:var(--lg-cream)!important}
+#stock .stock-search input,#production .stock-search input{background:var(--lg-field)!important;border:1px solid rgba(254,196,64,.26)!important}
 input::placeholder{color:#8A7350!important}
 option{background:#2A1305;color:#FCF9F1}
 input[type="date"]::-webkit-calendar-picker-indicator,input[type="month"]::-webkit-calendar-picker-indicator{opacity:.85;filter:sepia(.8) saturate(3) hue-rotate(-5deg)}
@@ -1619,8 +1619,8 @@ input[type="date"]::-webkit-calendar-picker-indicator,input[type="month"]::-webk
 .pay-badge.qris{background:rgba(254,196,64,.16)!important;color:var(--lg-yellow)!important}
 
 /* ---------- Daftar ---------- */
-#input .item,#stock .item,#expense .item,#report .item{background:transparent!important;color:var(--lg-cream)!important;border-bottom:1px solid var(--lg-line)!important}
-#input .item b,#stock .item b,#expense .item b,#report .item b{color:var(--lg-cream)!important}
+#input .item,#stock .item,#expense .item,#report .item,#production .item{background:transparent!important;color:var(--lg-cream)!important;border-bottom:1px solid var(--lg-line)!important}
+#input .item b,#stock .item b,#expense .item b,#report .item b,#production .item b{color:var(--lg-cream)!important}
 #salesList .item,#dailyExpenseRows .item,#monthlyExpenseRows .item{background:rgba(0,0,0,.20)!important;border:1px solid rgba(254,196,64,.14)!important;border-radius:14px!important}
 #report .list .item:last-child{border-bottom:0!important}
 #input .row,#report .row{border-bottom:1px solid var(--lg-line)!important}
@@ -1658,35 +1658,35 @@ input[type="date"]::-webkit-calendar-picker-indicator,input[type="month"]::-webk
 /* ---------- Stok ---------- */
 .chip{background:rgba(0,0,0,.22)!important;border:1px solid rgba(254,196,64,.25)!important;color:var(--lg-sand)!important}
 .chip.active{background:linear-gradient(180deg,#FEC440,#E9A11C)!important;color:var(--lg-brown)!important;border-color:#FEC440!important}
-#stock .sx-pill{background:rgba(0,0,0,.22);border-color:var(--lg-line2);color:var(--lg-sand)}
-#stock .sx-title-ico{background:linear-gradient(145deg,#4A2710,#2A1305);border:1px solid rgba(254,196,64,.4)}
-#stock .sx-sortbar{color:var(--lg-tan)}
-#stock .stock-stat-card{background:var(--lg-panel)!important;border:1px solid var(--lg-line)!important}
-#stock .stock-stat-card .s-label{color:var(--lg-sand)}
-#stock .stock-stat-card .s-value{color:var(--lg-cream)}
-#stock .stock-stat-card.s-gold .s-icon{background:linear-gradient(145deg,#FEC440,#C9921C)!important;color:var(--lg-brown)!important}
-#stock .stock-stat-card.s-red .s-icon{background:var(--lg-coral2)!important;color:#fff!important}
-#stock .stock-stat-card.s-green .s-icon{background:#2E6B3C!important;color:#DFF5E3!important}
-#stock .stock-stat-card.s-x .s-icon{background:var(--lg-red)!important;color:#fff!important}
-#stock .sx-stat-note{color:var(--lg-tan)}
-#stock .sx-stat-note.warn{color:var(--lg-yellow)}
-#stock .sx-stat-note.ok{color:var(--lg-leaf)}
-#stock .sx-stat-note.bad{color:var(--lg-coral)}
-#stockList .sx-item{border-bottom:1px solid var(--lg-line)}
-#stockList .sx-icon{background:linear-gradient(145deg,#4A2710,#2A1305);border:1px solid rgba(254,196,64,.28)}
-#stockList .sx-name,#stockList .sx-qty{color:var(--lg-cream)}
-#stockList .sx-cat,#stockList .sx-qlabel,#stockList .sx-min,#stockList .sx-detail label,#stockList .sx-detail-note{color:var(--lg-tan)}
-#stockList .sx-qty.low,#stockList .sx-qty.out{color:var(--lg-coral)}
-#stockList .sx-badge.safe{background:rgba(126,208,139,.16);color:var(--lg-leaf)}
-#stockList .sx-badge.low{background:rgba(255,138,120,.16);color:var(--lg-coral)}
-#stockList .sx-badge.out{background:var(--lg-red);color:#fff}
-#stockList .sx-bar{background:rgba(254,196,64,.14)}
-#stockList .sx-bar span.safe{background:linear-gradient(90deg,#5DB872,#7ED08B)}
-#stockList .sx-bar span.low,#stockList .sx-bar span.out{background:linear-gradient(90deg,#E0694A,#FF8A78)}
-#stockList .sx-restock{border-color:var(--lg-yellow)!important;color:var(--lg-yellow)!important}
-#stockList .sx-chev{color:var(--lg-tan)!important}
-#stockList .sx-chev.open{color:var(--lg-yellow)!important}
-#stockList .sx-detail{background:rgba(0,0,0,.22);border:1px solid var(--lg-line)}
+#stock .sx-pill,#production .sx-pill{background:rgba(0,0,0,.22);border-color:var(--lg-line2);color:var(--lg-sand)}
+#stock .sx-title-ico,#production .sx-title-ico{background:linear-gradient(145deg,#4A2710,#2A1305);border:1px solid rgba(254,196,64,.4)}
+#stock .sx-sortbar,#production .sx-sortbar{color:var(--lg-tan)}
+#stock .stock-stat-card,#production .stock-stat-card{background:var(--lg-panel)!important;border:1px solid var(--lg-line)!important}
+#stock .stock-stat-card .s-label,#production .stock-stat-card .s-label{color:var(--lg-sand)}
+#stock .stock-stat-card .s-value,#production .stock-stat-card .s-value{color:var(--lg-cream)}
+#stock .stock-stat-card.s-gold .s-icon,#production .stock-stat-card.s-gold .s-icon{background:linear-gradient(145deg,#FEC440,#C9921C)!important;color:var(--lg-brown)!important}
+#stock .stock-stat-card.s-red .s-icon,#production .stock-stat-card.s-red .s-icon{background:var(--lg-coral2)!important;color:#fff!important}
+#stock .stock-stat-card.s-green .s-icon,#production .stock-stat-card.s-green .s-icon{background:#2E6B3C!important;color:#DFF5E3!important}
+#stock .stock-stat-card.s-x .s-icon,#production .stock-stat-card.s-x .s-icon{background:var(--lg-red)!important;color:#fff!important}
+#stock .sx-stat-note,#production .sx-stat-note{color:var(--lg-tan)}
+#stock .sx-stat-note.warn,#production .sx-stat-note.warn{color:var(--lg-yellow)}
+#stock .sx-stat-note.ok,#production .sx-stat-note.ok{color:var(--lg-leaf)}
+#stock .sx-stat-note.bad,#production .sx-stat-note.bad{color:var(--lg-coral)}
+#stockList .sx-item,#productionList .sx-item{border-bottom:1px solid var(--lg-line)}
+#stockList .sx-icon,#productionList .sx-icon{background:linear-gradient(145deg,#4A2710,#2A1305);border:1px solid rgba(254,196,64,.28)}
+#stockList .sx-name,#stockList .sx-qty,#productionList .sx-name,#productionList .sx-qty{color:var(--lg-cream)}
+#stockList .sx-cat,#stockList .sx-qlabel,#stockList .sx-min,#stockList .sx-detail label,#stockList .sx-detail-note,#productionList .sx-cat,#productionList .sx-qlabel,#productionList .sx-min,#productionList .sx-detail label,#productionList .sx-detail-note{color:var(--lg-tan)}
+#stockList .sx-qty.low,#stockList .sx-qty.out,#productionList .sx-qty.low,#productionList .sx-qty.out{color:var(--lg-coral)}
+#stockList .sx-badge.safe,#productionList .sx-badge.safe{background:rgba(126,208,139,.16);color:var(--lg-leaf)}
+#stockList .sx-badge.low,#productionList .sx-badge.low{background:rgba(255,138,120,.16);color:var(--lg-coral)}
+#stockList .sx-badge.out,#productionList .sx-badge.out{background:var(--lg-red);color:#fff}
+#stockList .sx-bar,#productionList .sx-bar{background:rgba(254,196,64,.14)}
+#stockList .sx-bar span.safe,#productionList .sx-bar span.safe{background:linear-gradient(90deg,#5DB872,#7ED08B)}
+#stockList .sx-bar span.low,#stockList .sx-bar span.out,#productionList .sx-bar span.low,#productionList .sx-bar span.out{background:linear-gradient(90deg,#E0694A,#FF8A78)}
+#stockList .sx-restock,#productionList .sx-restock{border-color:var(--lg-yellow)!important;color:var(--lg-yellow)!important}
+#stockList .sx-chev,#productionList .sx-chev{color:var(--lg-tan)!important}
+#stockList .sx-chev.open,#productionList .sx-chev.open{color:var(--lg-yellow)!important}
+#stockList .sx-detail,#productionList .sx-detail{background:rgba(0,0,0,.22);border:1px solid var(--lg-line)}
 .stock-purchase,.stock-production-row,.prod-mobile-row,.production-intro,.production-date-row{background:rgba(0,0,0,.20)!important;border-color:var(--lg-line)!important;color:var(--lg-sand)}
 .production-summary{background:linear-gradient(135deg,rgba(254,196,64,.14),rgba(254,196,64,.04))!important;border-color:var(--lg-line2)!important}
 .production-date-row .date-icon{background:rgba(254,196,64,.16)!important;color:var(--lg-yellow)!important}
@@ -1738,7 +1738,7 @@ html body #appHeader.top.top .hdr-bell{position:relative!important;top:auto!impo
   background:rgba(254,196,64,.08)!important;border:1px solid rgba(254,196,64,.25)!important;color:#e9ce99!important}
 html body #appHeader.top.top .hdr-bell i{top:9px!important;right:10px!important}
 /* ===== Tab bar bawah ===== */
-html body #mainTabs.tabs.tabs{display:grid!important;grid-template-columns:repeat(5,1fr)!important;gap:2px!important;
+html body #mainTabs.tabs.tabs{display:grid!important;grid-template-columns:repeat(6,1fr)!important;gap:1px!important;
   width:min(620px,100%)!important;border-radius:0!important;border:0!important;border-top:1px solid rgba(254,196,64,.18)!important;
   background:rgba(27,12,3,.97)!important;backdrop-filter:blur(18px)!important;-webkit-backdrop-filter:blur(18px)!important;
   box-shadow:0 -10px 28px rgba(0,0,0,.35)!important;padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px))!important}
@@ -1846,13 +1846,13 @@ html body #home .dash-tip{background:rgba(242,184,75,.08)!important;border:1px s
 html body .hero-value{background:linear-gradient(180deg,#fff1b8,#f5bd4a 55%,#c98a22);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent!important;font-weight:900!important}
 html body .hero-change{color:var(--gr)!important}
 html body .ref-hero{border:1.5px solid rgba(242,184,75,.8)!important}
-html body #stock .stock-stat-card,html body .report-kpi{background:var(--cb)!important;border:1px solid var(--gl)!important;border-radius:22px!important}
-html body #stock .stock-stat-card .s-value,html body .k-value{color:#fff6e3!important}
+html body #stock .stock-stat-card,html body .report-kpi,html body #production .stock-stat-card{background:var(--cb)!important;border:1px solid var(--gl)!important;border-radius:22px!important}
+html body #stock .stock-stat-card .s-value,html body .k-value,html body #production .stock-stat-card .s-value{color:#fff6e3!important}
 html body .k-value.green{color:var(--gr)!important}
 html body .k-icon{background:#120a04!important;color:var(--g2)!important;border:1.5px solid var(--g3);border-radius:50%}
-html body .chip,html body .sx-pill,html body .sales-chart-badge,html body #stock .sx-pill{background:rgba(20,10,4,.6)!important;border:1px solid var(--gl)!important;color:var(--g1)!important;border-radius:999px!important}
+html body .chip,html body .sx-pill,html body .sales-chart-badge,html body #stock .sx-pill,html body #production .sx-pill{background:rgba(20,10,4,.6)!important;border:1px solid var(--gl)!important;color:var(--g1)!important;border-radius:999px!important}
 html body .chip.active,html body #rpChips .chip.active{background:linear-gradient(180deg,#ffe08a,#e0a53a)!important;color:#2a1304!important;border-color:var(--g1)!important}
-html body input,html body select,html body textarea,html body #stock .stock-search input{background:#120a04!important;color:#fff6e3!important;border:1px solid var(--gl)!important;border-radius:14px!important}
+html body input,html body select,html body textarea,html body #stock .stock-search input,html body #production .stock-search input{background:#120a04!important;color:#fff6e3!important;border:1px solid var(--gl)!important;border-radius:14px!important}
 html body button.primary{background:linear-gradient(180deg,#ffe08a 0%,#eab04a 50%,#b9791f 100%)!important;color:#2a1304!important;border:0!important;border-radius:16px!important;font-weight:800!important;box-shadow:0 6px 18px rgba(226,150,40,.35)}
 html body button.primary.qris{background:linear-gradient(180deg,#9be8a6,#4fae63 60%,#2f7a41)!important;color:#07200d!important}
 html body button.add,html body button.secondary{background:rgba(242,184,75,.08)!important;border:1px dashed var(--gl)!important;color:var(--g1)!important;border-radius:14px!important}
@@ -1913,45 +1913,45 @@ html body label,html body .small{font-size:11px!important}
 </style>
 <style id="ref-theme-tabs">
 /* Semua tab mengikuti tema Dashboard */
-html body #input .card,html body #stock .card,html body #expense .card,html body #report .card{background:var(--cb)!important;border:1px solid var(--gl)!important;border-radius:26px!important;box-shadow:var(--gw)!important;color:#fcf4e4!important}
-html body #input .card:before,html body #stock .card:before,html body #expense .card:before,html body #report .card:before{display:none}
-html body #input .ref-hero.card,html body #stock .ref-hero.card,html body #expense .ref-hero.card,html body #report .ref-hero.card{background:radial-gradient(circle at 90% 0%,rgba(242,184,75,.14),transparent 45%),var(--cb)!important;border:1.5px solid rgba(242,184,75,.8)!important;box-shadow:0 0 0 1px rgba(255,224,138,.22) inset,0 0 30px rgba(242,150,30,.25),0 16px 36px rgba(0,0,0,.65)!important;color:#fff6e3!important}
-html body #input .ref-hero:before,html body #stock .ref-hero:before,html body #expense .ref-hero:before,html body #report .ref-hero:before{display:none!important}
-html body #input .ref-hero .hero-label,html body #stock .ref-hero .hero-label,html body #expense .ref-hero .hero-label,html body #report .ref-hero .hero-label{color:#f0dcb0!important;font-size:13px}
-html body #input .ref-hero .hero-value,html body #stock .ref-hero .hero-value,html body #expense .ref-hero .hero-value,html body #report .ref-hero .hero-value{background:linear-gradient(180deg,#fff1b8 0%,#f5bd4a 55%,#c98a22 100%)!important;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent!important;font-size:clamp(30px,10vw,44px);letter-spacing:-1.5px;font-weight:900}
-html body #input .ref-hero .hero-change,html body #stock .ref-hero .hero-change,html body #expense .ref-hero .hero-change,html body #report .ref-hero .hero-change{background:rgba(14,7,3,.65)!important;border:1px solid var(--gl)!important;color:var(--gr)!important;border-radius:16px}
-html body #input .ref-hero .income-split,html body #stock .ref-hero .income-split,html body #expense .ref-hero .income-split,html body #report .ref-hero .income-split{color:#f0dcb0!important}
-html body #input .ref-section-title,html body #stock .ref-section-title,html body #expense .ref-section-title,html body #report .ref-section-title{color:#fff6e3!important}
-html body #input .ref-section-title .ico,html body #stock .ref-section-title .ico,html body #expense .ref-section-title .ico,html body #report .ref-section-title .ico{width:30px;height:30px;border-radius:50%!important;display:grid;place-items:center;background:#120a04!important;color:var(--g2)!important;border:1.5px solid var(--g3)!important;font-size:14px!important}
-html body #input .sx-title-ico,html body #stock .sx-title-ico,html body #expense .sx-title-ico,html body #report .sx-title-ico{background:#120a04!important;border:1.5px solid var(--g3)!important;border-radius:50%!important;color:var(--g2)}
-html body #input .page-head h2,html body #stock .page-head h2,html body #expense .page-head h2,html body #report .page-head h2,html body #input h3,html body #stock h3,html body #expense h3,html body #report h3{color:#fff6e3!important}
-html body #input .head-note,html body #stock .head-note,html body #expense .head-note,html body #report .head-note{color:#c9ae7c!important}
-html body #input label,html body #stock label,html body #expense label,html body #report label,html body #input .small,html body #stock .small,html body #expense .small,html body #report .small,html body #input .k-label,html body #stock .k-label,html body #expense .k-label,html body #report .k-label,html body #input .s-label,html body #stock .s-label,html body #expense .s-label,html body #report .s-label,html body #input .hero-label,html body #stock .hero-label,html body #expense .hero-label,html body #report .hero-label,html body #input .stock-meta,html body #stock .stock-meta,html body #expense .stock-meta,html body #report .stock-meta,html body #input .count,html body #stock .count,html body #expense .count,html body #report .count,html body #input .sub,html body #stock .sub,html body #expense .sub,html body #report .sub{color:#d9bf8c!important}
-html body #input .item,html body #stock .item,html body #expense .item,html body #report .item,html body #input .row,html body #stock .row,html body #expense .row,html body #report .row,html body #input .ref-list-item,html body #stock .ref-list-item,html body #expense .ref-list-item,html body #report .ref-list-item,html body #input .legend-row,html body #stock .legend-row,html body #expense .legend-row,html body #report .legend-row,html body #input .rank-row,html body #stock .rank-row,html body #expense .rank-row,html body #report .rank-row,html body #input .time-row,html body #stock .time-row,html body #expense .time-row,html body #report .time-row{border-color:var(--gl2)!important;color:#fcf4e4!important}
-html body #input .item b,html body #stock .item b,html body #expense .item b,html body #report .item b,html body #input .name,html body #stock .name,html body #expense .name,html body #report .name,html body #input .amount,html body #stock .amount,html body #expense .amount,html body #report .amount,html body #input .rank-name,html body #stock .rank-name,html body #expense .rank-name,html body #report .rank-name,html body #input .rank-amount,html body #stock .rank-amount,html body #expense .rank-amount,html body #report .rank-amount,html body #input .time-top,html body #stock .time-top,html body #expense .time-top,html body #report .time-top,html body #input .s-value,html body #stock .s-value,html body #expense .s-value,html body #report .s-value,html body #input .k-value,html body #stock .k-value,html body #expense .k-value,html body #report .k-value,html body #input .sx-qty,html body #stock .sx-qty,html body #expense .sx-qty,html body #report .sx-qty,html body #input .sx-name,html body #stock .sx-name,html body #expense .sx-name,html body #report .sx-name,html body #input .stock-qty,html body #stock .stock-qty,html body #expense .stock-qty,html body #report .stock-qty{color:#fff6e3!important}
-html body #input #salesList .item,html body #stock #salesList .item,html body #expense #salesList .item,html body #report #salesList .item,html body #input #dailyExpenseRows .item,html body #stock #dailyExpenseRows .item,html body #expense #dailyExpenseRows .item,html body #report #dailyExpenseRows .item,html body #input #monthlyExpenseRows .item,html body #stock #monthlyExpenseRows .item,html body #expense #monthlyExpenseRows .item,html body #report #monthlyExpenseRows .item{background:linear-gradient(160deg,rgba(70,40,14,.55),rgba(22,11,4,.65))!important;border:1px solid var(--gl2)!important;border-radius:18px!important}
-html body #input .ref-icon,html body #stock .ref-icon,html body #expense .ref-icon,html body #report .ref-icon,html body #input .ref-icon.red,html body #stock .ref-icon.red,html body #expense .ref-icon.red,html body #report .ref-icon.red,html body #input .ref-icon.purple,html body #stock .ref-icon.purple,html body #expense .ref-icon.purple,html body #report .ref-icon.purple,html body #input .rank-img,html body #stock .rank-img,html body #expense .rank-img,html body #report .rank-img,html body #input .rank-no,html body #stock .rank-no,html body #expense .rank-no,html body #report .rank-no,html body #input .sx-icon,html body #stock .sx-icon,html body #expense .sx-icon,html body #report .sx-icon{background:#120a04!important;border:1.5px solid var(--g3)!important;color:var(--g2)!important;border-radius:50%!important}
-html body #input .trend,html body #stock .trend,html body #expense .trend,html body #report .trend,html body #input .k-value.green,html body #stock .k-value.green,html body #expense .k-value.green,html body #report .k-value.green,html body #input .sx-badge.safe,html body #stock .sx-badge.safe,html body #expense .sx-badge.safe,html body #report .sx-badge.safe,html body #input .sx-stat-note.ok,html body #stock .sx-stat-note.ok,html body #expense .sx-stat-note.ok,html body #report .sx-stat-note.ok{color:var(--gr)!important}
-html body #input .production-total-value,html body #stock .production-total-value,html body #expense .production-total-value,html body #report .production-total-value,html body #input .stock-cost,html body #stock .stock-cost,html body #expense .stock-cost,html body #report .stock-cost,html body #input .stock-history-amount,html body #stock .stock-history-amount,html body #expense .stock-history-amount,html body #report .stock-history-amount,html body #input .production-history-amount,html body #stock .production-history-amount,html body #expense .production-history-amount,html body #report .production-history-amount,html body #input .donut-center,html body #stock .donut-center,html body #expense .donut-center,html body #report .donut-center{color:var(--g1)!important}
-html body #input .stock-stat-card,html body #stock .stock-stat-card,html body #expense .stock-stat-card,html body #report .stock-stat-card,html body #input .report-kpi,html body #stock .report-kpi,html body #expense .report-kpi,html body #report .report-kpi{background:var(--cb)!important;border:1px solid var(--gl)!important;border-radius:22px!important}
-html body #input .k-icon,html body #stock .k-icon,html body #expense .k-icon,html body #report .k-icon,html body #input .s-icon,html body #stock .s-icon,html body #expense .s-icon,html body #report .s-icon{border-radius:50%!important;border:1.5px solid var(--g3)!important}
-html body #input .report-kpi .k-icon,html body #stock .report-kpi .k-icon,html body #expense .report-kpi .k-icon,html body #report .report-kpi .k-icon{background:#120a04!important;color:var(--g2)!important}
-html body #input .report-kpi:nth-child(4) .k-icon,html body #stock .report-kpi:nth-child(4) .k-icon,html body #expense .report-kpi:nth-child(4) .k-icon,html body #report .report-kpi:nth-child(4) .k-icon{color:var(--gr)!important;border-color:#4d8f5a!important}
-html body #input .s-gold .s-icon,html body #stock .s-gold .s-icon,html body #expense .s-gold .s-icon,html body #report .s-gold .s-icon{background:radial-gradient(circle at 35% 30%,#ffe08a,#f2b84b 60%,#b9791f)!important;color:#2a1304!important;border-color:var(--g1)!important}
-html body #input .chip,html body #stock .chip,html body #expense .chip,html body #report .chip,html body #input .sx-pill,html body #stock .sx-pill,html body #expense .sx-pill,html body #report .sx-pill,html body #input .sales-chart-badge,html body #stock .sales-chart-badge,html body #expense .sales-chart-badge,html body #report .sales-chart-badge{background:rgba(20,10,4,.6)!important;border:1px solid var(--gl)!important;color:var(--g1)!important;border-radius:999px!important}
-html body #input .chip.active,html body #stock .chip.active,html body #expense .chip.active,html body #report .chip.active{background:linear-gradient(180deg,#ffe08a,#e0a53a)!important;color:#2a1304!important;border-color:var(--g1)!important}
-html body #input input,html body #stock input,html body #expense input,html body #report input,html body #input select,html body #stock select,html body #expense select,html body #report select,html body #input textarea,html body #stock textarea,html body #expense textarea,html body #report textarea{background:#120a04!important;color:#fff6e3!important;border:1px solid var(--gl)!important;border-radius:14px!important}
-html body #input .primary,html body #stock .primary,html body #expense .primary,html body #report .primary{background:linear-gradient(180deg,#ffe08a 0%,#eab04a 50%,#b9791f 100%)!important;color:#2a1304!important;border:0!important;border-radius:16px!important;font-weight:800!important;box-shadow:0 6px 18px rgba(226,150,40,.35)!important}
-html body #input .primary.qris,html body #stock .primary.qris,html body #expense .primary.qris,html body #report .primary.qris{background:linear-gradient(180deg,#4A2710,#2a1305)!important;color:#fff6e3!important;border:1px solid var(--gl)!important}
-html body #input .add,html body #stock .add,html body #expense .add,html body #report .add,html body #input .secondary,html body #stock .secondary,html body #expense .secondary,html body #report .secondary,html body #input .actions button,html body #stock .actions button,html body #expense .actions button,html body #report .actions button{background:rgba(242,184,75,.08)!important;border:1px dashed var(--gl)!important;color:var(--g1)!important;border-radius:14px!important}
-html body #input .sx-restock,html body #stock .sx-restock,html body #expense .sx-restock,html body #report .sx-restock{border-color:var(--g2)!important;color:var(--g1)!important}
-html body #input .sales-chart,html body #stock .sales-chart,html body #expense .sales-chart,html body #report .sales-chart,html body #input .trend-chart,html body #stock .trend-chart,html body #expense .trend-chart,html body #report .trend-chart{background:repeating-linear-gradient(to top,transparent 0 calc(20% - 1px),rgba(226,168,62,.13) calc(20% - 1px) 20%);border-top:0!important;border-bottom:1px solid var(--gl)!important}
-html body #input .sales-bar,html body #stock .sales-bar,html body #expense .sales-bar,html body #report .sales-bar,html body #input .trend-bar,html body #stock .trend-bar,html body #expense .trend-bar,html body #report .trend-bar{background:linear-gradient(180deg,#ffe08a 0%,#e0a53a 50%,#a86a18 100%)!important;box-shadow:0 0 16px rgba(242,170,50,.4)!important;border-radius:10px 10px 4px 4px!important}
-html body #input .sales-day,html body #stock .sales-day,html body #expense .sales-day,html body #report .sales-day,html body #input .sales-value,html body #stock .sales-value,html body #expense .sales-value,html body #report .sales-value,html body #input .trend-label,html body #stock .trend-label,html body #expense .trend-label,html body #report .trend-label,html body #input .trend-value,html body #stock .trend-value,html body #expense .trend-value,html body #report .trend-value{color:#e6cf9f!important}
-html body #input .progress,html body #stock .progress,html body #expense .progress,html body #report .progress,html body #input .time-bar,html body #stock .time-bar,html body #expense .time-bar,html body #report .time-bar,html body #input .sx-bar,html body #stock .sx-bar,html body #expense .sx-bar,html body #report .sx-bar{background:rgba(255,255,255,.08)!important}
-html body #input .progress span,html body #stock .progress span,html body #expense .progress span,html body #report .progress span,html body #input .time-bar span,html body #stock .time-bar span,html body #expense .time-bar span,html body #report .time-bar span,html body #input .sx-bar span.safe,html body #stock .sx-bar span.safe,html body #expense .sx-bar span.safe,html body #report .sx-bar span.safe{background:linear-gradient(90deg,#b9791f,#ffe08a)!important}
-html body #input .donut:after,html body #stock .donut:after,html body #expense .donut:after,html body #report .donut:after{background:#120a04!important;border:1px solid var(--gl)!important}
-html body #input .notice,html body #stock .notice,html body #expense .notice,html body #report .notice{background:rgba(242,184,75,.08)!important;border:1px solid var(--gl2)!important;color:#f0dcb0!important;border-radius:20px!important}
+html body #input .card,html body #stock .card,html body #expense .card,html body #report .card,html body #production .card{background:var(--cb)!important;border:1px solid var(--gl)!important;border-radius:26px!important;box-shadow:var(--gw)!important;color:#fcf4e4!important}
+html body #input .card:before,html body #stock .card:before,html body #expense .card:before,html body #report .card:before,html body #production .card:before{display:none}
+html body #input .ref-hero.card,html body #stock .ref-hero.card,html body #expense .ref-hero.card,html body #report .ref-hero.card,html body #production .ref-hero.card{background:radial-gradient(circle at 90% 0%,rgba(242,184,75,.14),transparent 45%),var(--cb)!important;border:1.5px solid rgba(242,184,75,.8)!important;box-shadow:0 0 0 1px rgba(255,224,138,.22) inset,0 0 30px rgba(242,150,30,.25),0 16px 36px rgba(0,0,0,.65)!important;color:#fff6e3!important}
+html body #input .ref-hero:before,html body #stock .ref-hero:before,html body #expense .ref-hero:before,html body #report .ref-hero:before,html body #production .ref-hero:before{display:none!important}
+html body #input .ref-hero .hero-label,html body #stock .ref-hero .hero-label,html body #expense .ref-hero .hero-label,html body #report .ref-hero .hero-label,html body #production .ref-hero .hero-label{color:#f0dcb0!important;font-size:13px}
+html body #input .ref-hero .hero-value,html body #stock .ref-hero .hero-value,html body #expense .ref-hero .hero-value,html body #report .ref-hero .hero-value,html body #production .ref-hero .hero-value{background:linear-gradient(180deg,#fff1b8 0%,#f5bd4a 55%,#c98a22 100%)!important;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent!important;font-size:clamp(30px,10vw,44px);letter-spacing:-1.5px;font-weight:900}
+html body #input .ref-hero .hero-change,html body #stock .ref-hero .hero-change,html body #expense .ref-hero .hero-change,html body #report .ref-hero .hero-change,html body #production .ref-hero .hero-change{background:rgba(14,7,3,.65)!important;border:1px solid var(--gl)!important;color:var(--gr)!important;border-radius:16px}
+html body #input .ref-hero .income-split,html body #stock .ref-hero .income-split,html body #expense .ref-hero .income-split,html body #report .ref-hero .income-split,html body #production .ref-hero .income-split{color:#f0dcb0!important}
+html body #input .ref-section-title,html body #stock .ref-section-title,html body #expense .ref-section-title,html body #report .ref-section-title,html body #production .ref-section-title{color:#fff6e3!important}
+html body #input .ref-section-title .ico,html body #stock .ref-section-title .ico,html body #expense .ref-section-title .ico,html body #report .ref-section-title .ico,html body #production .ref-section-title .ico{width:30px;height:30px;border-radius:50%!important;display:grid;place-items:center;background:#120a04!important;color:var(--g2)!important;border:1.5px solid var(--g3)!important;font-size:14px!important}
+html body #input .sx-title-ico,html body #stock .sx-title-ico,html body #expense .sx-title-ico,html body #report .sx-title-ico,html body #production .sx-title-ico{background:#120a04!important;border:1.5px solid var(--g3)!important;border-radius:50%!important;color:var(--g2)}
+html body #input .page-head h2,html body #stock .page-head h2,html body #expense .page-head h2,html body #report .page-head h2,html body #input h3,html body #stock h3,html body #expense h3,html body #report h3,html body #production .page-head h2,html body #production h3{color:#fff6e3!important}
+html body #input .head-note,html body #stock .head-note,html body #expense .head-note,html body #report .head-note,html body #production .head-note{color:#c9ae7c!important}
+html body #input label,html body #stock label,html body #expense label,html body #report label,html body #input .small,html body #stock .small,html body #expense .small,html body #report .small,html body #input .k-label,html body #stock .k-label,html body #expense .k-label,html body #report .k-label,html body #input .s-label,html body #stock .s-label,html body #expense .s-label,html body #report .s-label,html body #input .hero-label,html body #stock .hero-label,html body #expense .hero-label,html body #report .hero-label,html body #input .stock-meta,html body #stock .stock-meta,html body #expense .stock-meta,html body #report .stock-meta,html body #input .count,html body #stock .count,html body #expense .count,html body #report .count,html body #input .sub,html body #stock .sub,html body #expense .sub,html body #report .sub,html body #production label,html body #production .small,html body #production .k-label,html body #production .s-label,html body #production .hero-label,html body #production .stock-meta,html body #production .count,html body #production .sub{color:#d9bf8c!important}
+html body #input .item,html body #stock .item,html body #expense .item,html body #report .item,html body #input .row,html body #stock .row,html body #expense .row,html body #report .row,html body #input .ref-list-item,html body #stock .ref-list-item,html body #expense .ref-list-item,html body #report .ref-list-item,html body #input .legend-row,html body #stock .legend-row,html body #expense .legend-row,html body #report .legend-row,html body #input .rank-row,html body #stock .rank-row,html body #expense .rank-row,html body #report .rank-row,html body #input .time-row,html body #stock .time-row,html body #expense .time-row,html body #report .time-row,html body #production .item,html body #production .row,html body #production .ref-list-item,html body #production .legend-row,html body #production .rank-row,html body #production .time-row{border-color:var(--gl2)!important;color:#fcf4e4!important}
+html body #input .item b,html body #stock .item b,html body #expense .item b,html body #report .item b,html body #input .name,html body #stock .name,html body #expense .name,html body #report .name,html body #input .amount,html body #stock .amount,html body #expense .amount,html body #report .amount,html body #input .rank-name,html body #stock .rank-name,html body #expense .rank-name,html body #report .rank-name,html body #input .rank-amount,html body #stock .rank-amount,html body #expense .rank-amount,html body #report .rank-amount,html body #input .time-top,html body #stock .time-top,html body #expense .time-top,html body #report .time-top,html body #input .s-value,html body #stock .s-value,html body #expense .s-value,html body #report .s-value,html body #input .k-value,html body #stock .k-value,html body #expense .k-value,html body #report .k-value,html body #input .sx-qty,html body #stock .sx-qty,html body #expense .sx-qty,html body #report .sx-qty,html body #input .sx-name,html body #stock .sx-name,html body #expense .sx-name,html body #report .sx-name,html body #input .stock-qty,html body #stock .stock-qty,html body #expense .stock-qty,html body #report .stock-qty,html body #production .item b,html body #production .name,html body #production .amount,html body #production .rank-name,html body #production .rank-amount,html body #production .time-top,html body #production .s-value,html body #production .k-value,html body #production .sx-qty,html body #production .sx-name,html body #production .stock-qty{color:#fff6e3!important}
+html body #input #salesList .item,html body #stock #salesList .item,html body #expense #salesList .item,html body #report #salesList .item,html body #input #dailyExpenseRows .item,html body #stock #dailyExpenseRows .item,html body #expense #dailyExpenseRows .item,html body #report #dailyExpenseRows .item,html body #input #monthlyExpenseRows .item,html body #stock #monthlyExpenseRows .item,html body #expense #monthlyExpenseRows .item,html body #report #monthlyExpenseRows .item,html body #production #salesList .item,html body #production #dailyExpenseRows .item,html body #production #monthlyExpenseRows .item{background:linear-gradient(160deg,rgba(70,40,14,.55),rgba(22,11,4,.65))!important;border:1px solid var(--gl2)!important;border-radius:18px!important}
+html body #input .ref-icon,html body #stock .ref-icon,html body #expense .ref-icon,html body #report .ref-icon,html body #input .ref-icon.red,html body #stock .ref-icon.red,html body #expense .ref-icon.red,html body #report .ref-icon.red,html body #input .ref-icon.purple,html body #stock .ref-icon.purple,html body #expense .ref-icon.purple,html body #report .ref-icon.purple,html body #input .rank-img,html body #stock .rank-img,html body #expense .rank-img,html body #report .rank-img,html body #input .rank-no,html body #stock .rank-no,html body #expense .rank-no,html body #report .rank-no,html body #input .sx-icon,html body #stock .sx-icon,html body #expense .sx-icon,html body #report .sx-icon,html body #production .ref-icon,html body #production .ref-icon.red,html body #production .ref-icon.purple,html body #production .rank-img,html body #production .rank-no,html body #production .sx-icon{background:#120a04!important;border:1.5px solid var(--g3)!important;color:var(--g2)!important;border-radius:50%!important}
+html body #input .trend,html body #stock .trend,html body #expense .trend,html body #report .trend,html body #input .k-value.green,html body #stock .k-value.green,html body #expense .k-value.green,html body #report .k-value.green,html body #input .sx-badge.safe,html body #stock .sx-badge.safe,html body #expense .sx-badge.safe,html body #report .sx-badge.safe,html body #input .sx-stat-note.ok,html body #stock .sx-stat-note.ok,html body #expense .sx-stat-note.ok,html body #report .sx-stat-note.ok,html body #production .trend,html body #production .k-value.green,html body #production .sx-badge.safe,html body #production .sx-stat-note.ok{color:var(--gr)!important}
+html body #input .production-total-value,html body #stock .production-total-value,html body #expense .production-total-value,html body #report .production-total-value,html body #input .stock-cost,html body #stock .stock-cost,html body #expense .stock-cost,html body #report .stock-cost,html body #input .stock-history-amount,html body #stock .stock-history-amount,html body #expense .stock-history-amount,html body #report .stock-history-amount,html body #input .production-history-amount,html body #stock .production-history-amount,html body #expense .production-history-amount,html body #report .production-history-amount,html body #input .donut-center,html body #stock .donut-center,html body #expense .donut-center,html body #report .donut-center,html body #production .production-total-value,html body #production .stock-cost,html body #production .stock-history-amount,html body #production .production-history-amount,html body #production .donut-center{color:var(--g1)!important}
+html body #input .stock-stat-card,html body #stock .stock-stat-card,html body #expense .stock-stat-card,html body #report .stock-stat-card,html body #input .report-kpi,html body #stock .report-kpi,html body #expense .report-kpi,html body #report .report-kpi,html body #production .stock-stat-card,html body #production .report-kpi{background:var(--cb)!important;border:1px solid var(--gl)!important;border-radius:22px!important}
+html body #input .k-icon,html body #stock .k-icon,html body #expense .k-icon,html body #report .k-icon,html body #input .s-icon,html body #stock .s-icon,html body #expense .s-icon,html body #report .s-icon,html body #production .k-icon,html body #production .s-icon{border-radius:50%!important;border:1.5px solid var(--g3)!important}
+html body #input .report-kpi .k-icon,html body #stock .report-kpi .k-icon,html body #expense .report-kpi .k-icon,html body #report .report-kpi .k-icon,html body #production .report-kpi .k-icon{background:#120a04!important;color:var(--g2)!important}
+html body #input .report-kpi:nth-child(4) .k-icon,html body #stock .report-kpi:nth-child(4) .k-icon,html body #expense .report-kpi:nth-child(4) .k-icon,html body #report .report-kpi:nth-child(4) .k-icon,html body #production .report-kpi:nth-child(4) .k-icon{color:var(--gr)!important;border-color:#4d8f5a!important}
+html body #input .s-gold .s-icon,html body #stock .s-gold .s-icon,html body #expense .s-gold .s-icon,html body #report .s-gold .s-icon,html body #production .s-gold .s-icon{background:radial-gradient(circle at 35% 30%,#ffe08a,#f2b84b 60%,#b9791f)!important;color:#2a1304!important;border-color:var(--g1)!important}
+html body #input .chip,html body #stock .chip,html body #expense .chip,html body #report .chip,html body #input .sx-pill,html body #stock .sx-pill,html body #expense .sx-pill,html body #report .sx-pill,html body #input .sales-chart-badge,html body #stock .sales-chart-badge,html body #expense .sales-chart-badge,html body #report .sales-chart-badge,html body #production .chip,html body #production .sx-pill,html body #production .sales-chart-badge{background:rgba(20,10,4,.6)!important;border:1px solid var(--gl)!important;color:var(--g1)!important;border-radius:999px!important}
+html body #input .chip.active,html body #stock .chip.active,html body #expense .chip.active,html body #report .chip.active,html body #production .chip.active{background:linear-gradient(180deg,#ffe08a,#e0a53a)!important;color:#2a1304!important;border-color:var(--g1)!important}
+html body #input input,html body #stock input,html body #expense input,html body #report input,html body #input select,html body #stock select,html body #expense select,html body #report select,html body #input textarea,html body #stock textarea,html body #expense textarea,html body #report textarea,html body #production input,html body #production select,html body #production textarea{background:#120a04!important;color:#fff6e3!important;border:1px solid var(--gl)!important;border-radius:14px!important}
+html body #input .primary,html body #stock .primary,html body #expense .primary,html body #report .primary,html body #production .primary{background:linear-gradient(180deg,#ffe08a 0%,#eab04a 50%,#b9791f 100%)!important;color:#2a1304!important;border:0!important;border-radius:16px!important;font-weight:800!important;box-shadow:0 6px 18px rgba(226,150,40,.35)!important}
+html body #input .primary.qris,html body #stock .primary.qris,html body #expense .primary.qris,html body #report .primary.qris,html body #production .primary.qris{background:linear-gradient(180deg,#4A2710,#2a1305)!important;color:#fff6e3!important;border:1px solid var(--gl)!important}
+html body #input .add,html body #stock .add,html body #expense .add,html body #report .add,html body #input .secondary,html body #stock .secondary,html body #expense .secondary,html body #report .secondary,html body #input .actions button,html body #stock .actions button,html body #expense .actions button,html body #report .actions button,html body #production .add,html body #production .secondary,html body #production .actions button{background:rgba(242,184,75,.08)!important;border:1px dashed var(--gl)!important;color:var(--g1)!important;border-radius:14px!important}
+html body #input .sx-restock,html body #stock .sx-restock,html body #expense .sx-restock,html body #report .sx-restock,html body #production .sx-restock{border-color:var(--g2)!important;color:var(--g1)!important}
+html body #input .sales-chart,html body #stock .sales-chart,html body #expense .sales-chart,html body #report .sales-chart,html body #input .trend-chart,html body #stock .trend-chart,html body #expense .trend-chart,html body #report .trend-chart,html body #production .sales-chart,html body #production .trend-chart{background:repeating-linear-gradient(to top,transparent 0 calc(20% - 1px),rgba(226,168,62,.13) calc(20% - 1px) 20%);border-top:0!important;border-bottom:1px solid var(--gl)!important}
+html body #input .sales-bar,html body #stock .sales-bar,html body #expense .sales-bar,html body #report .sales-bar,html body #input .trend-bar,html body #stock .trend-bar,html body #expense .trend-bar,html body #report .trend-bar,html body #production .sales-bar,html body #production .trend-bar{background:linear-gradient(180deg,#ffe08a 0%,#e0a53a 50%,#a86a18 100%)!important;box-shadow:0 0 16px rgba(242,170,50,.4)!important;border-radius:10px 10px 4px 4px!important}
+html body #input .sales-day,html body #stock .sales-day,html body #expense .sales-day,html body #report .sales-day,html body #input .sales-value,html body #stock .sales-value,html body #expense .sales-value,html body #report .sales-value,html body #input .trend-label,html body #stock .trend-label,html body #expense .trend-label,html body #report .trend-label,html body #input .trend-value,html body #stock .trend-value,html body #expense .trend-value,html body #report .trend-value,html body #production .sales-day,html body #production .sales-value,html body #production .trend-label,html body #production .trend-value{color:#e6cf9f!important}
+html body #input .progress,html body #stock .progress,html body #expense .progress,html body #report .progress,html body #input .time-bar,html body #stock .time-bar,html body #expense .time-bar,html body #report .time-bar,html body #input .sx-bar,html body #stock .sx-bar,html body #expense .sx-bar,html body #report .sx-bar,html body #production .progress,html body #production .time-bar,html body #production .sx-bar{background:rgba(255,255,255,.08)!important}
+html body #input .progress span,html body #stock .progress span,html body #expense .progress span,html body #report .progress span,html body #input .time-bar span,html body #stock .time-bar span,html body #expense .time-bar span,html body #report .time-bar span,html body #input .sx-bar span.safe,html body #stock .sx-bar span.safe,html body #expense .sx-bar span.safe,html body #report .sx-bar span.safe,html body #production .progress span,html body #production .time-bar span,html body #production .sx-bar span.safe{background:linear-gradient(90deg,#b9791f,#ffe08a)!important}
+html body #input .donut:after,html body #stock .donut:after,html body #expense .donut:after,html body #report .donut:after,html body #production .donut:after{background:#120a04!important;border:1px solid var(--gl)!important}
+html body #input .notice,html body #stock .notice,html body #expense .notice,html body #report .notice,html body #production .notice{background:rgba(242,184,75,.08)!important;border:1px solid var(--gl2)!important;color:#f0dcb0!important;border-radius:20px!important}
 html body #input .ref-hero.card,html body #expense .ref-hero.card{background-color:#170b04!important;background-image:radial-gradient(circle at 90% 0%,rgba(242,184,75,.14),transparent 45%),linear-gradient(165deg,#2b1708 0%,#170b04 55%,#0e0703 100%)!important;border:1.5px solid rgba(242,184,75,.8)!important;box-shadow:0 0 0 1px rgba(255,224,138,.22) inset,0 0 30px rgba(242,150,30,.25),0 16px 36px rgba(0,0,0,.65)!important;padding:18px 20px!important}
 html body #input .ref-hero .hero-label,html body #expense .ref-hero .hero-label{color:#f0dcb0!important;font-size:13px!important;font-weight:600!important}
 html body #input .ref-hero .hero-value,html body #expense .ref-hero .hero-value{color:#f5bd4a!important;background-image:linear-gradient(180deg,#fff1b8 0%,#f5bd4a 55%,#c98a22 100%)!important;background-color:transparent!important;-webkit-background-clip:text!important;background-clip:text!important;-webkit-text-fill-color:transparent!important;font-size:clamp(32px,11vw,48px)!important;font-weight:900!important;letter-spacing:-1.5px!important;filter:drop-shadow(0 2px 12px rgba(242,160,40,.35))}
@@ -2003,6 +2003,17 @@ html body #input .page-head>.head-note:not([style]):after,html body #expense .pa
 #hpBox .hp-row{display:none;gap:10px;margin:2px 0 10px}#hpBox .hp-row.show{display:grid;grid-template-columns:1fr 1fr}#hpBox .hp-row.one.show{grid-template-columns:1fr}
 #hpBox label{font-size:11px;color:#d9bf8c}#hpBox input{width:100%}
 #hpBox .hp-go{display:none;width:100%;margin-top:4px}#hpBox .hp-go.show{display:block}
+</style>
+
+<style id="six-tabs-style">
+html body #mainTabs.tabs.tabs{padding-left:4px!important;padding-right:4px!important}
+html body #mainTabs.tabs.tabs button{font-size:10.5px!important;padding-left:0!important;padding-right:0!important;letter-spacing:-.1px}
+html body #mainTabs.tabs.tabs button svg{width:23px!important;height:23px!important}
+@media(max-width:420px){html body #mainTabs.tabs.tabs button{font-size:9.5px!important}html body #mainTabs.tabs.tabs button svg{width:22px!important;height:22px!important}}
+#production .stock-stats{margin-bottom:12px}
+.production-date-row>.date-icon{flex:0 0 38px!important;width:38px!important;height:38px!important;font-size:17px}
+@media(max-width:420px){html body #mainTabs.tabs.tabs button{font-size:9px!important}}
+
 </style>
 </head>
 
@@ -2174,7 +2185,7 @@ requestAnimationFrame(frame);
   </div>
 
   <div class="card section">
-    <div class="ref-section-title"><div class="ico">◷</div>Transaksi periode ini</div>
+    <div class="ref-section-title"><div class="ico">◷</div>Detail transaksi</div>
     <div id="salesList"></div>
   </div>
 </section>
@@ -2210,7 +2221,7 @@ requestAnimationFrame(frame);
     <div class="small" id="purchaseUnitHint"></div>
   </div>
 
-  <div class="ref-section-title" style="margin:6px 2px 10px"><div class="ico">!</div>Pemberitahuan Stok</div>
+  <div class="ref-section-title" style="margin:6px 2px 10px"><div class="ico">!</div>Ringkasan Stok</div>
   <div class="stock-search"><input id="stockSearch" type="search" placeholder="⌕  Cari bahan, produk, atau kategori..."></div>
   <div class="stock-tools" id="stockCategoryTabs">
     <button class="chip active" data-category="Semua" onclick="setStockCategory('Semua',this)">Semua</button>
@@ -2239,6 +2250,20 @@ requestAnimationFrame(frame);
     <div id="stockList"></div>
   </div>
 
+  <div class="card section"><div class="ref-section-title"><div class="ico">◷</div>Riwayat Pembelian</div><div id="stockPurchaseHistory"></div></div>
+</section>
+
+<section id="production" class="view">
+  <div class="page-head sx-head">
+    <div class="sx-title"><div class="sx-title-ico">♨</div><div><h2>Produksi</h2><div class="head-note" style="text-align:left">Catat bahan terpakai dan hitung biaya per porsi</div></div></div>
+    <div class="sx-pill">♨ Produksi harian</div>
+  </div>
+
+  <div class="stock-stats">
+    <div class="card stock-stat-card s-gold"><div class="s-icon">♨</div><div class="sx-stat-body"><div class="s-label">Produksi Hari Ini</div><div class="s-value" id="prodStatToday" style="font-size:19px">Rp0</div><div class="sx-stat-note">biaya bahan</div></div></div>
+    <div class="card stock-stat-card s-green"><div class="s-icon">▣</div><div class="sx-stat-body"><div class="s-label">Produksi Bulan Ini</div><div class="s-value" id="prodStatMonth" style="font-size:19px">Rp0</div><div class="sx-stat-note ok" id="prodStatDays">0 hari produksi</div></div></div>
+  </div>
+
   <div class="card section production-card">
     <div class="ref-section-title"><div class="ico">♨</div>Produksi Harian</div>
     <div class="production-intro">Masukkan jumlah bahan yang <b>benar-benar dipakai hari ini</b>. Stok akan berkurang otomatis dan biaya dihitung dari stok yang digunakan.</div>
@@ -2250,7 +2275,6 @@ requestAnimationFrame(frame);
   </div>
 
   <div class="card section"><div class="ref-section-title"><div class="ico">◷</div>Riwayat Produksi</div><div id="stockProductionHistory"></div></div>
-  <div class="card section"><div class="ref-section-title"><div class="ico">◷</div>Riwayat Pembelian</div><div id="stockPurchaseHistory"></div></div>
 </section>
 
 <section id="expense" class="view">
@@ -2379,6 +2403,7 @@ requestAnimationFrame(frame);
   <button onclick="show('input',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg><span>Pemasukan</span></button>
   <button onclick="show('expense',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3m0 0L8 7m4-4 4 4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg><span>Pengeluaran</span></button>
   <button onclick="show('stock',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="m3 8 9 5 9-5M12 13v8"/></svg><span>Stok</span></button>
+  <button onclick="show('production',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 11h16v6a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3z"/><path d="M2 11h20M9 4c0 1.5 1 1.5 1 3M14 4c0 1.5 1 1.5 1 3"/></svg><span>Produksi</span></button>
   <button onclick="show('report',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="M8 17v-5M13 17V8M18 17v-3"/></svg><span>Laporan</span></button>
 </nav>
 
@@ -2729,9 +2754,7 @@ const todayISO=()=>{let d=new Date();return d.getFullYear()+'-'+String(d.getMont
   }
 }
 function goToSection(id){
-  const map={home:0,input:1,expense:2,stock:3,report:4};
-  const tabs=document.querySelectorAll('.tabs button');
-  const btn=tabs[map[id] ?? 0];
+  const btn=document.querySelector(".tabs button[onclick*=\"'"+id+"'\"]")||document.querySelector('.tabs button');
   show(id,btn);
   window.scrollTo({top:0,behavior:'smooth'});
 }
@@ -2831,7 +2854,7 @@ function saveStockProduction(){
  else db.productionRecords.push({id:Date.now(),date,items,amount,portions});
  recalculateStockFromRecords();save();window.editingStockProductionId=null;renderAll();alert('Produksi tersimpan. Stok otomatis berkurang.');
 }
-function editStockProduction(id){const r=db.productionRecords.find(x=>x.id===id);if(!r)return;window.editingStockProductionId=id;const d=document.getElementById('stockProductionDate');if(d)d.value=r.date;document.getElementById('stockProductionPortions').value=r.portions||20;db.ingredients.forEach(x=>{const it=r.items?.find(i=>i.ingredientId===x.id);const el=document.getElementById('stockuse_'+x.id);if(el)el.value=it?.qty||''});const btn=document.getElementById('stockProductionSaveBtn');if(btn)btn.textContent='✓ Simpan Perubahan Produksi';document.getElementById('stock')?.scrollIntoView({behavior:'smooth',block:'start'});renderStockProduction();}
+function editStockProduction(id){const r=db.productionRecords.find(x=>x.id===id);if(!r)return;window.editingStockProductionId=id;const d=document.getElementById('stockProductionDate');if(d)d.value=r.date;document.getElementById('stockProductionPortions').value=r.portions||20;db.ingredients.forEach(x=>{const it=r.items?.find(i=>i.ingredientId===x.id);const el=document.getElementById('stockuse_'+x.id);if(el)el.value=it?.qty||''});const btn=document.getElementById('stockProductionSaveBtn');if(btn)btn.textContent='✓ Simpan Perubahan Produksi';goToSection('production');renderStockProduction();}
 function removeStockProduction(id){if(!confirm('Hapus catatan produksi ini? Stok yang terpakai akan dikembalikan.'))return;db.productionRecords=db.productionRecords.filter(x=>x.id!==id);if(window.editingStockProductionId===id)window.editingStockProductionId=null;recalculateStockFromRecords();save();renderAll()}
 function deleteStockPurchase(id){if(!confirm('Hapus pembelian ini? Stok akan dihitung ulang.'))return;db.stockPurchases=db.stockPurchases.filter(x=>x.id!==id);recalculateStockFromRecords();save();renderAll()}
 function stockMin(x){const m=x.minQty;return (m===undefined||m===null||m===''||isNaN(Number(m)))?1:Math.max(0,Number(m))}
@@ -2933,7 +2956,8 @@ function renderStockPurchases(){
   return `<div class="ph-day"><div class="ph-head"><span>${purchaseDayLabel(d)}</span><b>${rupiah(sum)}</b></div>`+rows.map(x=>{const i=db.ingredients.find(a=>a.id===x.ingredientId);return `<div class="item"><span>${i?.name||'Bahan'}<br><span class="sub">+${x.qty} ${i?.unit||'unit'} • ${rupiah(x.unitCost)}/${i?.unit||'unit'}</span></span><div class="actions"><b>${rupiah(x.totalCost)}</b><button class="secondary danger" onclick="deleteStockPurchase(${x.id})">Hapus</button></div></div>`}).join('')+`</div>`;
  }).join(''):'<div class="empty">Belum ada pembelian stok.</div>';
 }
-function renderStockTab(){recalculateStockFromRecords();renderStock();renderStockProduction();renderStockHistory();renderStockPurchases();}
+function renderProductionStats(){try{const t=todayISO(),mo=ym(t);const td=dailyProductionTotal(t)+legacyDailyProductionTotal(t);const mp=monthlyData(mo).prod;const days=new Set(db.productionRecords.filter(r=>ym(r.date)===mo).map(r=>r.date)).size;const a=document.getElementById('prodStatToday'),b=document.getElementById('prodStatMonth'),c=document.getElementById('prodStatDays');if(a)a.textContent=rupiah(td);if(b)b.textContent=rupiah(mp);if(c)c.textContent=days+' hari produksi'}catch(e){}}
+function renderStockTab(){recalculateStockFromRecords();renderStock();renderStockProduction();renderStockHistory();renderStockPurchases();renderProductionStats();}
 function dailyExpenseTotal(month){let dynamic=db.dailyExpenses.filter(x=>x.month===month).reduce((s,x)=>s+Number(x.amount||0),0);let legacy=db.sales.filter(x=>ym(x.date)===month).reduce((s,x)=>s+Number(x.dailyCoffee||0),0);return dynamic+legacy}
 function monthlyExpenseTotal(){return 0}
 function monthlyData(month){let sales=db.sales.filter(x=>ym(x.date)===month),items=sales.reduce((a,x)=>a+x.items.reduce((s,i)=>s+Number(i.qty||0),0),0),om=sales.reduce((a,x)=>a+Number(x.omzet||0),0);let prod=monthlyProductionTotal(month);let daily=dailyExpenseTotal(month);let monthly=monthlyExpenseTotal();let total=prod+daily+monthly;return{sales,items,om,prod,daily,monthly,total,profit:om-total,margin:om?((om-total)/om*100):0}}
@@ -3183,7 +3207,9 @@ function renderInput(){
   const arr=Object.values(map).sort((a,b)=>b.amount-a.amount);
   document.getElementById('incomeBreakdown').innerHTML=arr.length?arr.map((p,idx)=>`<div class="ref-list-item"><div class="ref-icon ${idx%3===1?'red':idx%3===2?'purple':''}">${productIcon(p.name)}</div><div><div class="name">${p.name}</div><div class="count">${p.qty} transaksi/item</div></div><div><div class="amount">${rupiah(p.amount)}</div><div class="trend">↑ ${Math.max(1,Math.min(99,100-idx*17))}%</div></div><div class="chev">›</div></div>`).join(''):'<div class="empty">Belum ada pemasukan pada periode ini.</div>';
   const s=sales.slice().sort((a,b)=>String(b.date).localeCompare(String(a.date))||Number(b.id)-Number(a.id));
-  document.getElementById('salesList').innerHTML=s.length?s.map(x=>`<div class="item"><span>${x.date}<span class="pay-badge ${x.method==='qris'?'qris':'cash'}">${x.method==='qris'?'QRIS':'Cash'}</span><br><span class="sub">${x.items.map(i=>{let p=db.products.find(p=>p.id===i.productId);return `${p?.name||i.productId} × ${i.qty}`}).join(', ')}</span></span><div class="actions"><b>${rupiah(x.omzet)}</b><button class="secondary" onclick="editSale(${x.id})">✏️</button><button class="secondary danger" onclick="deleteSale(${x.id})">🗑</button></div></div>`).join(''):'<div class="empty">Belum ada pemasukan pada periode ini.</div>';
+  {const g={};s.forEach(x=>{(g[x.date]=g[x.date]||[]).push(x)});
+   document.getElementById('salesList').innerHTML=s.length?Object.keys(g).sort((p,q)=>q.localeCompare(p)).map(d=>{const rows=g[d],sum=rows.reduce((t,x)=>t+(Number(x.omzet)||0),0);
+    return `<div class="ph-day"><div class="ph-head"><span>${purchaseDayLabel(d)}</span><b>${rupiah(sum)}</b></div>`+rows.map(x=>`<div class="item"><span><span class="pay-badge ${x.method==='qris'?'qris':'cash'}" style="margin-left:0">${x.method==='qris'?'QRIS':'Cash'}</span><br><span class="sub">${x.items.map(i=>{let p=db.products.find(p=>p.id===i.productId);return `${p?.name||i.productId} × ${i.qty}`}).join(', ')}</span></span><div class="actions"><b>${rupiah(x.omzet)}</b><button class="secondary" onclick="editSale(${x.id})">✏️</button><button class="secondary danger" onclick="deleteSale(${x.id})">🗑</button></div></div>`).join('')+`</div>`}).join(''):'<div class="empty">Belum ada pemasukan pada periode ini.</div>';}
 }
 function daysInMonthOf(iso){const a=String(iso).split('-').map(Number);return new Date(a[0],a[1],0).getDate()}
 function dayExpenseBreakdown(date){
@@ -3252,7 +3278,7 @@ function addIngredientPrompt(){
   alert(`${name} berhasil ditambahkan ke stok.`);
 }
 function renderStockTab(){
-  recalculateStockFromRecords(); renderStock(); renderStockProduction(); renderStockHistory(); renderStockPurchases();
+  recalculateStockFromRecords(); renderStock(); renderStockProduction(); renderStockHistory(); renderStockPurchases(); renderProductionStats();
   const all=db.ingredients, total=all.length, low=all.filter(x=>stockState(x)==='low').length, out=all.filter(x=>stockState(x)==='out').length, safe=Math.max(0,total-low-out);
   document.getElementById('stockStatTotal').textContent=total;document.getElementById('stockStatLow').textContent=low;document.getElementById('stockStatSafe').textContent=safe;document.getElementById('stockStatOut').textContent=out;
   const search=document.getElementById('stockSearch');
