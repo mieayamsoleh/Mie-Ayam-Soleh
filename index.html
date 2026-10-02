@@ -1437,6 +1437,52 @@ body:has(#home.active) .tabs button.active:after{background:var(--lg-yellow)!imp
 #home .dash-tip>span:first-child,#home .dash-tip>span:last-child{color:var(--lg-yellow)}
 #home .dash-tip small{color:var(--lg-sand)}
 </style>
+<style id="purchase-form-style">
+#purchaseCard .pf{display:flex;flex-direction:column;gap:11px}
+#purchaseCard .pf-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+#purchaseCard .pf-field{min-width:0;position:relative}
+#purchaseCard .pf label{display:block;font-size:11px;font-weight:700;margin:0 0 5px}
+#purchaseCard .pf input{width:100%;box-sizing:border-box;padding:11px 12px;font-size:14px;min-height:44px}
+#purchaseCard .pf-unit{font-weight:600;opacity:.7}
+#purchaseCard .pf-total{font-weight:900;color:#FEC440!important;background:rgba(254,196,64,.10)!important;border-color:rgba(254,196,64,.45)!important;text-align:right}
+#purchaseCard .pf-list{position:absolute;left:0;right:0;top:100%;margin-top:4px;max-height:240px;overflow:auto;z-index:20;background:#2A1305;border:1px solid rgba(254,196,64,.4);border-radius:12px;box-shadow:0 10px 28px rgba(0,0,0,.5)}
+#purchaseCard .pf-list[hidden]{display:none}
+#purchaseCard .pf-opt{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:11px 12px;font-size:13px;color:#FCF9F1;border-bottom:1px solid rgba(254,196,64,.12);cursor:pointer}
+#purchaseCard .pf-opt:last-child{border-bottom:0}
+#purchaseCard .pf-opt:active,#purchaseCard .pf-opt.on{background:rgba(254,196,64,.16)}
+#purchaseCard .pf-opt small{font-size:10px;opacity:.65;white-space:nowrap}
+#purchaseCard .pf-empty{padding:12px;font-size:12px;opacity:.7}
+#purchaseCard .primary{width:100%;margin-top:2px}
+#purchaseUnitHint{margin-top:8px}
+</style>
+<style id="purchase-history-style">
+#stockPurchaseHistory .ph-day{margin-bottom:14px}
+#stockPurchaseHistory .ph-day:last-child{margin-bottom:0}
+#stockPurchaseHistory .ph-head{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 11px;margin-bottom:4px;border-radius:10px;background:rgba(254,196,64,.12);border:1px solid rgba(254,196,64,.28);font-size:12px;font-weight:800;color:#FEC440}
+#stockPurchaseHistory .ph-head b{font-size:12px;white-space:nowrap}
+</style>
+<style id="dash-4cards">
+html body #home .dashboard-mini-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+</style>
+<style id="report-detail-style">
+#report .rp-fin .sub-row{padding-left:14px;font-size:12px;opacity:.85}
+#report .rp-fin .total-row{border-top:1px solid rgba(254,196,64,.3)}
+#report .rp-fin .total-row b{color:#FEC440}
+#report .rp-cat{margin-bottom:11px}
+#report .rp-cat:last-child{margin-bottom:0}
+#report .rp-cat-top{display:flex;justify-content:space-between;gap:8px;font-size:12px;margin-bottom:5px}
+#report .rp-cat-top b{white-space:nowrap}
+#report .rp-cat-sub{font-size:10px;opacity:.65;margin-top:3px}
+#report .rp-bar{height:6px;border-radius:9px;background:rgba(254,196,64,.14);overflow:hidden}
+#report .rp-bar span{display:block;height:100%;border-radius:9px;background:linear-gradient(90deg,#E9A11C,#FEC440)}
+#report .rp-day{padding:10px 0;border-bottom:1px solid rgba(254,196,64,.14)}
+#report .rp-day:last-child{border-bottom:0}
+#report .rp-day-head{display:flex;justify-content:space-between;gap:8px;font-size:12px;font-weight:800;margin-bottom:6px}
+#report .rp-day-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:4px 12px;font-size:11px}
+#report .rp-day-grid span{display:flex;justify-content:space-between;gap:6px;opacity:.9}
+#report .rp-day-grid b{font-weight:700}
+#report .rp-pos{color:#7ED08B}#report .rp-neg{color:#FF8A78}
+</style>
 <style id="stock-redesign">
 /* ===== Tampilan Stok baru (gaya mockup) ===== */
 #stock .sx-head{align-items:center}
@@ -2054,6 +2100,9 @@ requestAnimationFrame(frame);
       <div class="dash-mini"><div class="dash-mini-icon gold"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/></svg></div>
         <div><div class="dash-mini-label">Biaya Produksi</div><div class="dash-mini-value" id="mBiaya">Rp0</div></div>
       </div>
+      <div class="dash-mini"><div class="dash-mini-icon gold"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2.5l2.2 10.5a1.5 1.5 0 0 0 1.5 1.2h8.2a1.5 1.5 0 0 0 1.5-1.1L20.5 8H6.2"/><circle cx="10" cy="19.5" r="1.3"/><circle cx="17" cy="19.5" r="1.3"/></svg></div>
+        <div><div class="dash-mini-label">Pembelian</div><div class="dash-mini-value" id="mPembelian">Rp0</div></div>
+      </div>
       <div class="dash-mini profit">
         <div class="dash-mini-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg></div>
         <div><div class="dash-mini-label">Profit Bersih</div><div class="dash-mini-value" id="mProfit">Rp0</div><div class="dash-mini-pct" id="mProfitPct"></div></div>
@@ -2138,6 +2187,30 @@ requestAnimationFrame(frame);
     <div class="sx-pill">📦 Stok saat ini</div>
   </div>
 
+  <div class="card section" id="purchaseCard">
+    <div class="ref-section-title"><div class="ico">＋</div>Pembelian Stok</div>
+    <div class="small">Catat pembelian baru. Jumlahnya langsung ditambahkan ke stok yang sudah ada.</div>
+    <div class="stock-purchase pf">
+      <div class="pf-field pf-combo">
+        <label for="purchaseSearch">Bahan</label>
+        <input type="hidden" id="purchaseIngredient">
+        <input id="purchaseSearch" type="text" autocomplete="off" placeholder="Ketik / pilih bahan..." onfocus="openPurchaseList(true)" oninput="openPurchaseList(false)">
+        <div class="pf-list" id="purchaseList" hidden></div>
+      </div>
+      <div class="pf-row">
+        <div class="pf-field"><label for="purchaseDate">Tanggal</label><input id="purchaseDate" type="date"></div>
+        <div class="pf-field"><label for="purchaseQty">Jumlah <span class="pf-unit" id="pfUnitQty"></span></label><input id="purchaseQty" type="number" min="0" step="any" inputmode="decimal" placeholder="0" oninput="calcPurchaseTotal()"></div>
+      </div>
+      <div class="pf-row">
+        <div class="pf-field"><label for="purchasePrice">Harga <span class="pf-unit" id="pfUnitPrice"></span></label><input id="purchasePrice" type="number" min="0" step="any" inputmode="numeric" placeholder="Rp0" oninput="calcPurchaseTotal()"></div>
+        <div class="pf-field"><label for="purchaseTotal">Total</label><input id="purchaseTotal" type="text" readonly tabindex="-1" value="Rp0" class="pf-total"></div>
+      </div>
+      <button class="primary" onclick="saveStockPurchase()">＋ Simpan Pembelian</button>
+    </div>
+    <div class="small" id="purchaseUnitHint"></div>
+  </div>
+
+  <div class="ref-section-title" style="margin:6px 2px 10px"><div class="ico">!</div>Pemberitahuan Stok</div>
   <div class="stock-search"><input id="stockSearch" type="search" placeholder="⌕  Cari bahan, produk, atau kategori..."></div>
   <div class="stock-tools" id="stockCategoryTabs">
     <button class="chip active" data-category="Semua" onclick="setStockCategory('Semua',this)">Semua</button>
@@ -2164,21 +2237,6 @@ requestAnimationFrame(frame);
     </div>
     <div class="sx-sortbar"><span>Urutkan</span><select id="stockSort" onchange="renderStock()"><option value="low">Stok terendah</option><option value="high">Stok terbanyak</option><option value="name">Nama A–Z</option></select></div>
     <div id="stockList"></div>
-  </div>
-
-  <div class="card section">
-    <div class="ref-section-title"><div class="ico">＋</div>Pembelian Stok</div>
-    <div class="small">Catat pembelian baru. Jumlahnya langsung ditambahkan ke stok yang sudah ada.</div>
-    <div class="stock-purchase">
-      <div class="stock-purchase-grid">
-        <div><label>Bahan</label><select id="purchaseIngredient"></select></div>
-        <div><label>Tanggal</label><input id="purchaseDate" type="date"></div>
-        <div><label>Jumlah</label><input id="purchaseQty" type="number" min="0" step="any" inputmode="decimal" placeholder="0"></div>
-        <div><label>Total harga beli</label><input id="purchaseCost" type="number" min="0" step="100" inputmode="numeric" placeholder="Rp0"></div>
-      </div>
-      <button class="primary" onclick="saveStockPurchase()">＋ Simpan Pembelian</button>
-    </div>
-    <div class="small" id="purchaseUnitHint"></div>
   </div>
 
   <div class="card section production-card">
@@ -2250,6 +2308,8 @@ requestAnimationFrame(frame);
     <div class="card report-kpi"><div class="k-icon" style="background:#103c2d;color:#31dc91">◈</div><div class="k-label">Total Transaksi</div><div class="k-value" id="rPorsi">0</div></div>
     <div class="card report-kpi"><div class="k-icon" style="background:#12324b;color:#55aaff">◫</div><div class="k-label">Total Pengeluaran</div><div class="k-value" id="rAvg">Rp0</div></div>
     <div class="card report-kpi"><div class="k-icon" style="background:#2a1740;color:#bd8cff">↗</div><div class="k-label">Profit Bersih</div><div class="k-value green" id="rProfit">Rp0</div></div>
+    <div class="card report-kpi"><div class="k-icon" style="background:#3b2a0b;color:#FEC440">🛒</div><div class="k-label">Pembelian Stok</div><div class="k-value" id="rBuy">Rp0</div><div class="k-split"><span id="rBuyCount">0 pembelian</span></div></div>
+    <div class="card report-kpi"><div class="k-icon" style="background:#103c2d;color:#31dc91">☰</div><div class="k-label">Porsi Terjual</div><div class="k-value" id="rItems">0</div><div class="k-split"><span id="rItemsAvg">Rata-rata 0 / hari</span></div></div>
   </div>
 
   <div class="card trend-card section">
@@ -2270,13 +2330,37 @@ requestAnimationFrame(frame);
 
   <div class="card section">
     <div class="ref-section-title"><div class="ico">▣</div>Rincian Keuangan</div>
-    <div class="list">
-      <div class="item"><span>Biaya produksi</span><b id="rProd">Rp0</b></div>
+    <div class="list rp-fin">
+      <div class="item"><span>Total penjualan</span><b id="rFinOm">Rp0</b></div>
+      <div class="item sub-row"><span>💵 Cash</span><b id="rFinCash">Rp0</b></div>
+      <div class="item sub-row"><span>📱 QRIS</span><b id="rFinQris">Rp0</b></div>
+      <div class="item"><span>Biaya produksi (bahan terpakai)</span><b id="rProd">Rp0</b></div>
       <div class="item"><span>Pengeluaran harian</span><b id="rDaily">Rp0</b></div>
       <div class="item"><span>Pengeluaran bulanan</span><b id="rMonthly">Rp0</b></div>
-      <div class="item"><span>Total semua biaya</span><b id="rCost">Rp0</b></div>
+      <div class="item total-row"><span>Total semua biaya</span><b id="rCost">Rp0</b></div>
+      <div class="item total-row"><span>Profit bersih</span><b id="rFinProfit">Rp0</b></div>
       <div class="item"><span>Margin profit</span><b id="rMargin">0%</b></div>
+      <div class="item"><span>Rata-rata penjualan / transaksi</span><b id="rAvgTrx">Rp0</b></div>
+      <div class="item"><span>Rata-rata penjualan / hari</span><b id="rAvgDay">Rp0</b></div>
+      <div class="item"><span>Pembelian stok (tidak masuk profit)</span><b id="rFinBuy">Rp0</b></div>
+      <div class="item"><span>Penjualan dikurangi pembelian stok</span><b id="rCashflow">Rp0</b></div>
     </div>
+    <div class="sub" style="font-size:10px;opacity:.65;margin-top:8px">Profit dihitung dari biaya bahan yang terpakai, bukan dari pembelian stok, supaya bahan yang sama tidak terhitung dua kali.</div>
+  </div>
+
+  <div class="card section">
+    <div class="ref-section-title"><div class="ico">◫</div>Pengeluaran per Kategori</div>
+    <div id="reportExpCats"></div>
+  </div>
+
+  <div class="card section">
+    <div class="ref-section-title"><div class="ico">🛒</div>Pembelian Stok per Bahan</div>
+    <div id="reportBuyItems"></div>
+  </div>
+
+  <div class="card section">
+    <div class="ref-section-title"><div class="ico">▤</div>Ringkasan Harian</div>
+    <div id="reportDaily"></div>
   </div>
 
   <div id="monthlyProductionHistory" style="display:none"></div>
@@ -2680,20 +2764,47 @@ function recalculateStockFromRecords(){
 function captureLegacyProductionSettings(){
  db.settings.productionPortions=Number(document.getElementById('stockProductionPortions')?.value||db.settings.productionPortions||20);
 }
+function purchaseSelected(){return db.ingredients.find(i=>i.id===document.getElementById('purchaseIngredient')?.value)}
+function calcPurchaseTotal(){
+ const q=Number(document.getElementById('purchaseQty')?.value||0),p=Number(document.getElementById('purchasePrice')?.value||0);
+ const t=document.getElementById('purchaseTotal');if(t)t.value=rupiah(Math.round(q*p));
+}
+function setPurchaseIngredient(id){
+ const x=db.ingredients.find(i=>i.id===id);
+ const h=document.getElementById('purchaseIngredient'),s=document.getElementById('purchaseSearch');
+ if(h)h.value=x?x.id:'';if(s)s.value=x?x.name:'';
+ const u=x?('/ '+x.unit):'';
+ const a=document.getElementById('pfUnitQty'),b=document.getElementById('pfUnitPrice');
+ if(a)a.textContent=x?('('+x.unit+')'):'';if(b)b.textContent=u;
+ const l=document.getElementById('purchaseList');if(l)l.hidden=true;
+ updatePurchaseHint();
+}
+function openPurchaseList(showAll){
+ const l=document.getElementById('purchaseList'),s=document.getElementById('purchaseSearch');if(!l||!s)return;
+ const cur=purchaseSelected();
+ const q=(showAll&&cur&&s.value===cur.name)?'':s.value.trim().toLowerCase();
+ if(!showAll){const h=document.getElementById('purchaseIngredient');if(h&&cur&&s.value!==cur.name){h.value='';}}
+ const list=(db.ingredients||[]).filter(x=>!q||`${x.name} ${x.category||''}`.toLowerCase().includes(q));
+ l.innerHTML=list.length?list.map(x=>`<div class="pf-opt" onmousedown="event.preventDefault()" onclick="setPurchaseIngredient('${x.id}')"><span>${escHtml(x.name)}</span><small>${escHtml(x.category||'Lainnya')} • ${escHtml(x.unit)}</small></div>`).join(''):'<div class="pf-empty">Bahan tidak ditemukan.</div>';
+ l.hidden=false;
+}
+document.addEventListener('click',e=>{const l=document.getElementById('purchaseList');if(l&&!l.hidden&&!e.target.closest('.pf-combo'))l.hidden=true});
 function saveStockPurchase(){
  const ingredientId=document.getElementById('purchaseIngredient').value;
  const qty=Number(document.getElementById('purchaseQty').value||0);
  const purchaseDate=document.getElementById('purchaseDate').value||todayISO();
- const totalCost=Number(document.getElementById('purchaseCost').value||0);
- if(!ingredientId||qty<=0)return alert('Isi bahan dan jumlah pembelian.');
- if(totalCost<0)return alert('Harga beli tidak valid.');
+ const price=Number(document.getElementById('purchasePrice').value||0);
+ const totalCost=Math.round(qty*price);
+ if(!ingredientId)return alert('Pilih bahan terlebih dahulu.');
+ if(qty<=0)return alert('Isi jumlah pembelian.');
+ if(price<0)return alert('Harga beli tidak valid.');
  const x=db.ingredients.find(i=>i.id===ingredientId);if(!x)return;
  const oldQty=Number(x.stockQty)||0,oldCost=ingredientUnitCost(x),unitCost=totalCost/qty;
  x.unitCost=(oldQty>0?(oldQty*oldCost+qty*unitCost)/(oldQty+qty):unitCost);
  x.stockQty=oldQty+qty;
  db.stockPurchases.push({id:Date.now(),date:purchaseDate,ingredientId,qty,totalCost,unitCost});
  save();renderAll();
- document.getElementById('purchaseQty').value='';document.getElementById('purchaseCost').value='';
+ document.getElementById('purchaseQty').value='';document.getElementById('purchasePrice').value='';calcPurchaseTotal();
  alert('Pembelian stok tersimpan dan stok bertambah.');
 }
 function stockProductionDraft(){
@@ -2739,9 +2850,8 @@ function setStockStatus(st){window.stockStatus=(st&&window.stockStatus!==st)?st:
 function toggleStockDetail(id){window.stockOpen=window.stockOpen||{};window.stockOpen[id]=!window.stockOpen[id];renderStock()}
 function changeStockMin(id,val){const x=db.ingredients.find(i=>i.id===id);if(!x)return;x.minQty=Math.max(0,Number(val)||0);save();renderStockTab()}
 function restockItem(id){
- const sel=document.getElementById('purchaseIngredient');
- if(sel){sel.value=id;updatePurchaseHint()}
- const target=(sel&&sel.closest('.card'))||sel;
+ setPurchaseIngredient(id);
+ const target=document.getElementById('purchaseCard');
  if(target&&target.scrollIntoView)target.scrollIntoView({behavior:'smooth',block:'start'});
  setTimeout(()=>{const q=document.getElementById('purchaseQty');if(q)q.focus()},450);
 }
@@ -2781,15 +2891,9 @@ function renderStock(){
    </div>`;
  }).join(''):'<div class="empty">Belum ada bahan pada kategori ini.</div>';
  const pd=document.getElementById('purchaseDate');if(pd&&!pd.value)pd.value=todayISO();
- const sel=document.getElementById('purchaseIngredient');
- if(sel){
-   const current=sel.value;
-   sel.innerHTML=all.map(x=>`<option value="${x.id}">${escHtml(x.name)} • ${escHtml(x.category||'Lainnya')}</option>`).join('');
-   if(all.some(x=>x.id===current))sel.value=current;
- }
- updatePurchaseHint();
+ {const cur=document.getElementById('purchaseIngredient');const keep=cur&&all.some(x=>x.id===cur.value)?cur.value:'';setPurchaseIngredient(keep);}
 }
-function updatePurchaseHint(){const x=db.ingredients.find(i=>i.id===document.getElementById('purchaseIngredient')?.value);const el=document.getElementById('purchaseUnitHint');if(el&&x)el.textContent=`Stok sekarang: ${Number(x.stockQty||0)} ${x.unit} • harga rata-rata ${rupiah(ingredientUnitCost(x))}/${x.unit}`;}
+function updatePurchaseHint(){const x=db.ingredients.find(i=>i.id===document.getElementById('purchaseIngredient')?.value);const el=document.getElementById('purchaseUnitHint');if(el)el.textContent=!x?'Pilih bahan untuk melihat stok & harga rata-rata.':`Stok sekarang: ${Number(x.stockQty||0)} ${x.unit} • harga rata-rata ${rupiah(ingredientUnitCost(x))}/${x.unit}`;}
 function changeStockUnit(id,val){const x=db.ingredients.find(i=>i.id===id);if(x){x.unit=val;save();renderStock()}}
 const PROD_CATS=['Bahan Baku','Bumbu & Saus','Kemasan','Minuman','Kebersihan','Lainnya'];
 function prodCatOf(x){const c=x.category||'Lainnya';return PROD_CATS.includes(c)?c:'Lainnya'}
@@ -2815,7 +2919,20 @@ function updateProdTabBadges(){
 }
 function updateStockProductionTotal(){updateProdTabBadges();const items=stockProductionDraft();const total=items.reduce((s,x)=>s+x.cost,0);document.getElementById('stockProductionTotal').textContent=rupiah(total);const p=Number(document.getElementById('stockProductionPortions')?.value||1);document.getElementById('stockProductionPer').textContent=rupiah(total/p);const warnings=items.filter(it=>it.qty>(Number(db.ingredients.find(x=>x.id===it.ingredientId)?.stockQty)||0)&&!(window.editingStockProductionId));document.getElementById('stockProductionWarning').innerHTML=warnings.length?`<div class="stock-warning">⚠️ ${warnings.map(it=>{const x=db.ingredients.find(a=>a.id===it.ingredientId);return `${x.name}: pemakaian ${it.qty} ${x.unit}, stok ${x.stockQty||0} ${x.unit}`}).join('<br>')}</div>`:''}
 function renderStockHistory(){const h=db.productionRecords.slice().sort((a,b)=>b.date.localeCompare(a.date));document.getElementById('stockProductionHistory').innerHTML=h.length?h.map(x=>`<div class="stock-history-item"><div class="stock-history-head"><div class="stock-history-date">${x.date}</div><div class="stock-history-amount">${rupiah(x.amount)}</div></div><div class="stock-history-sub">${x.items?.map(it=>{const i=db.ingredients.find(a=>a.id===it.ingredientId);return `${i?.name||'Bahan'} ${it.qty} ${i?.unit||'unit'}`}).join(' • ')||((x.portions||'-')+' porsi')}</div><div class="stock-history-actions"><button class="secondary" onclick="editStockProduction(${x.id})">✏️ Edit</button><button class="secondary danger" onclick="removeStockProduction(${x.id})">🗑 Hapus</button></div></div>`).join(''):'<div class="empty">Belum ada produksi.</div>';}
-function renderStockPurchases(){const h=db.stockPurchases.slice().sort((a,b)=>b.date.localeCompare(a.date)||b.id-a.id);document.getElementById('stockPurchaseHistory').innerHTML=h.length?h.map(x=>{const i=db.ingredients.find(a=>a.id===x.ingredientId);return `<div class="item"><span>${x.date}<br><span class="sub">${i?.name||'Bahan'} • +${x.qty} ${i?.unit||'unit'} • ${rupiah(x.unitCost)}/${i?.unit||'unit'}</span></span><div class="actions"><b>${rupiah(x.totalCost)}</b><button class="secondary danger" onclick="deleteStockPurchase(${x.id})">Hapus</button></div></div>`}).join(''):'<div class="empty">Belum ada pembelian stok.</div>';}
+function purchaseDayLabel(iso){
+ const D=['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'],M=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+ const p=String(iso||'').split('-').map(Number);if(p.length<3||!p[0])return iso||'-';
+ const d=new Date(p[0],p[1]-1,p[2]);
+ return `${D[d.getDay()]}, ${p[2]} ${M[p[1]-1]} ${p[0]}`;
+}
+function renderStockPurchases(){
+ const h=db.stockPurchases.slice().sort((a,b)=>String(b.date).localeCompare(String(a.date))||b.id-a.id);
+ const groups={};h.forEach(x=>{(groups[x.date]=groups[x.date]||[]).push(x)});
+ document.getElementById('stockPurchaseHistory').innerHTML=h.length?Object.keys(groups).sort((a,b)=>b.localeCompare(a)).map(d=>{
+  const rows=groups[d],sum=rows.reduce((t,x)=>t+(Number(x.totalCost)||0),0);
+  return `<div class="ph-day"><div class="ph-head"><span>${purchaseDayLabel(d)}</span><b>${rupiah(sum)}</b></div>`+rows.map(x=>{const i=db.ingredients.find(a=>a.id===x.ingredientId);return `<div class="item"><span>${i?.name||'Bahan'}<br><span class="sub">+${x.qty} ${i?.unit||'unit'} • ${rupiah(x.unitCost)}/${i?.unit||'unit'}</span></span><div class="actions"><b>${rupiah(x.totalCost)}</b><button class="secondary danger" onclick="deleteStockPurchase(${x.id})">Hapus</button></div></div>`}).join('')+`</div>`;
+ }).join(''):'<div class="empty">Belum ada pembelian stok.</div>';
+}
 function renderStockTab(){recalculateStockFromRecords();renderStock();renderStockProduction();renderStockHistory();renderStockPurchases();}
 function dailyExpenseTotal(month){let dynamic=db.dailyExpenses.filter(x=>x.month===month).reduce((s,x)=>s+Number(x.amount||0),0);let legacy=db.sales.filter(x=>ym(x.date)===month).reduce((s,x)=>s+Number(x.dailyCoffee||0),0);return dynamic+legacy}
 function monthlyExpenseTotal(){return 0}
@@ -2995,6 +3112,7 @@ function renderHome(){
   const bahanHariIni=dailyProductionTotal(todayISO())+legacyDailyProductionTotal(todayISO());
   document.getElementById('mOmzet').textContent=rupiah(pc+de);
   document.getElementById('mBiaya').textContent=rupiah(bahanHariIni);
+  {const pb=(db.stockPurchases||[]).filter(x=>x.date===todayISO()).reduce((q,x)=>q+(Number(x.totalCost)||0),0);const pe2=document.getElementById('mPembelian');if(pe2)pe2.textContent=rupiah(pb);}
   document.getElementById('mProfit').textContent=rupiah(o-pc-de);
   document.getElementById('todayProfit').textContent=rupiah(o);
   {const yd=previousISO(todayISO()),yP=dashboardDayOmzet(yd)-Math.round(dayExpenseBreakdown(yd).total),nP=o-pc-de,pe=document.getElementById('mProfitPct');
@@ -3220,7 +3338,7 @@ function renderReport(){
   document.getElementById('reportTrend').innerHTML=days.map((d,i)=>`<div class="trend-col"><div class="trend-value">${showVal?fmtShort(d.omzet):''}</div><div class="trend-bar" title="${d.label}: ${rupiah(d.omzet)}" style="height:${d.omzet?Math.max(8,d.omzet/max*100):5}%"></div><div class="trend-label">${i%step===0?d.label:''}</div></div>`).join('');
   const pm={};m.sales.forEach(s=>s.items.forEach(i=>{let p=db.products.find(p=>p.id===i.productId);let k=p?.id||i.productId;if(!pm[k])pm[k]={name:p?.name||i.productId,qty:0,amount:0};pm[k].qty+=Number(i.qty)||0;pm[k].amount+=(Number(i.qty)||0)*(Number(i.price)||0)}));
   const parr=Object.values(pm).sort((a,b)=>b.amount-a.amount), pmax=parr[0]?.amount||1;
-  document.getElementById('reportProducts').innerHTML=parr.length?parr.slice(0,4).map((p,i)=>`<div class="rank-row"><div class="rank-no">${i+1}</div><div class="rank-img">${productIcon(p.name)}</div><div><div class="rank-name">${p.name}</div><div class="rank-amount">${rupiah(p.amount)}</div><div class="progress"><span style="width:${Math.max(5,p.amount/pmax*100)}%"></span></div></div><div style="font-size:10px;color:#8b969f">${m.om?Math.round(p.amount/m.om*100):0}%</div></div>`).join(''):'<div class="empty">Belum ada data produk.</div>';
+  document.getElementById('reportProducts').innerHTML=parr.length?parr.map((p,i)=>`<div class="rank-row"><div class="rank-no">${i+1}</div><div class="rank-img">${productIcon(p.name)}</div><div><div class="rank-name">${p.name}</div><div class="rank-amount">${rupiah(p.amount)} <span style="font-size:10px;opacity:.65;font-weight:600">• ${p.qty} porsi</span></div><div class="progress"><span style="width:${Math.max(5,p.amount/pmax*100)}%"></span></div></div><div style="font-size:10px;color:#8b969f">${m.om?Math.round(p.amount/m.om*100):0}%</div></div>`).join(''):'<div class="empty">Belum ada data produk.</div>';
   // Jam transaksi diambil dari waktu pencatatan (id transaksi = timestamp saat disimpan).
   const times={};let noTime=0;
   m.sales.forEach(s=>{
@@ -3235,6 +3353,44 @@ function renderReport(){
   const tmax=Math.max(...tarr.map(x=>x[1].n),1);
   document.getElementById('reportTimes').innerHTML=tarr.length?tarr.map((x,i)=>`<div class="time-row"><div class="time-top"><span>${i===0?'🔥 ':''}${x[0]}</span><span>${x[1].n} transaksi</span></div><div class="time-bar"><span style="width:${Math.max(6,x[1].n/tmax*100)}%"></span></div><div class="sub" style="font-size:10px;opacity:.7;margin-top:3px">Omzet ${rupiah(x[1].om)}</div></div>`).join('')+(noTime?`<div class="sub" style="font-size:10px;opacity:.6;margin-top:6px">${noTime} transaksi lama tanpa data jam tidak dihitung.</div>`:''):'<div class="empty">Belum ada transaksi bulan ini.</div>';
   renderProducts();
+  try{renderReportDetail(rb.from,rb.to,m)}catch(e){console.error(e)}
+}
+
+
+function renderReportDetail(from,to,m){
+ const inR=d=>{d=String(d||'');return d>=from&&d<=to};
+ const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v};
+ const days=rpDays(from,to);
+ const buys=(db.stockPurchases||[]).filter(x=>inR(x.date));
+ const buyTotal=buys.reduce((t,x)=>t+(Number(x.totalCost)||0),0);
+ const qris=m.sales.filter(x=>x.method==='qris').reduce((a,x)=>a+Number(x.omzet||0),0);
+ // KPI & rincian
+ set('rBuy',rupiah(buyTotal));set('rBuyCount',buys.length+' pembelian');
+ set('rItems',m.items);set('rItemsAvg','Rata-rata '+(days?(m.items/days).toFixed(1).replace('.0',''):0)+' / hari');
+ set('rFinOm',rupiah(m.om));set('rFinCash',rupiah(m.om-qris));set('rFinQris',rupiah(qris));
+ set('rFinProfit',rupiah(m.profit));
+ set('rAvgTrx',rupiah(m.sales.length?Math.round(m.om/m.sales.length):0));
+ set('rAvgDay',rupiah(days?Math.round(m.om/days):0));
+ set('rFinBuy',rupiah(buyTotal));set('rCashflow',rupiah(m.om-buyTotal));
+ // pengeluaran per kategori
+ const bd=hpSumBD(from,to),items=bd.items.slice().sort((a,b)=>b.value-a.value);
+ document.getElementById('reportExpCats').innerHTML=items.length?items.map(x=>`<div class="rp-cat"><div class="rp-cat-top"><span>${escHtml(x.name)}</span><b>${rupiah(x.value)}</b></div><div class="rp-bar"><span style="width:${Math.max(4,bd.total?x.value/bd.total*100:0)}%"></span></div><div class="rp-cat-sub">${bd.total?Math.round(x.value/bd.total*100):0}% dari total pengeluaran</div></div>`).join('')+`<div class="item" style="margin-top:8px"><span>Total pengeluaran</span><b>${rupiah(bd.total)}</b></div>`:'<div class="empty">Belum ada pengeluaran pada periode ini.</div>';
+ // pembelian per bahan
+ const byIng={};buys.forEach(x=>{const g=db.ingredients.find(i=>i.id===x.ingredientId);const k=x.ingredientId;if(!byIng[k])byIng[k]={name:g?.name||'Bahan',unit:g?.unit||'unit',qty:0,total:0,n:0};byIng[k].qty+=Number(x.qty)||0;byIng[k].total+=Number(x.totalCost)||0;byIng[k].n++});
+ const barr=Object.values(byIng).sort((a,b)=>b.total-a.total),bmax=barr[0]?.total||1;
+ document.getElementById('reportBuyItems').innerHTML=barr.length?barr.map(x=>`<div class="rp-cat"><div class="rp-cat-top"><span>${escHtml(x.name)}</span><b>${rupiah(x.total)}</b></div><div class="rp-bar"><span style="width:${Math.max(4,x.total/bmax*100)}%"></span></div><div class="rp-cat-sub">${fmtQty(x.qty)} ${escHtml(x.unit)} • ${x.n}× beli • rata-rata ${rupiah(x.qty?Math.round(x.total/x.qty):0)}/${escHtml(x.unit)}</div></div>`).join('')+`<div class="item" style="margin-top:8px"><span>Total pembelian stok</span><b>${rupiah(buyTotal)}</b></div>`:'<div class="empty">Belum ada pembelian stok pada periode ini.</div>';
+ // ringkasan harian
+ const rows=[];const end=rpUtc(to);let n=0;
+ for(let c=rpUtc(from);c<=end&&n<800;c.setUTCDate(c.getUTCDate()+1),n++){
+  const d=c.toISOString().slice(0,10);
+  const sl=m.sales.filter(x=>x.date===d),om=sl.reduce((a,x)=>a+Number(x.omzet||0),0);
+  const ex=Math.round(dayExpenseBreakdown(d).total);
+  const by=buys.filter(x=>x.date===d).reduce((t,x)=>t+(Number(x.totalCost)||0),0);
+  const porsi=sl.reduce((a,x)=>a+(x.items||[]).reduce((q,i)=>q+Number(i.qty||0),0),0);
+  if(om||ex||by)rows.push({d,om,ex,by,porsi,trx:sl.length,profit:om-ex});
+ }
+ rows.sort((a,b)=>b.d.localeCompare(a.d));
+ document.getElementById('reportDaily').innerHTML=rows.length?rows.map(r=>`<div class="rp-day"><div class="rp-day-head"><span>${purchaseDayLabel(r.d)}</span><b class="${r.profit>=0?'rp-pos':'rp-neg'}">${r.profit>=0?'+':'−'}${rupiah(Math.abs(r.profit))}</b></div><div class="rp-day-grid"><span>Penjualan <b>${rupiah(r.om)}</b></span><span>Transaksi <b>${r.trx}</b></span><span>Pengeluaran <b>${rupiah(r.ex)}</b></span><span>Porsi <b>${r.porsi}</b></span><span>Pembelian stok <b>${rupiah(r.by)}</b></span></div></div>`).join(''):'<div class="empty">Belum ada aktivitas pada periode ini.</div>';
 }
 
 
