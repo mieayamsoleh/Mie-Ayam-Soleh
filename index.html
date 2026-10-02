@@ -1944,6 +1944,19 @@ html body #report .k-split span{display:block}
 .prod-badge{min-width:18px;height:18px;padding:0 5px;border-radius:99px;background:#E9A11C;color:#1B0C03;font-size:11px;font-weight:800;line-height:18px;text-align:center}
 .prod-tabs .chip.active .prod-badge{background:#1B0C03;color:#FEC440}
 .stock-production-row[hidden]{display:none!important}
+
+.dash-mini-pct{font-size:10.5px;font-weight:700;margin-top:1px;line-height:1.1}.dash-mini-pct.up{color:#7ed08b}.dash-mini-pct.down{color:#ff8a78}
+html body #input .page-head>.head-note:not([style]),html body #expense .page-head>.head-note:not([style]),html body #report .page-head>.head-note:not([style]){cursor:pointer}
+html body #input .page-head>.head-note:not([style]):after,html body #expense .page-head>.head-note:not([style]):after,html body #report .page-head>.head-note:not([style]):after{content:" ▾"}
+#hpSheet{position:fixed;inset:0;z-index:99999;display:none;background:rgba(0,0,0,.6);align-items:flex-end;justify-content:center}
+#hpSheet.open{display:flex}
+#hpBox{width:100%;max-width:520px;background:#1b0c03;border:1px solid rgba(226,168,62,.5);border-radius:22px 22px 0 0;padding:16px 16px calc(env(safe-area-inset-bottom,0px) + 18px);color:#fff3d6}
+#hpBox h3{margin:0 0 12px;font-size:17px}
+#hpBox .hp-opt{display:block;width:100%;text-align:left;margin:0 0 8px;padding:12px 14px;border-radius:14px;background:rgba(20,10,4,.6);border:1px solid rgba(226,168,62,.35);color:#f0dcb0;font-size:14px;font-weight:600}
+#hpBox .hp-opt.active{background:linear-gradient(180deg,#fff1b8,#e2a83e);color:#2a1606;border-color:#e2a83e}
+#hpBox .hp-row{display:none;gap:10px;margin:2px 0 10px}#hpBox .hp-row.show{display:grid;grid-template-columns:1fr 1fr}#hpBox .hp-row.one.show{grid-template-columns:1fr}
+#hpBox label{font-size:11px;color:#d9bf8c}#hpBox input{width:100%}
+#hpBox .hp-go{display:none;width:100%;margin-top:4px}#hpBox .hp-go.show{display:block}
 </style>
 </head>
 
@@ -2035,17 +2048,15 @@ requestAnimationFrame(frame);
     </div>
     <div class="today-change" id="todayChange"><b id="todayChangeValue">↑ 0%</b><span id="todayChangeLabel">vs kemarin</span></div>
     <div class="dashboard-mini-grid">
-      <div class="dash-mini">
-        <div class="dash-mini-icon gold"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/></svg></div>
-        <div><div class="dash-mini-label">Omzet</div><div class="dash-mini-value" id="mOmzet">Rp0</div></div>
+      <div class="dash-mini"><div class="dash-mini-icon gold"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="3"/><path d="M9 8h6M9 12h6M9 16h4"/></svg></div>
+        <div><div class="dash-mini-label">Pengeluaran</div><div class="dash-mini-value" id="mOmzet">Rp0</div></div>
       </div>
-      <div class="dash-mini">
-        <div class="dash-mini-icon gold"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="3"/><path d="M9 8h6M9 12h6M9 16h4"/></svg></div>
-        <div><div class="dash-mini-label">Biaya</div><div class="dash-mini-value" id="mBiaya">Rp0</div></div>
+      <div class="dash-mini"><div class="dash-mini-icon gold"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/></svg></div>
+        <div><div class="dash-mini-label">Biaya Produksi</div><div class="dash-mini-value" id="mBiaya">Rp0</div></div>
       </div>
       <div class="dash-mini profit">
         <div class="dash-mini-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg></div>
-        <div><div class="dash-mini-label">Profit Bersih</div><div class="dash-mini-value" id="mProfit">Rp0</div></div>
+        <div><div class="dash-mini-label">Profit Bersih</div><div class="dash-mini-value" id="mProfit">Rp0</div><div class="dash-mini-pct" id="mProfitPct"></div></div>
       </div>
     </div>
     <div class="dash-hidden-data" id="mPorsi">0</div>
@@ -2114,7 +2125,7 @@ requestAnimationFrame(frame);
   </div>
 
   <div class="card section">
-    <div class="ref-section-title"><div class="ico">◷</div>Transaksi bulan ini</div>
+    <div class="ref-section-title"><div class="ico">◷</div>Transaksi periode ini</div>
     <div id="salesList"></div>
   </div>
 </section>
@@ -2124,7 +2135,7 @@ requestAnimationFrame(frame);
 <section id="stock" class="view">
   <div class="page-head sx-head">
     <div class="sx-title"><div class="sx-title-ico">📦</div><div><h2>Stok</h2><div class="head-note" style="text-align:left">Pantau ketersediaan bahan dan produk usaha kamu</div></div></div>
-    <div class="sx-pill">📅 Bulan ini</div>
+    <div class="sx-pill">📦 Stok saat ini</div>
   </div>
 
   <div class="stock-search"><input id="stockSearch" type="search" placeholder="⌕  Cari bahan, produk, atau kategori..."></div>
@@ -2232,23 +2243,7 @@ requestAnimationFrame(frame);
     <div class="head-note" id="reportPeriodNote">Bulan ini</div>
   </div>
 
-  <div class="card" id="reportPeriodCard" style="margin-bottom:14px">
-    <label>Periode laporan</label>
-    <div class="stock-tools" id="rpChips" style="margin:8px 0 0">
-      <button type="button" class="chip" data-m="month" onclick="setReportMode('month')">Bulan Ini</button>
-      <button type="button" class="chip" data-m="7d" onclick="setReportMode('7d')">7 Hari Terakhir</button>
-      <button type="button" class="chip" data-m="30d" onclick="setReportMode('30d')">1 Bulan Terakhir</button>
-      <button type="button" class="chip" data-m="pickmonth" onclick="setReportMode('pickmonth')">Pilih Bulan</button>
-      <button type="button" class="chip" data-m="custom" onclick="setReportMode('custom')">Kustom</button>
-    </div>
-    <div id="rpMonthBox" style="display:none;margin-top:10px"><label>Bulan &amp; tahun</label><input id="rpMonth" type="month" onchange="setReportField('month',this.value)"></div>
-    <div id="rpCustom" style="display:none;margin-top:10px;grid-template-columns:1fr 1fr;gap:10px">
-      <div><label>Dari tanggal</label><input id="rpFrom" type="date" onchange="setReportField('from',this.value)"></div>
-      <div><label>Sampai tanggal</label><input id="rpTo" type="date" onchange="setReportField('to',this.value)"></div>
-    </div>
-    <div class="small" id="rpSummary" style="margin-top:10px"></div>
-    <input id="month" type="month" style="display:none" onchange="renderAll()">
-  </div>
+  <input id="month" type="month" style="display:none" onchange="renderAll()">
 
   <div class="report-kpis">
     <div class="card report-kpi"><div class="k-icon">◉</div><div class="k-label">Total Penjualan</div><div class="k-value" id="rOmzet">Rp0</div><div class="k-split"><span>💵 Cash <b id="rCash">Rp0</b></span><span>📱 QRIS <b id="rQris">Rp0</b></span></div></div>
@@ -2997,10 +2992,13 @@ function renderHome(){
   const de=Math.round(dayExpenseBreakdown(todayISO()).total);
   // Kartu dashboard = data HARI INI saja
   document.getElementById('mPorsi').textContent=t.reduce((s,x)=>s+x.items.reduce((a,i)=>a+Number(i.qty||0),0),0);
-  document.getElementById('mOmzet').textContent=rupiah(o);
-  document.getElementById('mBiaya').textContent=rupiah(pc+de);
+  const bahanHariIni=dailyProductionTotal(todayISO())+legacyDailyProductionTotal(todayISO());
+  document.getElementById('mOmzet').textContent=rupiah(pc+de);
+  document.getElementById('mBiaya').textContent=rupiah(bahanHariIni);
   document.getElementById('mProfit').textContent=rupiah(o-pc-de);
-  document.getElementById('todayProfit').textContent=rupiah(o-pc-de);
+  document.getElementById('todayProfit').textContent=rupiah(o);
+  {const yd=previousISO(todayISO()),yP=dashboardDayOmzet(yd)-Math.round(dayExpenseBreakdown(yd).total),nP=o-pc-de,pe=document.getElementById('mProfitPct');
+   if(pe){const diff=nP-yP;const pct=yP!==0?Math.abs(diff/Math.abs(yP)*100):(nP!==0?100:0);const up=diff>=0;pe.textContent=(up?'↑ ':'↓ ')+pct.toFixed(0)+'%';pe.className='dash-mini-pct '+(up?'up':'down')}}
 
   // Perubahan omzet hari ini dibanding hari kemarin, dihitung dari transaksi nyata.
   const yesterday=previousISO(todayISO());
@@ -3051,7 +3049,7 @@ function renderInput(){
   const saveBtn=document.getElementById('saleSaveBtn'),cancelBtn=document.getElementById('saleCancelBtn');
   updateSaleButtons(editing);
   if(cancelBtn)cancelBtn.style.display=editing?'block':'none';
-  const month=getMonth(), sales=db.sales.filter(x=>ym(x.date)===month);
+  const month=getMonth(), sales=db.sales.filter(x=>hpIn(x.date));
   const total=sales.reduce((s,x)=>s+Number(x.omzet||0),0);
   document.getElementById('incomeHero').textContent=rupiah(total);
   const qrisTotal=sales.filter(x=>x.method==='qris').reduce((s,x)=>s+Number(x.omzet||0),0);
@@ -3065,9 +3063,9 @@ function renderInput(){
   const map={};
   sales.forEach(s=>s.items.forEach(i=>{let p=db.products.find(p=>p.id===i.productId);let k=p?.id||i.productId;if(!map[k])map[k]={name:p?.name||i.productId,qty:0,amount:0};map[k].qty+=Number(i.qty)||0;map[k].amount+=(Number(i.qty)||0)*(Number(i.price)||0)}));
   const arr=Object.values(map).sort((a,b)=>b.amount-a.amount);
-  document.getElementById('incomeBreakdown').innerHTML=arr.length?arr.map((p,idx)=>`<div class="ref-list-item"><div class="ref-icon ${idx%3===1?'red':idx%3===2?'purple':''}">${productIcon(p.name)}</div><div><div class="name">${p.name}</div><div class="count">${p.qty} transaksi/item</div></div><div><div class="amount">${rupiah(p.amount)}</div><div class="trend">↑ ${Math.max(1,Math.min(99,100-idx*17))}%</div></div><div class="chev">›</div></div>`).join(''):'<div class="empty">Belum ada pemasukan bulan ini.</div>';
+  document.getElementById('incomeBreakdown').innerHTML=arr.length?arr.map((p,idx)=>`<div class="ref-list-item"><div class="ref-icon ${idx%3===1?'red':idx%3===2?'purple':''}">${productIcon(p.name)}</div><div><div class="name">${p.name}</div><div class="count">${p.qty} transaksi/item</div></div><div><div class="amount">${rupiah(p.amount)}</div><div class="trend">↑ ${Math.max(1,Math.min(99,100-idx*17))}%</div></div><div class="chev">›</div></div>`).join(''):'<div class="empty">Belum ada pemasukan pada periode ini.</div>';
   const s=sales.slice().sort((a,b)=>String(b.date).localeCompare(String(a.date))||Number(b.id)-Number(a.id));
-  document.getElementById('salesList').innerHTML=s.length?s.map(x=>`<div class="item"><span>${x.date}<span class="pay-badge ${x.method==='qris'?'qris':'cash'}">${x.method==='qris'?'QRIS':'Cash'}</span><br><span class="sub">${x.items.map(i=>{let p=db.products.find(p=>p.id===i.productId);return `${p?.name||i.productId} × ${i.qty}`}).join(', ')}</span></span><div class="actions"><b>${rupiah(x.omzet)}</b><button class="secondary" onclick="editSale(${x.id})">✏️</button><button class="secondary danger" onclick="deleteSale(${x.id})">🗑</button></div></div>`).join(''):'<div class="empty">Belum ada pemasukan bulan ini.</div>';
+  document.getElementById('salesList').innerHTML=s.length?s.map(x=>`<div class="item"><span>${x.date}<span class="pay-badge ${x.method==='qris'?'qris':'cash'}">${x.method==='qris'?'QRIS':'Cash'}</span><br><span class="sub">${x.items.map(i=>{let p=db.products.find(p=>p.id===i.productId);return `${p?.name||i.productId} × ${i.qty}`}).join(', ')}</span></span><div class="actions"><b>${rupiah(x.omzet)}</b><button class="secondary" onclick="editSale(${x.id})">✏️</button><button class="secondary danger" onclick="deleteSale(${x.id})">🗑</button></div></div>`).join(''):'<div class="empty">Belum ada pemasukan pada periode ini.</div>';
 }
 function daysInMonthOf(iso){const a=String(iso).split('-').map(Number);return new Date(a[0],a[1],0).getDate()}
 function dayExpenseBreakdown(date){
@@ -3086,12 +3084,12 @@ function dayExpenseBreakdown(date){
 function renderExpenses(){
   const today=expenseDate();const isToday=today===todayISO();
   const todayExp=db.dailyExpenses.filter(x=>x.date===today);
-  const bd=dayExpenseBreakdown(today);
+  const bd=hpExpBD(today);
   const total=bd.total;
   document.getElementById('expenseHero').textContent=rupiah(total);
   const noteEl=document.querySelector('#expense .page-head .head-note:not([style])');
   if(noteEl)noteEl.textContent=isToday?'Hari ini':fmtDateID(today);
-  const yTotal=dayExpenseBreakdown(previousISO(today)).total;
+  const yTotal=hpPrevExpTotal(today);
   const chEl=document.getElementById('expenseChange');
   if(yTotal>0){const pct=(total-yTotal)/yTotal*100;chEl.textContent=(pct>=0?'↑ ':'↓ ')+Math.abs(pct).toFixed(0)+'% vs sehari sebelumnya';}
   else chEl.textContent=total>0?'Belum ada data sehari sebelumnya':'Belum ada pengeluaran';
@@ -3264,6 +3262,65 @@ function updateDashboardGreeting(){
   if(icon) icon.innerHTML=icons[type];
 }
 setInterval(updateDashboardGreeting,60000);
+
+
+/* ===== Periode di header tab (Pemasukan, Pengeluaran, Laporan) ===== */
+const HP_KEY='mieHeaderPeriod_v1';
+function hpLoad(){const d={mode:'month',month:'',from:'',to:''};try{return Object.assign(d,JSON.parse(localStorage.getItem(HP_KEY)||'{}'))}catch(e){return d}}
+window.HP=hpLoad();
+function hpSave(){try{localStorage.setItem(HP_KEY,JSON.stringify(window.HP))}catch(e){}}
+function hpBounds(){const r=window.HP,today=rpIso(new Date()),cur=today.slice(0,7);let from,to;
+  if(r.mode==='today'){from=to=today}
+  else if(r.mode==='7d'){const d=new Date();d.setDate(d.getDate()-6);from=rpIso(d);to=today}
+  else if(r.mode==='pickmonth'){const b=rpMonthRange(r.month||cur)||rpMonthRange(cur);from=b.from;to=b.to}
+  else if(r.mode==='custom'){from=r.from||today;to=r.to||today;if(from>to){const t=from;from=to;to=t}}
+  else{const b=rpMonthRange(cur);from=b.from;to=b.to}
+  return{from,to}}
+function hpIn(d){const b=hpBounds();d=String(d||'');return d>=b.from&&d<=b.to}
+function hpLabel(){const r=window.HP,b=hpBounds();
+  if(r.mode==='today')return 'Hari ini';if(r.mode==='month')return 'Bulan ini';if(r.mode==='7d')return '7 hari terakhir';
+  if(r.mode==='pickmonth')return RP_MON[Number(b.from.slice(5,7))-1]+' '+b.from.slice(0,4);
+  return b.from===b.to?rpFmt(b.from):rpFmt(b.from)+' – '+rpFmt(b.to)}
+function hpSync(){['input','expense'].forEach(id=>{const e=document.querySelector('#'+id+' .page-head>.head-note:not([style])');if(e)e.textContent=hpLabel()})}
+function hpSumBD(from,to){const m={};const end=rpUtc(to);let n=0;
+  for(let c=rpUtc(from);c<=end&&n<800;c.setUTCDate(c.getUTCDate()+1),n++){dayExpenseBreakdown(c.toISOString().slice(0,10)).items.forEach(x=>{const k=x.name.toLowerCase();if(!m[k])m[k]={name:x.name,value:0};m[k].value+=x.value})}
+  const items=Object.values(m);return{items,total:items.reduce((a,x)=>a+x.value,0)}}
+function hpExpBD(today){if(window.HP.mode==='today')return dayExpenseBreakdown(today);const b=hpBounds();return hpSumBD(b.from,b.to)}
+function hpPrevExpTotal(today){if(window.HP.mode==='today')return dayExpenseBreakdown(previousISO(today)).total;
+  const b=hpBounds(),n=rpDays(b.from,b.to),e=rpUtc(b.from);e.setUTCDate(e.getUTCDate()-1);const f=rpUtc(b.from);f.setUTCDate(f.getUTCDate()-n);
+  return hpSumBD(f.toISOString().slice(0,10),e.toISOString().slice(0,10)).total}
+(function(){
+  const box=document.createElement('div');box.id='hpSheet';
+  box.innerHTML='<div id="hpBox"><h3>Pilih periode</h3>'+
+   [['today','Hari ini'],['month','Bulan ini'],['7d','7 hari terakhir'],['pickmonth','Pilih bulan…'],['custom','Pilih tanggal…']].map(x=>'<button type="button" class="hp-opt" data-m="'+x[0]+'">'+x[1]+'</button>').join('')+
+   '<div class="hp-row one" id="hpRowMonth"><div><label>Bulan &amp; tahun</label><input id="hpMonth" type="month"></div></div>'+
+   '<div class="hp-row" id="hpRowDate"><div><label>Dari tanggal</label><input id="hpFrom" type="date"></div><div><label>Sampai tanggal</label><input id="hpTo" type="date"></div></div>'+
+   '<button type="button" class="primary hp-go" id="hpGo">Terapkan</button></div>';
+  document.body.appendChild(box);
+  let tab='',pick='';
+  const cur=()=>tab==='report'?(window.reportRange.mode==='custom'&&window.reportRange.from&&window.reportRange.from===window.reportRange.to?'today':window.reportRange.mode):window.HP.mode;
+  function paint(){document.querySelectorAll('#hpBox .hp-opt').forEach(b=>b.classList.toggle('active',b.dataset.m===pick));
+    document.getElementById('hpRowMonth').classList.toggle('show',pick==='pickmonth');document.getElementById('hpRowDate').classList.toggle('show',pick==='custom');
+    document.getElementById('hpGo').classList.toggle('show',pick==='pickmonth'||pick==='custom')}
+  function apply(m){const today=rpIso(new Date());
+    const mv=document.getElementById('hpMonth').value||today.slice(0,7),fv=document.getElementById('hpFrom').value||today,tv=document.getElementById('hpTo').value||today;
+    if(tab==='report'){const r=window.reportRange;
+      if(m==='today'){r.mode='custom';r.from=r.to=today}else if(m==='pickmonth'){r.month=mv;r.mode='pickmonth'}else if(m==='custom'){r.from=fv;r.to=tv;r.mode='custom'}else r.mode=m;
+      rpSave();renderReport()}
+    else{const r=window.HP;r.mode=m;if(m==='pickmonth')r.month=mv;if(m==='custom'){r.from=fv;r.to=tv}hpSave();renderAll()}
+    box.classList.remove('open')}
+  box.addEventListener('click',e=>{if(e.target===box){box.classList.remove('open');return}
+    const o=e.target.closest('.hp-opt');if(o){pick=o.dataset.m;paint();if(pick!=='pickmonth'&&pick!=='custom')apply(pick);return}
+    if(e.target.id==='hpGo')apply(pick)});
+  document.addEventListener('click',e=>{const p=e.target.closest('.page-head>.head-note:not([style])');if(!p)return;
+    const v=p.closest('.view');if(!v||!['input','expense','report'].includes(v.id))return;
+    tab=v.id;
+    const b=tab==='report'?reportBounds():hpBounds();
+    document.getElementById('hpMonth').value=(tab==='report'?window.reportRange.month:window.HP.month)||b.from.slice(0,7);
+    document.getElementById('hpFrom').value=b.from;document.getElementById('hpTo').value=b.to;
+    pick=cur();paint();box.classList.add('open')});
+  const _ra=renderAll;renderAll=function(){_ra.apply(this,arguments);hpSync()};
+})();
 
 function renderAll(){
   const cleaned=removeTestIngredients();
