@@ -2274,7 +2274,7 @@ requestAnimationFrame(frame);
     <div id="stockProductionWarning"></div><button class="primary production-save" id="stockProductionSaveBtn" onclick="saveStockProduction()">💾 Simpan Produksi Hari Ini</button>
   </div>
 
-  <div class="card section"><div class="ref-section-title"><div class="ico">◷</div>Riwayat Produksi</div><div id="stockProductionHistory"></div></div>
+  <div class="card section" id="productionHistoryCard"><div class="ref-section-title"><div class="ico">◷</div>Riwayat Produksi</div><div id="stockProductionHistory"></div></div>
 </section>
 
 <section id="expense" class="view">
@@ -2881,6 +2881,9 @@ function stockIcon(x){
 }
 function setStockStatus(st){window.stockStatus=(st&&window.stockStatus!==st)?st:null;renderStock()}
 function toggleStockDetail(id){window.stockOpen=window.stockOpen||{};window.stockOpen[id]=!window.stockOpen[id];renderStock()}
+function updateIngredientPortions(id,val){const x=db.ingredients.find(i=>i.id===id);if(!x)return;x.portions=Math.max(0,Number(val)||0);save();renderStockTab()}
+function toggleIngredientHidden(id){const x=db.ingredients.find(i=>i.id===id);if(!x)return;x.hidden=!x.hidden;save();renderAll()}
+function toggleShowHidden(){window.showHiddenIng=!window.showHiddenIng;renderStock()}
 function changeStockMin(id,val){const x=db.ingredients.find(i=>i.id===id);if(!x)return;x.minQty=Math.max(0,Number(val)||0);save();renderStockTab()}
 function restockItem(id){
  setPurchaseIngredient(id);
@@ -2894,7 +2897,9 @@ function renderStock(){
  const status=window.stockStatus||null;
  const query=(document.getElementById('stockSearch')?.value||'').trim().toLowerCase();
  const sortBy=document.getElementById('stockSort')?.value||'low';
- const all=db.ingredients||[];
+ const everyIng=db.ingredients||[];
+ const hiddenCount=everyIng.filter(x=>x.hidden).length;
+ const all=everyIng.filter(x=>!x.hidden||window.showHiddenIng);
  const filtered=all.filter(x=>{
    const byCat=category==='Semua'||(x.category||'Lainnya')===category;
    const byStatus=!status||stockState(x)===status;
@@ -2920,9 +2925,9 @@ function renderStock(){
      <div class="sx-badge ${st}">${label[st]}</div>
      <div class="sx-qtybox"><div class="sx-qlabel">Stok tersedia</div><div class="sx-qty ${st}">${fmtQty(q)} ${escHtml(x.unit)} <span class="sx-min">(min. ${fmtQty(min)} ${escHtml(x.unit)})</span></div><div class="sx-bar"><span class="${st}" style="width:${pct}%"></span></div></div>
      <div class="sx-actions"><button type="button" class="sx-restock" onclick="restockItem('${x.id}')">＋ Restock</button><button type="button" class="sx-chev ${open?'open':''}" onclick="toggleStockDetail('${x.id}')" aria-label="Detail">›</button></div>
-     ${open?`<div class="sx-detail"><div><label>Satuan</label><select onchange="changeStockUnit('${x.id}',this.value)">${units.map(u=>`<option value="${escHtml(u)}" ${x.unit===u?'selected':''}>${escHtml(u)}</option>`).join('')}</select></div><div><label>Stok minimum</label><input type="number" min="0" step="any" inputmode="decimal" value="${fmtQty(min)}" onchange="changeStockMin('${x.id}',this.value)"></div><div class="sx-detail-note">Harga rata-rata ${rupiah(c)}/${escHtml(x.unit)}</div></div>`:''}
+     ${open?`<div class="sx-detail"><div><label>Satuan</label><select onchange="changeStockUnit('${x.id}',this.value)">${units.map(u=>`<option value="${escHtml(u)}" ${x.unit===u?'selected':''}>${escHtml(u)}</option>`).join('')}</select></div><div><label>Stok minimum</label><input type="number" min="0" step="any" inputmode="decimal" value="${fmtQty(min)}" onchange="changeStockMin('${x.id}',this.value)"></div><div><label>Isi porsi per ${escHtml(x.unit)}</label><input type="number" min="0" step="any" inputmode="decimal" placeholder="mis. 20" value="${Number(x.portions)>0?x.portions:''}" onchange="updateIngredientPortions('${x.id}',this.value)"></div><div class="sx-detail-note">Harga rata-rata ${rupiah(c)}/${escHtml(x.unit)}${Number(x.portions)>0?' • ≈ '+rupiah(Math.round(c/Number(x.portions)))+' / porsi':''}</div><div style="grid-column:1/-1"><button type="button" class="secondary" onclick="toggleIngredientHidden('${x.id}')">${x.hidden?'👁 Tampilkan lagi':'🙈 Sembunyikan bahan ini'}</button></div></div>`:''}
    </div>`;
- }).join(''):'<div class="empty">Belum ada bahan pada kategori ini.</div>';
+ }).join('')+(hiddenCount?`<div style="text-align:center;margin-top:10px"><button type="button" class="secondary" onclick="toggleShowHidden()">${window.showHiddenIng?'Sembunyikan lagi':'Tampilkan'} ${hiddenCount} bahan tersembunyi</button></div>`:''):'<div class="empty">Belum ada bahan pada kategori ini.</div>';
  const pd=document.getElementById('purchaseDate');if(pd&&!pd.value)pd.value=todayISO();
  {const cur=document.getElementById('purchaseIngredient');const keep=cur&&all.some(x=>x.id===cur.value)?cur.value:'';setPurchaseIngredient(keep);}
 }
@@ -2937,7 +2942,7 @@ function renderStockProduction(){
  if(!cats.includes(window.prodCategory))window.prodCategory=cats[1]||cats[0]||'Semua';
  const tabs=document.getElementById('prodCategoryTabs');
  if(tabs)tabs.innerHTML=cats.map(c=>`<button type="button" class="chip${c===window.prodCategory?' active':''}" data-cat="${escHtml(c)}" onclick="setProdCategory(this.dataset.cat)">${escHtml(c)}<span class="prod-badge" hidden></span></button>`).join('');
- rows.innerHTML=db.ingredients.map(x=>{const q=Number(x.stockQty)||0;const old=window.editingStockProductionId?db.productionRecords.find(r=>r.id===window.editingStockProductionId)?.items?.find(i=>i.ingredientId===x.id):null;const val=document.getElementById('stockuse_'+x.id)?.value ?? (old?.qty||'');const cost=Number(val||0)*ingredientUnitCost(x);const cat=prodCatOf(x);return `<div class="stock-production-row" data-cat="${escHtml(cat)}"${(window.prodCategory==='Semua'||cat===window.prodCategory)?'':' hidden'}><div class="stock-production-top"><div class="stock-production-name">${x.name}</div><div class="stock-available">tersedia: <b>${q} ${x.unit}</b></div></div><div class="stock-production-fields"><div><label>Dipakai (${x.unit})</label><input id="stockuse_${x.id}" type="number" min="0" step="any" value="${val}" placeholder="0" inputmode="decimal" oninput="updateStockProductionTotal()"></div><div><label>Harga rata-rata / ${x.unit}</label><input type="text" value="${rupiah(ingredientUnitCost(x))}" disabled></div></div><div class="stock-cost">${cat==='Minuman'?'Minuman • tidak dihitung ke biaya produksi':'Biaya: '+rupiah(cost)}</div></div>`}).join('');
+ rows.innerHTML=db.ingredients.filter(x=>!x.hidden||(window.editingStockProductionId&&db.productionRecords.find(r=>r.id===window.editingStockProductionId)?.items?.some(i=>i.ingredientId===x.id))).map(x=>{const q=Number(x.stockQty)||0;const old=window.editingStockProductionId?db.productionRecords.find(r=>r.id===window.editingStockProductionId)?.items?.find(i=>i.ingredientId===x.id):null;const val=document.getElementById('stockuse_'+x.id)?.value ?? (old?.qty||'');const cost=Number(val||0)*ingredientUnitCost(x);const cat=prodCatOf(x);return `<div class="stock-production-row" data-cat="${escHtml(cat)}"${(window.prodCategory==='Semua'||cat===window.prodCategory)?'':' hidden'}><div class="stock-production-top"><div class="stock-production-name">${x.name}</div><div class="stock-available">tersedia: <b>${q} ${x.unit}</b></div></div><div class="stock-production-fields"><div><label>Dipakai (${x.unit})</label><input id="stockuse_${x.id}" type="number" min="0" step="any" value="${val}" placeholder="0" inputmode="decimal" oninput="updateStockProductionTotal()"></div><div><label>Harga rata-rata / ${x.unit}</label><input type="text" value="${rupiah(ingredientUnitCost(x))}" disabled></div></div><div class="stock-cost">${cat==='Minuman'?'Minuman • tidak dihitung ke biaya produksi':'Biaya: '+rupiah(cost)+(Number(x.portions)>0?' • ≈ '+fmtQty(Number(val||0)*Number(x.portions))+' porsi • '+rupiah(Math.round(ingredientUnitCost(x)/Number(x.portions)))+'/porsi':'')}</div></div>`}).join('');
  updateStockProductionTotal();
 }
 function setProdCategory(cat){
@@ -2951,7 +2956,17 @@ function updateProdTabBadges(){
  document.querySelectorAll('#prodCategoryTabs .chip').forEach(b=>{const n=filled[b.dataset.cat]||0,sp=b.querySelector('.prod-badge');if(sp){sp.hidden=!n;sp.textContent=n||''}});
 }
 function updateStockProductionTotal(){updateProdTabBadges();const items=stockProductionDraft();const total=items.reduce((s,x)=>s+(isDrinkIngredient(x.ingredientId)?0:x.cost),0);document.getElementById('stockProductionTotal').textContent=rupiah(total);const p=Number(document.getElementById('stockProductionPortions')?.value||1);document.getElementById('stockProductionPer').textContent=rupiah(total/p);const warnings=items.filter(it=>it.qty>(Number(db.ingredients.find(x=>x.id===it.ingredientId)?.stockQty)||0)&&!(window.editingStockProductionId));document.getElementById('stockProductionWarning').innerHTML=warnings.length?`<div class="stock-warning">⚠️ ${warnings.map(it=>{const x=db.ingredients.find(a=>a.id===it.ingredientId);return `${x.name}: pemakaian ${it.qty} ${x.unit}, stok ${x.stockQty||0} ${x.unit}`}).join('<br>')}</div>`:''}
-function renderStockHistory(){const h=db.productionRecords.slice().sort((a,b)=>b.date.localeCompare(a.date));document.getElementById('stockProductionHistory').innerHTML=h.length?h.map(x=>`<div class="stock-history-item"><div class="stock-history-head"><div class="stock-history-date">${x.date}</div><div class="stock-history-amount">${rupiah(recProd(x))}</div></div><div class="stock-history-sub">${x.items?.map(it=>{const i=db.ingredients.find(a=>a.id===it.ingredientId);return `${i?.name||'Bahan'} ${it.qty} ${i?.unit||'unit'}`}).join(' • ')||((x.portions||'-')+' porsi')}</div><div class="stock-history-actions"><button class="secondary" onclick="editStockProduction(${x.id})">✏️ Edit</button><button class="secondary danger" onclick="removeStockProduction(${x.id})">🗑 Hapus</button></div></div>`).join(''):'<div class="empty">Belum ada produksi.</div>';}
+function goProductionDetail(date){
+  const btn=document.querySelector('#mainTabs button[onclick*="\'production\'"]');
+  if(btn)show('production',btn);
+  setTimeout(()=>{
+    const card=document.getElementById('productionHistoryCard');if(!card)return;
+    const target=[...card.querySelectorAll('.stock-history-item')].find(e=>e.dataset.date===date)||card;
+    target.scrollIntoView({behavior:'smooth',block:'start'});
+    if(target!==card){target.style.transition='box-shadow .3s';target.style.boxShadow='0 0 0 2px #FEC440';setTimeout(()=>{target.style.boxShadow=''},2200)}
+  },80);
+}
+function renderStockHistory(){const h=db.productionRecords.slice().sort((a,b)=>b.date.localeCompare(a.date));document.getElementById('stockProductionHistory').innerHTML=h.length?h.map(x=>`<div class="stock-history-item" data-date="${x.date}"><div class="stock-history-head"><div class="stock-history-date">${x.date}</div><div class="stock-history-amount">${rupiah(recProd(x))}</div></div><div class="stock-history-sub">${x.items?.map(it=>{const i=db.ingredients.find(a=>a.id===it.ingredientId);return `${i?.name||'Bahan'} ${it.qty} ${i?.unit||'unit'}`}).join(' • ')||((x.portions||'-')+' porsi')}</div><div class="stock-history-actions"><button class="secondary" onclick="editStockProduction(${x.id})">✏️ Edit</button><button class="secondary danger" onclick="removeStockProduction(${x.id})">🗑 Hapus</button></div></div>`).join(''):'<div class="empty">Belum ada produksi.</div>';}
 function purchaseDayLabel(iso){
  const D=['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'],M=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
  const p=String(iso||'').split('-').map(Number);if(p.length<3||!p[0])return iso||'-';
@@ -3272,7 +3287,7 @@ function renderExpenses(){
     const blocks=days.map(d=>{
       const b=dayExpenseBreakdown(d);if(!b.items.length)return '';
       grand+=b.total;
-      const rows=b.items.slice().sort((x,y)=>y.value-x.value).map(x=>`<div class="ref-list-item"><div class="ref-icon red">▣</div><div><div class="name">${escHtml(x.name)}</div><div class="count">${rpFmt(d)}</div></div><div class="amount">${rupiah(Math.round(x.value))}</div><div class="chev">›</div></div>`).join('');
+      const rows=b.items.slice().sort((x,y)=>y.value-x.value).map(x=>`<div class="ref-list-item"${x.name==='Biaya Produksi'?` style="cursor:pointer" onclick="goProductionDetail('${d}')"`:''}><div class="ref-icon red">▣</div><div><div class="name">${escHtml(x.name)}</div><div class="count">${rpFmt(d)}</div></div><div class="amount">${rupiah(Math.round(x.value))}</div><div class="chev">›</div></div>`).join('');
       return single?rows:`<div class="ph-day"><div class="ph-head"><span>${purchaseDayLabel(d)}</span><b>${rupiah(Math.round(b.total))}</b></div>${rows}</div>`;
     }).join('');
     document.getElementById('expenseRecent').innerHTML=blocks?blocks+`<div class="item" style="margin-top:10px;border-top:1px solid rgba(254,196,64,.35);padding-top:12px"><span><b>Total Pengeluaran</b><br><span class="sub">${single?fmtDateID(today):hpLabel()}</span></span><b>${rupiah(Math.round(grand))}</b></div>`:'<div class="empty">Belum ada pengeluaran pada periode ini.</div>';
@@ -3296,8 +3311,9 @@ function addIngredientPrompt(){
   const unit=(prompt('Satuan stok (kg, liter, pcs, pack, unit, dll):','unit')||'unit').trim()||'unit';
   const initialQty=Math.max(0,Number(prompt(`Stok awal ${name} (boleh 0):`,'0')||0));
   const initialCost=Math.max(0,Number(prompt(`Harga beli total untuk stok awal ${name} (boleh 0):`,'0')||0));
+  const portions=Math.max(0,Number(prompt(`Satu ${unit} ${name} cukup untuk berapa porsi? (kosongkan jika tidak perlu)`,'')||0));
   const id='i'+Date.now();
-  db.ingredients.push({id,name,category,unit,buyPrice:initialQty?initialCost/initialQty:0,buyQty:initialQty,useQty:0,stockQty:initialQty,unitCost:initialQty?initialCost/initialQty:0});
+  db.ingredients.push({id,name,category,unit,portions,buyPrice:initialQty?initialCost/initialQty:0,buyQty:initialQty,useQty:0,stockQty:initialQty,unitCost:initialQty?initialCost/initialQty:0});
   if(initialQty>0){
     db.stockPurchases.push({id:Date.now()+1,date:todayISO(),ingredientId:id,qty:initialQty,totalCost:initialCost,unitCost:initialCost/initialQty});
   }
@@ -3306,7 +3322,7 @@ function addIngredientPrompt(){
 }
 function renderStockTab(){
   recalculateStockFromRecords(); renderStock(); renderStockProduction(); renderStockHistory(); renderStockPurchases(); renderProductionStats();
-  const all=db.ingredients, total=all.length, low=all.filter(x=>stockState(x)==='low').length, out=all.filter(x=>stockState(x)==='out').length, safe=Math.max(0,total-low-out);
+  const all=db.ingredients.filter(x=>!x.hidden), total=all.length, low=all.filter(x=>stockState(x)==='low').length, out=all.filter(x=>stockState(x)==='out').length, safe=Math.max(0,total-low-out);
   document.getElementById('stockStatTotal').textContent=total;document.getElementById('stockStatLow').textContent=low;document.getElementById('stockStatSafe').textContent=safe;document.getElementById('stockStatOut').textContent=out;
   const search=document.getElementById('stockSearch');
   if(search && !search.dataset.bound){
