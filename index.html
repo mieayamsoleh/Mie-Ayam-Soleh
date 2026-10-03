@@ -1341,6 +1341,14 @@ html,body{
   .sp-bar i{animation:spLoad 1.2s linear .2s forwards!important}
   .sp-steam{display:none}
 }
+.sp-login{position:absolute;left:5%;top:57.5%;width:48%;display:flex;flex-direction:column;gap:6px;pointer-events:auto;z-index:6}
+.sp-login input{width:100%;box-sizing:border-box;height:32px;padding:0 11px;border-radius:99px;border:1px solid rgba(255,255,255,.3);background:rgba(15,10,6,.55);color:#fff;font-size:13px;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);outline:none}
+.sp-login input::placeholder{color:rgba(255,255,255,.65)}
+.sp-login input:focus{border-color:#FEC440}
+.sp-login button{height:34px;border:0;border-radius:99px;background:linear-gradient(90deg,#f6a21a,#ffc72c);color:#2a1a08;font-weight:800;font-size:14px}
+.sp-login button:disabled{opacity:.6}
+#loginErr{color:#ffb4a8;font-size:11px;min-height:13px;text-shadow:0 1px 4px #000;line-height:1.2}
+.splash-screen.needs-login .sp-bar{display:none}
 </style>
 
 
@@ -2028,6 +2036,12 @@ html body #mainTabs.tabs.tabs button svg{width:23px!important;height:23px!import
       <div class="sp-shine"></div>
       <div class="sp-bar"><i></i></div>
     </div>
+    <div id="loginForm" class="sp-login" style="display:none">
+      <input id="loginEmail" type="text" placeholder="Username" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false">
+      <input id="loginPass" type="password" placeholder="Password" autocomplete="current-password">
+      <div id="loginErr"></div>
+      <button id="loginBtn" type="button">Masuk</button>
+    </div>
   </div>
 </div>
 
@@ -2393,6 +2407,11 @@ requestAnimationFrame(frame);
   <div id="monthlyProductionHistory" style="display:none"></div>
 
 <div class="card section">
+    <div class="ref-section-title"><div class="ico">👤</div>Akun</div>
+    <div class="item"><span>Masuk sebagai <b id="accName">-</b></span><button type="button" class="secondary danger" onclick="window.__mieLogout&&window.__mieLogout()">Keluar</button></div>
+    <div class="item"><span id="pushStatus">Notifikasi: -</span><button id="pushBtn" type="button" class="secondary" onclick="window.__mieEnablePush&&window.__mieEnablePush()">🔔 Aktifkan</button></div>
+  </div>
+<div class="card section">
     <div class="ref-section-title"><div class="ico">⚙</div>Harga Jual Produk</div>
     <div id="productSettings"></div>
     <button class="add" onclick="addProductPrompt()">＋ Tambah produk</button>
@@ -2414,10 +2433,17 @@ requestAnimationFrame(frame);
 
 
 
-<script>window.addEventListener("load",()=>setTimeout(()=>document.getElementById("splashScreen")?.classList.add("hide"),Math.max(300,3000-performance.now())));</script>
+<script>
+window.__splash={minDone:false,auth:'pending'};
+window.__tryHideSplash=function(){var h=document.getElementById("splashScreen");if(!h)return;var S=window.__splash;if(S.minDone&&(S.auth==='in'||S.auth==='skip'))h.classList.remove("needs-login"),h.classList.add("hide");};
+window.addEventListener("load",()=>setTimeout(()=>{window.__splash.minDone=true;window.__tryHideSplash()},Math.max(300,3000-performance.now())));
+setTimeout(()=>{if(window.__splash.auth==='pending'){window.__splash.auth='skip';window.__splash.minDone=true;window.__tryHideSplash()}},9000);
+</script>
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
-  import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+  import { getFirestore, doc, getDoc, setDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+  import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
+  import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-messaging.js";
 
   // ============================================================
   // FIREBASE CONFIG
@@ -2442,60 +2468,153 @@ requestAnimationFrame(frame);
       const firebaseApp = initializeApp(firebaseConfig);
       const firestore = getFirestore(firebaseApp);
       const dataRef = doc(firestore, "mieAyamSoleh", "data");
-      let syncing = false;
+      const auth = getAuth(firebaseApp);
+      let ready = false, unsub = null, pendingRender = false;
+      const $ = id => document.getElementById(id);
+      const prettyName = e => String(e || "").split("@")[0].replace(/[_.]+/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+      const userName = () => auth.currentUser ? (auth.currentUser.displayName || prettyName(auth.currentUser.email)) : "";
+      window.__mieUserName = userName;
 
-      async function loadFirebaseData() {
-        if (syncing) return;
-        syncing = true;
-        try {
-          const snap = await getDoc(dataRef);
-          if (snap.exists()) {
+      function applyRemote(remote) {
+        db = remote; window.db = db;
+        if (!Array.isArray(db.ingredients)) db.ingredients = [];
+        migrateStockListV2(); normalizeTeaProducts();
+        const deduped = dedupeKerupuk();
+        const cleaned = removeTestIngredients() || window.__stockMigratedNow || window.__teaPriceMigrated || deduped;
+        normalizeIngredientCategories(); normalizeTeaProducts();
+        localStorage.setItem("mieAyamSoleh_v2", JSON.stringify(db));
+        return cleaned;
+      }
+      function rerender() {
+        const a = document.activeElement;
+        if (a && /^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName) && a.id !== "loginEmail" && a.id !== "loginPass") { pendingRender = true; return; }
+        pendingRender = false;
+        if (typeof window.renderAll === "function") window.renderAll();
+      }
+      document.addEventListener("focusout", () => setTimeout(() => { if (pendingRender) rerender(); }, 150));
+
+      function startRealtime() {
+        if (unsub) return;
+        unsub = onSnapshot(dataRef, async snap => {
+          try {
+            if (!snap.exists()) { ready = true; base = snapIds(db); await setDoc(dataRef, { data: db, updatedAt: serverTimestamp(), updatedBy: userName() }); return; }
+            if (snap.metadata.hasPendingWrites) return;
             const remote = snap.data()?.data;
-            if (remote && typeof remote === "object") {
-              db = remote;
-              window.db = db;
-
-              // Jalankan migrasi kategori juga setelah data Firebase masuk.
-              // Ini penting karena data lama bisa sudah tersimpan dengan kategori "Lainnya".
-              if (!Array.isArray(db.ingredients)) db.ingredients = [];
-              migrateStockListV2();
-              normalizeTeaProducts();
-              const deduped=dedupeKerupuk();
-              const cleaned=removeTestIngredients()||window.__stockMigratedNow||window.__teaPriceMigrated||deduped;
-              normalizeIngredientCategories();
-              if(cleaned) await setDoc(dataRef, { data: db, updatedAt: serverTimestamp() });
-
-              normalizeTeaProducts();
-              localStorage.setItem("mieAyamSoleh_v2", JSON.stringify(db));
-              if (typeof window.renderAll === "function") window.renderAll();
-            }
-          } else {
-            await setDoc(dataRef, { data: db, updatedAt: serverTimestamp() });
-          }
-        } catch (e) {
-          console.warn("Firebase tidak bisa dibaca. Data lokal tetap digunakan.", e);
-        } finally {
-          syncing = false;
-        }
+            if (!remote || typeof remote !== "object") { ready = true; base = snapIds(db); return; }
+            if (ready && JSON.stringify(remote) === JSON.stringify(db)) return;
+            const first = !ready;
+            ready = true;
+            const cleaned = applyRemote(remote);
+            base = snapIds(db);
+            if (cleaned && first) await setDoc(dataRef, { data: db, updatedAt: serverTimestamp(), updatedBy: userName() });
+            rerender();
+          } catch (e) { console.warn("Sinkronisasi gagal.", e); }
+        }, e => console.warn("Firebase tidak bisa dibaca. Data lokal tetap digunakan.", e));
       }
 
+      async function loadFirebaseData() { /* sinkronisasi kini realtime (startRealtime) */ }
       async function saveFirebaseData(localDb) {
-        if (!localDb || syncing) return;
+        if (!localDb || !ready || !auth.currentUser) return;
         try {
-          await setDoc(dataRef, { data: localDb, updatedAt: serverTimestamp() });
+          await setDoc(dataRef, { data: localDb, updatedAt: serverTimestamp(), updatedBy: userName() });
+          const msgs = describeChange(base, localDb); base = snapIds(localDb);
+          if (msgs.length) sendNotify(msgs);
         } catch (e) {
           console.warn("Firebase tidak bisa disimpan. Data lokal tetap tersimpan.", e);
         }
       }
 
+      // ---- Notifikasi push (Cloudflare Worker + Firebase Cloud Messaging) ----
+      const VAPID_KEY = "BE2PjR806JjeKPh7iF5g55TTTad2bZ6CM7MES-D5SVbv9d_G1w9WQrDg4_EDK_26KQTTtdi0ZYaYx0w86A5ENMU";   // Firebase Console > Project settings > Cloud Messaging > Web Push certificates
+      const PUSH_URL  = "https://proud-flower-d61a.agusnursoleh77.workers.dev";  // alamat Cloudflare Worker, contoh: https://mie-notif.namamu.workers.dev
+      const pushOn = () => !VAPID_KEY.startsWith("PASTE") && !PUSH_URL.startsWith("PASTE") && "Notification" in window && "serviceWorker" in navigator;
+      let myToken = null, base = null;
+      const rp = n => "Rp" + Math.round(n).toLocaleString("id-ID");
+      const snapIds = d => ({
+        sales: new Set((d.sales || []).map(x => x.id)),
+        buys: new Set((d.stockPurchases || []).map(x => x.id)),
+        prod: new Set((d.productionRecords || []).map(x => x.id)),
+        exp: new Map((d.dailyExpenses || []).map(x => [x.date + "|" + x.name, Number(x.amount) || 0]))
+      });
+      function describeChange(prev, d) {
+        if (!prev) return [];
+        const out = [], sum = (a, f) => a.reduce((t, x) => t + (Number(f(x)) || 0), 0);
+        const ns = (d.sales || []).filter(x => !prev.sales.has(x.id));
+        if (ns.length) out.push("Penjualan " + rp(sum(ns, x => x.omzet)));
+        const nb = (d.stockPurchases || []).filter(x => !prev.buys.has(x.id));
+        if (nb.length) { const nm = nb.length === 1 ? (d.ingredients || []).find(i => i.id === nb[0].ingredientId)?.name : null; out.push("Stok masuk " + (nm ? nm + " " : nb.length + " item ") + rp(sum(nb, x => x.totalCost))); }
+        const np = (d.productionRecords || []).filter(x => !prev.prod.has(x.id));
+        if (np.length) out.push("Produksi dicatat");
+        (d.dailyExpenses || []).filter(x => { const was = prev.exp.get(x.date + "|" + x.name); return (Number(x.amount) || 0) > 0 && (was === undefined || Number(x.amount) > was); }).slice(0, 3).forEach(x => out.push("Pengeluaran " + x.name + " " + rp(x.amount)));
+        return out;
+      }
+      async function pushPost(path, body) {
+        const t = await auth.currentUser.getIdToken();
+        return fetch(PUSH_URL + path, { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + t }, body: JSON.stringify(body) });
+      }
+      function updateBell() {
+        const st = $("pushStatus"), bt = $("pushBtn"); if (!st || !bt) return;
+        if (!pushOn()) { st.textContent = "Notifikasi belum dikonfigurasi"; bt.style.display = "none"; return; }
+        const perm = Notification.permission;
+        if (perm === "granted" && myToken) { st.textContent = "🔔 Notifikasi aktif"; bt.style.display = "none"; }
+        else if (perm === "denied") { st.textContent = "🔕 Notifikasi diblokir. Aktifkan di Pengaturan HP > Aplikasi > Notifikasi"; bt.style.display = "none"; }
+        else { st.textContent = "Notifikasi belum aktif"; bt.style.display = ""; }
+      }
+      async function enablePush() {
+        if (!pushOn() || !auth.currentUser) return updateBell();
+        try {
+          if (Notification.permission === "default") await Notification.requestPermission();
+          if (Notification.permission !== "granted") return updateBell();
+          const reg = await navigator.serviceWorker.register("firebase-messaging-sw.js", { scope: "firebase-cloud-messaging-push-scope" });
+          myToken = await getToken(getMessaging(firebaseApp), { vapidKey: VAPID_KEY, serviceWorkerRegistration: reg });
+          if (myToken) await pushPost("/register", { token: myToken, name: userName() });
+        } catch (e) { console.warn("Notifikasi gagal diaktifkan.", e); }
+        updateBell();
+      }
+      window.__mieEnablePush = enablePush;
+      async function sendNotify(msgs) {
+        if (!pushOn() || !msgs.length || !auth.currentUser) return;
+        try { await pushPost("/notify", { title: "Mie Ayam Soleh", body: userName() + ": " + msgs.join(" • "), exclude: myToken }); } catch (e) { console.warn("Notifikasi tidak terkirim.", e); }
+      }
+
+      // ---- Login ----
+      const showLogin = () => { const h = $("splashScreen"); h.classList.remove("hide"); h.classList.add("needs-login"); $("loginForm").style.display = "flex"; };
+      const toEmail = v => { v = String(v || "").trim().toLowerCase(); return v.includes("@") ? v : v + "@gmail.com"; };
+      const errText = c => ({ "auth/invalid-credential": "Username atau password salah.", "auth/invalid-email": "Username tidak valid.", "auth/too-many-requests": "Terlalu banyak percobaan. Coba lagi nanti.", "auth/network-request-failed": "Tidak ada koneksi internet." })[c] || "Gagal masuk. Coba lagi.";
+      async function doLogin() {
+        $("loginErr").textContent = ""; $("loginBtn").disabled = true;
+        try { await signInWithEmailAndPassword(auth, toEmail($("loginEmail").value), $("loginPass").value); $("loginPass").value = ""; }
+        catch (e) { $("loginErr").textContent = errText(e.code); }
+        $("loginBtn").disabled = false;
+      }
+      $("loginBtn").addEventListener("click", doLogin);
+      $("loginPass").addEventListener("keydown", e => { if (e.key === "Enter") doLogin(); });
+      window.__mieLogout = () => { if (confirm("Keluar dari akun ini?")) signOut(auth); };
+      onAuthStateChanged(auth, user => {
+        if (user) {
+          $("loginForm").style.display = "none";
+          window.__splash.auth = "in"; window.__tryHideSplash();
+          const n = $("accName"); if (n) n.textContent = userName();
+          startRealtime();
+          if (pushOn()) {
+            if (Notification.permission === "granted") enablePush();
+            else { updateBell(); if (Notification.permission === "default") document.addEventListener("click", () => enablePush(), { once: true }); }
+          } else updateBell();
+        } else {
+          if (unsub) { unsub(); unsub = null; }
+          ready = false;
+          window.__splash.auth = "out";
+          showLogin();
+        }
+      });
+
       window.__mieFirebase = { enabled:true, load:loadFirebaseData, save:saveFirebaseData };
       window.dispatchEvent(new Event("mie-firebase-ready"));
-      loadFirebaseData();
     } else {
-      console.info("Firebase belum dikonfigurasi. Aplikasi tetap menggunakan localStorage.");
+      console.info("Firebase belum dikonfigurasi. Aplikasi tetap menggunakan localStorage."); window.__splash.auth="skip"; window.__tryHideSplash();
     }
   } catch (e) {
-    console.warn("Firebase belum aktif. Aplikasi tetap berjalan.", e);
+    console.warn("Firebase belum aktif. Aplikasi tetap berjalan.", e); window.__splash.auth="skip"; window.__tryHideSplash();
   }
 </script>
 
