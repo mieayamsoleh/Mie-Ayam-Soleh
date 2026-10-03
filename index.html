@@ -2410,6 +2410,7 @@ requestAnimationFrame(frame);
     <div class="ref-section-title"><div class="ico">👤</div>Akun</div>
     <div class="item"><span>Masuk sebagai <b id="accName">-</b></span><button type="button" class="secondary danger" onclick="window.__mieLogout&&window.__mieLogout()">Keluar</button></div>
     <div class="item"><span id="pushStatus">Notifikasi: -</span><button id="pushBtn" type="button" class="secondary" onclick="window.__mieEnablePush&&window.__mieEnablePush()">🔔 Aktifkan</button></div>
+    <div class="item"><span>Cek notifikasi</span><button type="button" class="secondary" onclick="window.__mieTestPush&&window.__mieTestPush()">Kirim tes</button></div>
   </div>
 <div class="card section">
     <div class="ref-section-title"><div class="ico">⚙</div>Harga Jual Produk</div>
@@ -2567,11 +2568,22 @@ setTimeout(()=>{if(window.__splash.auth==='pending'){window.__splash.auth='skip'
           if (Notification.permission !== "granted") return updateBell();
           const reg = await navigator.serviceWorker.register("firebase-messaging-sw.js", { scope: "firebase-cloud-messaging-push-scope" });
           myToken = await getToken(getMessaging(firebaseApp), { vapidKey: VAPID_KEY, serviceWorkerRegistration: reg });
-          if (myToken) await pushPost("/register", { token: myToken, name: userName() });
+          if (myToken) {
+            const r = await pushPost("/register", { token: myToken, name: userName() });
+            if (!r.ok) { const st = $("pushStatus"); if (st) st.textContent = "⚠ Gagal mendaftar ke server notifikasi (kode " + r.status + ")"; return; }
+          }
         } catch (e) { console.warn("Notifikasi gagal diaktifkan.", e); }
         updateBell();
       }
       window.__mieEnablePush = enablePush;
+      window.__mieTestPush = async () => {
+        if (!pushOn() || !auth.currentUser) return alert("Notifikasi belum dikonfigurasi atau belum login.");
+        try {
+          const r = await pushPost("/notify", { title: "Mie Ayam Soleh", body: "Tes notifikasi dari " + userName(), exclude: null });
+          const t = await r.text();
+          alert("Kode " + r.status + "\n" + t.slice(0, 600));
+        } catch (e) { alert("Gagal menghubungi server: " + e); }
+      };
       async function sendNotify(msgs) {
         if (!pushOn() || !msgs.length || !auth.currentUser) return;
         try { await pushPost("/notify", { title: "Mie Ayam Soleh", body: userName() + ": " + msgs.join(" • "), exclude: myToken }); } catch (e) { console.warn("Notifikasi tidak terkirim.", e); }
@@ -3524,7 +3536,8 @@ function renderReport(){
   const days=rpTrend(rb.from,rb.to,m.sales);
   const max=Math.max(...days.map(x=>x.omzet),1);
   const step=days.length>10?Math.ceil(days.length/6):1,showVal=days.length<=8;
-  document.getElementById('reportTrend').innerHTML=days.map((d,i)=>`<div class="trend-col"><div class="trend-value">${showVal?fmtShort(d.omzet):''}</div><div class="trend-bar" title="${d.label}: ${rupiah(d.omzet)}" style="height:${d.omzet?Math.max(8,d.omzet/max*100):5}%"></div><div class="trend-label">${i%step===0?d.label:''}</div></div>`).join('');
+  {const n=days.length,tc=document.getElementById('reportTrend');tc.style.setProperty('gap',(n>14?'2px':n>8?'5px':'10px'),'important');
+  tc.innerHTML=days.map((d,i)=>`<div class="trend-col" style="min-width:0!important"><div class="trend-value">${showVal?fmtShort(d.omzet):''}</div><div class="trend-bar" title="${d.label}: ${rupiah(d.omzet)}" style="width:100%!important;max-width:${n>14?'12px':'28px'}!important;${d.omzet?`height:${Math.max(8,d.omzet/max*100)}%`:'height:3px;opacity:.35'}"></div><div class="trend-label" style="white-space:nowrap">${i%step===0?d.label:''}</div></div>`).join('');}
   const pm={};m.sales.forEach(s=>s.items.forEach(i=>{let p=db.products.find(p=>p.id===i.productId);let k=p?.id||i.productId;if(!pm[k])pm[k]={name:p?.name||i.productId,qty:0,amount:0};pm[k].qty+=Number(i.qty)||0;pm[k].amount+=(Number(i.qty)||0)*(Number(i.price)||0)}));
   const parr=Object.values(pm).sort((a,b)=>b.amount-a.amount), pmax=parr[0]?.amount||1;
   document.getElementById('reportProducts').innerHTML=parr.length?parr.map((p,i)=>`<div class="rank-row"><div class="rank-no">${i+1}</div><div class="rank-img">${productIcon(p.name)}</div><div><div class="rank-name">${p.name}</div><div class="rank-amount">${rupiah(p.amount)} <span style="font-size:10px;opacity:.65;font-weight:600">• ${p.qty} porsi</span></div><div class="progress"><span style="width:${Math.max(5,p.amount/pmax*100)}%"></span></div></div><div style="font-size:10px;color:#8b969f">${m.om?Math.round(p.amount/m.om*100):0}%</div></div>`).join(''):'<div class="empty">Belum ada data produk.</div>';
@@ -3549,7 +3562,8 @@ function renderReport(){
 function renderReportDetail(from,to,m){
  const inR=d=>{d=String(d||'');return d>=from&&d<=to};
  const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v};
- const days=rpDays(from,to);
+ const effTo=(to>todayISO()&&from<=todayISO())?todayISO():to;
+ const days=rpDays(from,effTo);
  const buys=(db.stockPurchases||[]).filter(x=>inR(x.date));
  const buyTotal=buys.reduce((t,x)=>t+(Number(x.totalCost)||0),0);
  const qris=m.sales.filter(x=>x.method==='qris').reduce((a,x)=>a+Number(x.omzet||0),0);
