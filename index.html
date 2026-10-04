@@ -2013,6 +2013,10 @@ html body #input .page-head>.head-note:not([style]):after,html body #expense .pa
 #hpBox .hp-go{display:none;width:100%;margin-top:4px}#hpBox .hp-go.show{display:block}
 </style>
 
+<style id="device-login-style">
+#loginForm #deviceName{margin-top:2px}
+#loginForm input{width:100%;box-sizing:border-box}
+</style>
 <style id="six-tabs-style">
 html body #mainTabs.tabs.tabs{padding-left:4px!important;padding-right:4px!important}
 html body #mainTabs.tabs.tabs button{font-size:10.5px!important;padding-left:0!important;padding-right:0!important;letter-spacing:-.1px}
@@ -2039,8 +2043,12 @@ html body #mainTabs.tabs.tabs button svg{width:23px!important;height:23px!import
     <div id="loginForm" class="sp-login" style="display:none">
       <input id="loginEmail" type="text" placeholder="Username" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false">
       <input id="loginPass" type="password" placeholder="Password" autocomplete="current-password">
+      <input id="deviceName" type="text" placeholder="Nama HP (contoh: HP 1)" autocomplete="off" maxlength="30">
       <div id="loginErr"></div>
       <button id="loginBtn" type="button">Masuk</button>
+      <div id="pushStatus" style="font-size:12px;line-height:1.35;margin-top:8px;color:rgba(255,255,255,.78);text-align:center">
+        Notifikasi akan disiapkan setelah masuk.
+      </div>
     </div>
   </div>
 </div>
@@ -2373,7 +2381,7 @@ requestAnimationFrame(frame);
       <div class="item sub-row"><span>💵 Cash</span><b id="rFinCash">Rp0</b></div>
       <div class="item sub-row"><span>📱 QRIS</span><b id="rFinQris">Rp0</b></div>
       <div class="item"><span>Biaya produksi (bahan terpakai)</span><b id="rProd">Rp0</b></div>
-      <div class="item"><span>Modal produk (HPP: minuman, pangsit, bakso, kerupuk)</span><b id="rDrink">Rp0</b></div>
+      <div class="item"><span>Modal minuman (HPP)</span><b id="rDrink">Rp0</b></div>
       <div class="item"><span>Pengeluaran harian</span><b id="rDaily">Rp0</b></div>
       <div class="item"><span>Pengeluaran bulanan</span><b id="rMonthly">Rp0</b></div>
       <div class="item total-row"><span>Total semua biaya</span><b id="rCost">Rp0</b></div>
@@ -2386,7 +2394,7 @@ requestAnimationFrame(frame);
       <div class="item"><span>Pembelian stok (tidak masuk profit)</span><b id="rFinBuy">Rp0</b></div>
       <div class="item"><span>Penjualan dikurangi pembelian stok</span><b id="rCashflow">Rp0</b></div>
     </div>
-    <div class="sub" style="font-size:10px;opacity:.65;margin-top:8px">Profit dihitung dari biaya bahan yang terpakai dan modal per item yang terjual untuk minuman, pangsit, bakso, dan kerupuk (diisi di pengaturan produk), bukan dari pembelian stok, supaya bahan yang sama tidak terhitung dua kali.</div>
+    <div class="sub" style="font-size:10px;opacity:.65;margin-top:8px">Profit dihitung dari biaya bahan yang terpakai dan modal minuman per item yang terjual (diisi di pengaturan produk), bukan dari pembelian stok, supaya bahan yang sama tidak terhitung dua kali.</div>
   </div>
 
   <div class="card section">
@@ -2409,8 +2417,6 @@ requestAnimationFrame(frame);
 <div class="card section">
     <div class="ref-section-title"><div class="ico">👤</div>Akun</div>
     <div class="item"><span>Masuk sebagai <b id="accName">-</b></span><button type="button" class="secondary danger" onclick="window.__mieLogout&&window.__mieLogout()">Keluar</button></div>
-    <div class="item"><span id="pushStatus">Notifikasi: -</span><button id="pushBtn" type="button" class="secondary" onclick="window.__mieEnablePush&&window.__mieEnablePush()">🔔 Aktifkan</button></div>
-    <div class="item"><span>Cek notifikasi</span><button type="button" class="secondary" onclick="window.__mieTestPush&&window.__mieTestPush()">Kirim tes</button></div>
   </div>
 <div class="card section">
     <div class="ref-section-title"><div class="ico">⚙</div>Harga Jual Produk</div>
@@ -2444,7 +2450,7 @@ setTimeout(()=>{if(window.__splash.auth==='pending'){window.__splash.auth='skip'
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
   import { getFirestore, doc, getDoc, setDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
   import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
-  import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-messaging.js";
+  import { getMessaging, getToken, onMessage, isSupported as messagingIsSupported } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-messaging.js";
 
   // ============================================================
   // FIREBASE CONFIG
@@ -2470,10 +2476,111 @@ setTimeout(()=>{if(window.__splash.auth==='pending'){window.__splash.auth='skip'
       const firestore = getFirestore(firebaseApp);
       const dataRef = doc(firestore, "mieAyamSoleh", "data");
       const auth = getAuth(firebaseApp);
-      let ready = false, unsub = null, pendingRender = false;
+      const messagingPromise = messagingIsSupported().then(ok => ok ? getMessaging(firebaseApp) : null).catch(() => null);
+
+      // ============================================================
+      // IDENTITAS PERANGKAT + PUSH NOTIFICATION
+      // Set VAPID key dari Firebase Console > Project Settings >
+      // Cloud Messaging > Web Push certificates.
+      // ============================================================
+      const FCM_VAPID_KEY = "PASTE_VAPID_KEY_DARI_FIREBASE";
+      const DEVICE_ID_KEY = "mieAyamSoleh_deviceId_v1";
+      const DEVICE_NAME_KEY = "mieAyamSoleh_deviceName_v1";
+      const getDeviceId = () => {
+        let id = localStorage.getItem(DEVICE_ID_KEY);
+        if (!id) {
+          id = (crypto && crypto.randomUUID) ? crypto.randomUUID() :
+            ("device-" + Date.now() + "-" + Math.random().toString(36).slice(2));
+          localStorage.setItem(DEVICE_ID_KEY, id);
+        }
+        return id;
+      };
+      const getDeviceName = () => localStorage.getItem(DEVICE_NAME_KEY) || "";
+      const setDeviceName = v => localStorage.setItem(DEVICE_NAME_KEY, String(v || "").trim().slice(0,30));
+      const deviceId = getDeviceId();
+      let pushUnsub = null;
+      window.__mieDeviceId = deviceId;
+
+      async function registerPushForDevice(user) {
+        const status = document.getElementById("pushStatus");
+        try {
+          if (!("Notification" in window) || !("serviceWorker" in navigator)) {
+            if (status) status.textContent = "Perangkat ini belum mendukung notifikasi web.";
+            return;
+          }
+          const messaging = await messagingPromise;
+          if (!messaging) {
+            if (status) status.textContent = "Notifikasi tidak tersedia di browser ini.";
+            return;
+          }
+
+          // sw.js harus tersedia di root GitHub Pages dan menangani firebase-messaging-sw.
+          const registration = await navigator.serviceWorker.register("sw.js");
+          const permission = Notification.permission === "granted"
+            ? "granted"
+            : await Notification.requestPermission();
+
+          if (permission !== "granted") {
+            if (status) status.textContent = "Izin notifikasi belum diberikan.";
+            return;
+          }
+
+          if (FCM_VAPID_KEY === "PASTE_VAPID_KEY_DARI_FIREBASE") {
+            if (status) status.textContent = "Login berhasil. Push siap setelah VAPID key dipasang.";
+            return;
+          }
+
+          const token = await getToken(messaging, {
+            vapidKey: FCM_VAPID_KEY,
+            serviceWorkerRegistration: registration
+          });
+          if (!token) {
+            if (status) status.textContent = "Token notifikasi belum tersedia.";
+            return;
+          }
+
+          const name = getDeviceName() || "HP";
+          await setDoc(
+            doc(firestore, "mieAyamSoleh", "devices", user.uid, deviceId),
+            {
+              deviceId,
+              deviceName: name,
+              token,
+              username: user.email || "",
+              enabled: true,
+              platform: navigator.userAgent,
+              updatedAt: serverTimestamp()
+            },
+            { merge: true }
+          );
+
+          if (status) status.textContent = "Notifikasi aktif untuk " + name + ".";
+        } catch (e) {
+          console.warn("Push notification belum aktif:", e);
+          if (status) status.textContent = "Login berhasil. Notifikasi belum aktif di perangkat ini.";
+        }
+      }
+
+      async function listenForegroundPush() {
+        try {
+          const messaging = await messagingPromise;
+          if (!messaging) return;
+          if (pushUnsub) pushUnsub();
+          pushUnsub = onMessage(messaging, payload => {
+            const title = payload?.notification?.title || "Mie Ayam Soleh";
+            const body = payload?.notification?.body || "Ada aktivitas baru.";
+            try {
+              if (Notification.permission === "granted") new Notification(title, {
+                body,
+                icon: "img/logo.png",
+                tag: "mie-ayam-soleh"
+              });
+            } catch (_) {}
+          });
+        } catch (_) {}
+      }
       const $ = id => document.getElementById(id);
-      const prettyName = e => String(e || "").split("@")[0].replace(/[_.]+/g, " ").replace(/\b\w/g, c => c.toUpperCase());
-      const userName = () => auth.currentUser ? (auth.currentUser.displayName || prettyName(auth.currentUser.email)) : "";
+      const userName = () => auth.currentUser ? (auth.currentUser.displayName || (auth.currentUser.email || "").split("@")[0]) : "";
       window.__mieUserName = userName;
 
       function applyRemote(remote) {
@@ -2498,15 +2605,14 @@ setTimeout(()=>{if(window.__splash.auth==='pending'){window.__splash.auth='skip'
         if (unsub) return;
         unsub = onSnapshot(dataRef, async snap => {
           try {
-            if (!snap.exists()) { ready = true; base = snapIds(db); await setDoc(dataRef, { data: db, updatedAt: serverTimestamp(), updatedBy: userName() }); return; }
+            if (!snap.exists()) { ready = true; await setDoc(dataRef, { data: db, updatedAt: serverTimestamp(), updatedBy: userName() }); return; }
             if (snap.metadata.hasPendingWrites) return;
             const remote = snap.data()?.data;
-            if (!remote || typeof remote !== "object") { ready = true; base = snapIds(db); return; }
+            if (!remote || typeof remote !== "object") { ready = true; return; }
             if (ready && JSON.stringify(remote) === JSON.stringify(db)) return;
             const first = !ready;
             ready = true;
             const cleaned = applyRemote(remote);
-            base = snapIds(db);
             if (cleaned && first) await setDoc(dataRef, { data: db, updatedAt: serverTimestamp(), updatedBy: userName() });
             rerender();
           } catch (e) { console.warn("Sinkronisasi gagal.", e); }
@@ -2518,102 +2624,77 @@ setTimeout(()=>{if(window.__splash.auth==='pending'){window.__splash.auth='skip'
         if (!localDb || !ready || !auth.currentUser) return;
         try {
           await setDoc(dataRef, { data: localDb, updatedAt: serverTimestamp(), updatedBy: userName() });
-          const msgs = describeChange(base, localDb); base = snapIds(localDb);
-          if (msgs.length) sendNotify(msgs);
         } catch (e) {
           console.warn("Firebase tidak bisa disimpan. Data lokal tetap tersimpan.", e);
         }
       }
 
-      // ---- Notifikasi push (Cloudflare Worker + Firebase Cloud Messaging) ----
-      const VAPID_KEY = "BE2PjR806JjeKPh7iF5g55TTTad2bZ6CM7MES-D5SVbv9d_G1w9WQrDg4_EDK_26KQTTtdi0ZYaYx0w86A5ENMU";   // Firebase Console > Project settings > Cloud Messaging > Web Push certificates
-      const PUSH_URL  = "https://proud-flower-d61a.agusnursoleh77.workers.dev";  // alamat Cloudflare Worker, contoh: https://mie-notif.namamu.workers.dev
-      const pushOn = () => !VAPID_KEY.startsWith("PASTE") && !PUSH_URL.startsWith("PASTE") && "Notification" in window && "serviceWorker" in navigator;
-      let myToken = null, base = null;
-      const rp = n => "Rp" + Math.round(n).toLocaleString("id-ID");
-      const snapIds = d => ({
-        sales: new Set((d.sales || []).map(x => x.id)),
-        buys: new Set((d.stockPurchases || []).map(x => x.id)),
-        prod: new Set((d.productionRecords || []).map(x => x.id)),
-        exp: new Map((d.dailyExpenses || []).map(x => [x.date + "|" + x.name, Number(x.amount) || 0]))
-      });
-      function describeChange(prev, d) {
-        if (!prev) return [];
-        const out = [], sum = (a, f) => a.reduce((t, x) => t + (Number(f(x)) || 0), 0);
-        const ns = (d.sales || []).filter(x => !prev.sales.has(x.id));
-        if (ns.length) out.push("Penjualan " + rp(sum(ns, x => x.omzet)));
-        const nb = (d.stockPurchases || []).filter(x => !prev.buys.has(x.id));
-        if (nb.length) { const nm = nb.length === 1 ? (d.ingredients || []).find(i => i.id === nb[0].ingredientId)?.name : null; out.push("Stok masuk " + (nm ? nm + " " : nb.length + " item ") + rp(sum(nb, x => x.totalCost))); }
-        const np = (d.productionRecords || []).filter(x => !prev.prod.has(x.id));
-        if (np.length) out.push("Produksi dicatat");
-        (d.dailyExpenses || []).filter(x => { const was = prev.exp.get(x.date + "|" + x.name); return (Number(x.amount) || 0) > 0 && (was === undefined || Number(x.amount) > was); }).slice(0, 3).forEach(x => out.push("Pengeluaran " + x.name + " " + rp(x.amount)));
-        return out;
-      }
-      async function pushPost(path, body) {
-        const t = await auth.currentUser.getIdToken();
-        return fetch(PUSH_URL + path, { method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + t }, body: JSON.stringify(body) });
-      }
-      function updateBell() {
-        const st = $("pushStatus"), bt = $("pushBtn"); if (!st || !bt) return;
-        if (!pushOn()) { st.textContent = "Notifikasi belum dikonfigurasi"; bt.style.display = "none"; return; }
-        const perm = Notification.permission;
-        if (perm === "granted" && myToken) { st.textContent = "🔔 Notifikasi aktif"; bt.style.display = "none"; }
-        else if (perm === "denied") { st.textContent = "🔕 Notifikasi diblokir. Aktifkan di Pengaturan HP > Aplikasi > Notifikasi"; bt.style.display = "none"; }
-        else { st.textContent = "Notifikasi belum aktif"; bt.style.display = ""; }
-      }
-      async function enablePush() {
-        if (!pushOn() || !auth.currentUser) return updateBell();
+      // Mencatat aktivitas perangkat. Pengiriman push antar-HP dilakukan
+      // oleh backend/Cloud Function setelah FCM dipasang.
+      window.__mieLogActivity = async function(type, title, body) {
+        if (!auth.currentUser) return;
         try {
-          if (Notification.permission === "default") await Notification.requestPermission();
-          if (Notification.permission !== "granted") return updateBell();
-          const reg = await navigator.serviceWorker.register("firebase-messaging-sw.js", { scope: "firebase-cloud-messaging-push-scope" });
-          myToken = await getToken(getMessaging(firebaseApp), { vapidKey: VAPID_KEY, serviceWorkerRegistration: reg });
-          if (myToken) {
-            const r = await pushPost("/register", { token: myToken, name: userName() });
-            if (!r.ok) { const st = $("pushStatus"); if (st) st.textContent = "⚠ Gagal mendaftar ke server notifikasi (kode " + r.status + ")"; return; }
-          }
-        } catch (e) { console.warn("Notifikasi gagal diaktifkan.", e); }
-        updateBell();
-      }
-      window.__mieEnablePush = enablePush;
-      window.__mieTestPush = async () => {
-        if (!pushOn() || !auth.currentUser) return alert("Notifikasi belum dikonfigurasi atau belum login.");
-        try {
-          const r = await pushPost("/notify", { title: "Mie Ayam Soleh", body: "Tes notifikasi dari " + userName(), exclude: null });
-          const t = await r.text();
-          alert("Kode " + r.status + "\n" + t.slice(0, 600));
-        } catch (e) { alert("Gagal menghubungi server: " + e); }
+          const activityId = deviceId + "-" + Date.now() + "-" + Math.random().toString(36).slice(2,8);
+          await setDoc(doc(firestore, "mieAyamSoleh", "activities", activityId), {
+            type: String(type || "update"),
+            title: String(title || "Aktivitas baru"),
+            body: String(body || ""),
+            actorUid: auth.currentUser.uid,
+            actorDeviceId: deviceId,
+            actorDeviceName: getDeviceName() || "HP",
+            createdAt: serverTimestamp()
+          });
+        } catch (e) {
+          console.warn("Aktivitas tidak tercatat:", e);
+        }
       };
-      async function sendNotify(msgs) {
-        if (!pushOn() || !msgs.length || !auth.currentUser) return;
-        try { await pushPost("/notify", { title: "Mie Ayam Soleh", body: userName() + ": " + msgs.join(" • "), exclude: myToken }); } catch (e) { console.warn("Notifikasi tidak terkirim.", e); }
-      }
 
-      // ---- Login ----
-      const showLogin = () => { const h = $("splashScreen"); h.classList.remove("hide"); h.classList.add("needs-login"); $("loginForm").style.display = "flex"; };
+      // ---- Login + identitas perangkat ----
+      const showLogin = () => {
+        const h = $("splashScreen");
+        h.classList.remove("hide");
+        h.classList.add("needs-login");
+        $("loginForm").style.display = "flex";
+        const dn = $("deviceName");
+        if (dn) dn.value = getDeviceName();
+      };
       const toEmail = v => { v = String(v || "").trim().toLowerCase(); return v.includes("@") ? v : v + "@gmail.com"; };
-      const errText = c => ({ "auth/invalid-credential": "Username atau password salah.", "auth/invalid-email": "Username tidak valid.", "auth/too-many-requests": "Terlalu banyak percobaan. Coba lagi nanti.", "auth/network-request-failed": "Tidak ada koneksi internet." })[c] || "Gagal masuk. Coba lagi.";
+      const errText = c => ({
+        "auth/invalid-credential": "Username atau password salah.",
+        "auth/invalid-email": "Username tidak valid.",
+        "auth/too-many-requests": "Terlalu banyak percobaan. Coba lagi nanti.",
+        "auth/network-request-failed": "Tidak ada koneksi internet."
+      })[c] || "Gagal masuk. Coba lagi.";
+
       async function doLogin() {
-        $("loginErr").textContent = ""; $("loginBtn").disabled = true;
-        try { await signInWithEmailAndPassword(auth, toEmail($("loginEmail").value), $("loginPass").value); $("loginPass").value = ""; }
-        catch (e) { $("loginErr").textContent = errText(e.code); }
+        $("loginErr").textContent = "";
+        $("loginBtn").disabled = true;
+        try {
+          const dn = String($("deviceName").value || "").trim().slice(0,30) || "HP";
+          setDeviceName(dn);
+          await signInWithEmailAndPassword(auth, toEmail($("loginEmail").value), $("loginPass").value);
+          $("loginPass").value = "";
+        } catch (e) {
+          $("loginErr").textContent = errText(e.code);
+        }
         $("loginBtn").disabled = false;
       }
+
       $("loginBtn").addEventListener("click", doLogin);
       $("loginPass").addEventListener("keydown", e => { if (e.key === "Enter") doLogin(); });
       window.__mieLogout = () => { if (confirm("Keluar dari akun ini?")) signOut(auth); };
-      onAuthStateChanged(auth, user => {
+
+      onAuthStateChanged(auth, async user => {
         if (user) {
           $("loginForm").style.display = "none";
           window.__splash.auth = "in"; window.__tryHideSplash();
           const n = $("accName"); if (n) n.textContent = userName();
           startRealtime();
-          if (pushOn()) {
-            if (Notification.permission === "granted") enablePush();
-            else { updateBell(); if (Notification.permission === "default") document.addEventListener("click", () => enablePush(), { once: true }); }
-          } else updateBell();
+          await listenForegroundPush();
+          await registerPushForDevice(user);
         } else {
           if (unsub) { unsub(); unsub = null; }
+          if (pushUnsub) { try { pushUnsub(); } catch (_) {} pushUnsub = null; }
           ready = false;
           window.__splash.auth = "out";
           showLogin();
@@ -2898,16 +2979,11 @@ function ingredientUnitCost(x){return Number(x.unitCost)||0}
 function productionTotal(){return db.ingredients.reduce((sum,x)=>sum+(Number(x.useQty)||0)*ingredientUnitCost(x),0)}
 function productionPerPortion(){return productionTotal()/(Number(db.settings.productionPortions)||1)}
 function isDrinkProduct(p){if(!p)return false;if(p.drink===true)return true;if(p.drink===false)return false;return /\b(teh|kopi|susu|jus|minum\w*|es)\b/i.test(String(p.name||''))}
-function isCostProduct(p){if(!p)return false;if(isDrinkProduct(p))return true;if(p.modal===true)return true;if(p.modal===false)return false;return /pangsit|bakso|kerupuk/i.test(String(p.name||''))}
-function pureDrinkCostItem(i){const p=db.products.find(a=>a.id===i.productId);return isDrinkProduct(p)?drinkItemCost(i):0}
-function drinkItemCost(i){const p=db.products.find(a=>a.id===i.productId);if(!isCostProduct(p))return 0;const c=Number(i.cost)>0?Number(i.cost):(Number(p.cost)||0);return c*(Number(i.qty)||0)}
+function drinkItemCost(i){const p=db.products.find(a=>a.id===i.productId);if(!isDrinkProduct(p))return 0;const c=Number(i.cost)>0?Number(i.cost):(Number(p.cost)||0);return c*(Number(i.qty)||0)}
 function drinkItemRevenue(i){const p=db.products.find(a=>a.id===i.productId);return isDrinkProduct(p)?(Number(i.qty)||0)*(Number(i.price)||0):0}
 function drinkCostOf(sales){return sales.reduce((t,x)=>t+(x.items||[]).reduce((a,i)=>a+drinkItemCost(i),0),0)}
-function pureDrinkCostOf(sales){return sales.reduce((t,x)=>t+(x.items||[]).reduce((a,i)=>a+pureDrinkCostItem(i),0),0)}
 function drinkRevenueOf(sales){return sales.reduce((t,x)=>t+(x.items||[]).reduce((a,i)=>a+drinkItemRevenue(i),0),0)}
-function ingNoCost(i){if(!i)return false;if(i.noCost===true)return true;if(i.noCost===false)return false;return prodCatOf(i)==='Minuman'||/pangsit|bakso|kerupuk|gula\s*pasir/i.test(String(i.name||''))}
-function isDrinkIngredient(id){return ingNoCost(db.ingredients.find(a=>a.id===id))}
-function toggleIngredientNoCost(id,excluded){const x=db.ingredients.find(i=>i.id===id);if(!x)return;x.noCost=!!excluded;save();renderAll()}
+function isDrinkIngredient(id){const i=db.ingredients.find(a=>a.id===id);return !!i&&prodCatOf(i)==='Minuman'}
 function recProd(r){return Array.isArray(r.items)&&r.items.length?r.items.reduce((s,it)=>s+(isDrinkIngredient(it.ingredientId)?0:Number(it.cost!=null?it.cost:(Number(it.qty||0)*Number(it.unitCost||0)))),0):Number(r.amount||0)}
 function dailyProductionTotal(date){return db.productionRecords.filter(x=>x.date===date).reduce((s,x)=>s+recProd(x),0)}
 function monthlyProductionTotal(month){
@@ -3061,7 +3137,7 @@ function renderStock(){
      <div class="sx-badge ${st}">${label[st]}</div>
      <div class="sx-qtybox"><div class="sx-qlabel">Stok tersedia</div><div class="sx-qty ${st}">${fmtQty(q)} ${escHtml(x.unit)} <span class="sx-min">(min. ${fmtQty(min)} ${escHtml(x.unit)})</span></div><div class="sx-bar"><span class="${st}" style="width:${pct}%"></span></div></div>
      <div class="sx-actions"><button type="button" class="sx-restock" onclick="restockItem('${x.id}')">＋ Restock</button><button type="button" class="sx-chev ${open?'open':''}" onclick="toggleStockDetail('${x.id}')" aria-label="Detail">›</button></div>
-     ${open?`<div class="sx-detail"><div><label>Satuan</label><select onchange="changeStockUnit('${x.id}',this.value)">${units.map(u=>`<option value="${escHtml(u)}" ${x.unit===u?'selected':''}>${escHtml(u)}</option>`).join('')}</select></div><div><label>Stok minimum</label><input type="number" min="0" step="any" inputmode="decimal" value="${fmtQty(min)}" onchange="changeStockMin('${x.id}',this.value)"></div><div><label>Isi porsi per ${escHtml(x.unit)}</label><input type="number" min="0" step="any" inputmode="decimal" placeholder="mis. 20" value="${Number(x.portions)>0?x.portions:''}" onchange="updateIngredientPortions('${x.id}',this.value)"></div><div class="sx-detail-note">Harga rata-rata ${rupiah(c)}/${escHtml(x.unit)}${Number(x.portions)>0?' • ≈ '+rupiah(Math.round(c/Number(x.portions)))+' / porsi':''}</div><div style="grid-column:1/-1"><label style="display:flex;align-items:center;gap:8px;margin:0 0 8px;font-size:12px"><input type="checkbox" style="width:auto;margin:0" ${ingNoCost(x)?'':'checked'} onchange="toggleIngredientNoCost('${x.id}',!this.checked)">Hitung ke biaya produksi</label><button type="button" class="secondary" onclick="toggleIngredientHidden('${x.id}')">${x.hidden?'👁 Tampilkan lagi':'🙈 Sembunyikan bahan ini'}</button></div></div>`:''}
+     ${open?`<div class="sx-detail"><div><label>Satuan</label><select onchange="changeStockUnit('${x.id}',this.value)">${units.map(u=>`<option value="${escHtml(u)}" ${x.unit===u?'selected':''}>${escHtml(u)}</option>`).join('')}</select></div><div><label>Stok minimum</label><input type="number" min="0" step="any" inputmode="decimal" value="${fmtQty(min)}" onchange="changeStockMin('${x.id}',this.value)"></div><div><label>Isi porsi per ${escHtml(x.unit)}</label><input type="number" min="0" step="any" inputmode="decimal" placeholder="mis. 20" value="${Number(x.portions)>0?x.portions:''}" onchange="updateIngredientPortions('${x.id}',this.value)"></div><div class="sx-detail-note">Harga rata-rata ${rupiah(c)}/${escHtml(x.unit)}${Number(x.portions)>0?' • ≈ '+rupiah(Math.round(c/Number(x.portions)))+' / porsi':''}</div><div style="grid-column:1/-1"><button type="button" class="secondary" onclick="toggleIngredientHidden('${x.id}')">${x.hidden?'👁 Tampilkan lagi':'🙈 Sembunyikan bahan ini'}</button></div></div>`:''}
    </div>`;
  }).join('')+(hiddenCount?`<div style="text-align:center;margin-top:10px"><button type="button" class="secondary" onclick="toggleShowHidden()">${window.showHiddenIng?'Sembunyikan lagi':'Tampilkan'} ${hiddenCount} bahan tersembunyi</button></div>`:''):'<div class="empty">Belum ada bahan pada kategori ini.</div>';
  const pd=document.getElementById('purchaseDate');if(pd&&!pd.value)pd.value=todayISO();
@@ -3078,7 +3154,7 @@ function renderStockProduction(){
  if(!cats.includes(window.prodCategory))window.prodCategory=cats[1]||cats[0]||'Semua';
  const tabs=document.getElementById('prodCategoryTabs');
  if(tabs)tabs.innerHTML=cats.map(c=>`<button type="button" class="chip${c===window.prodCategory?' active':''}" data-cat="${escHtml(c)}" onclick="setProdCategory(this.dataset.cat)">${escHtml(c)}<span class="prod-badge" hidden></span></button>`).join('');
- rows.innerHTML=db.ingredients.filter(x=>!x.hidden||(window.editingStockProductionId&&db.productionRecords.find(r=>r.id===window.editingStockProductionId)?.items?.some(i=>i.ingredientId===x.id))).map(x=>{const q=Number(x.stockQty)||0;const old=window.editingStockProductionId?db.productionRecords.find(r=>r.id===window.editingStockProductionId)?.items?.find(i=>i.ingredientId===x.id):null;const val=document.getElementById('stockuse_'+x.id)?.value ?? (old?.qty||'');const cost=Number(val||0)*ingredientUnitCost(x);const cat=prodCatOf(x);return `<div class="stock-production-row" data-cat="${escHtml(cat)}"${(window.prodCategory==='Semua'||cat===window.prodCategory)?'':' hidden'}><div class="stock-production-top"><div class="stock-production-name">${x.name}</div><div class="stock-available">tersedia: <b>${q} ${x.unit}</b></div></div><div class="stock-production-fields"><div><label>Dipakai (${x.unit})</label><input id="stockuse_${x.id}" type="number" min="0" step="any" value="${val}" placeholder="0" inputmode="decimal" oninput="updateStockProductionTotal()"></div><div><label>Harga rata-rata / ${x.unit}</label><input type="text" value="${rupiah(ingredientUnitCost(x))}" disabled></div></div><div class="stock-cost">${ingNoCost(x)?'Tidak dihitung ke biaya produksi':'Biaya: '+rupiah(cost)+(Number(x.portions)>0?' • ≈ '+fmtQty(Number(val||0)*Number(x.portions))+' porsi • '+rupiah(Math.round(ingredientUnitCost(x)/Number(x.portions)))+'/porsi':'')}</div></div>`}).join('');
+ rows.innerHTML=db.ingredients.filter(x=>!x.hidden||(window.editingStockProductionId&&db.productionRecords.find(r=>r.id===window.editingStockProductionId)?.items?.some(i=>i.ingredientId===x.id))).map(x=>{const q=Number(x.stockQty)||0;const old=window.editingStockProductionId?db.productionRecords.find(r=>r.id===window.editingStockProductionId)?.items?.find(i=>i.ingredientId===x.id):null;const val=document.getElementById('stockuse_'+x.id)?.value ?? (old?.qty||'');const cost=Number(val||0)*ingredientUnitCost(x);const cat=prodCatOf(x);return `<div class="stock-production-row" data-cat="${escHtml(cat)}"${(window.prodCategory==='Semua'||cat===window.prodCategory)?'':' hidden'}><div class="stock-production-top"><div class="stock-production-name">${x.name}</div><div class="stock-available">tersedia: <b>${q} ${x.unit}</b></div></div><div class="stock-production-fields"><div><label>Dipakai (${x.unit})</label><input id="stockuse_${x.id}" type="number" min="0" step="any" value="${val}" placeholder="0" inputmode="decimal" oninput="updateStockProductionTotal()"></div><div><label>Harga rata-rata / ${x.unit}</label><input type="text" value="${rupiah(ingredientUnitCost(x))}" disabled></div></div><div class="stock-cost">${cat==='Minuman'?'Minuman • tidak dihitung ke biaya produksi':'Biaya: '+rupiah(cost)+(Number(x.portions)>0?' • ≈ '+fmtQty(Number(val||0)*Number(x.portions))+' porsi • '+rupiah(Math.round(ingredientUnitCost(x)/Number(x.portions)))+'/porsi':'')}</div></div>`}).join('');
  updateStockProductionTotal();
 }
 function setProdCategory(cat){
@@ -3121,11 +3197,11 @@ function renderProductionStats(){try{const t=todayISO(),mo=ym(t);const td=dailyP
 function renderStockTab(){recalculateStockFromRecords();renderStock();renderStockProduction();renderStockHistory();renderStockPurchases();renderProductionStats();}
 function dailyExpenseTotal(month){let dynamic=db.dailyExpenses.filter(x=>x.month===month).reduce((s,x)=>s+Number(x.amount||0),0);let legacy=db.sales.filter(x=>ym(x.date)===month).reduce((s,x)=>s+Number(x.dailyCoffee||0),0);return dynamic+legacy}
 function monthlyExpenseTotal(){return 0}
-function monthlyData(month){let sales=db.sales.filter(x=>ym(x.date)===month),items=sales.reduce((a,x)=>a+x.items.reduce((s,i)=>s+Number(i.qty||0),0),0),om=sales.reduce((a,x)=>a+Number(x.omzet||0),0);let prod=monthlyProductionTotal(month);let daily=dailyExpenseTotal(month);let monthly=monthlyExpenseTotal();let drink=drinkCostOf(sales),drinkPure=pureDrinkCostOf(sales),drinkOm=drinkRevenueOf(sales);let total=prod+drink+daily+monthly;return{sales,items,om,prod,drink,drinkPure,drinkOm,daily,monthly,total,profit:om-total,margin:om?((om-total)/om*100):0}}
+function monthlyData(month){let sales=db.sales.filter(x=>ym(x.date)===month),items=sales.reduce((a,x)=>a+x.items.reduce((s,i)=>s+Number(i.qty||0),0),0),mieItems=sales.reduce((a,x)=>a+x.items.filter(i=>i.productId==='mie').reduce((s,i)=>s+Number(i.qty||0),0),0),om=sales.reduce((a,x)=>a+Number(x.omzet||0),0);let prod=monthlyProductionTotal(month);let daily=dailyExpenseTotal(month);let monthly=monthlyExpenseTotal();let drink=drinkCostOf(sales),drinkOm=drinkRevenueOf(sales);let total=prod+drink+daily+monthly;return{sales,items,mieItems,om,prod,drink,drinkOm,daily,monthly,total,profit:om-total,margin:om?((om-total)/om*100):0}}
 function saveSale(method){
  method=(method==='qris')?'qris':'cash';
  let date=document.getElementById('date').value||todayISO();
- let items=db.products.map(p=>{let q=Number(document.getElementById('qty_'+p.id)?.value||0);return{productId:p.id,qty:q,price:Number(p.price)||0,cost:isCostProduct(p)?(Number(p.cost)||0):0}}).filter(x=>x.qty>0);
+ let items=db.products.map(p=>{let q=Number(document.getElementById('qty_'+p.id)?.value||0);return{productId:p.id,qty:q,price:Number(p.price)||0,cost:isDrinkProduct(p)?(Number(p.cost)||0):0}}).filter(x=>x.qty>0);
  if(!items.length)return alert('Masukkan jumlah produk yang terjual.');
  let omzet=items.reduce((s,x)=>s+x.qty*x.price,0);
  let editingId=window.editingSaleId||null;
@@ -3224,9 +3300,8 @@ function renderInput(){
 }
 function renderProduction(){renderStockProduction()}
 function renderExpenses(){document.getElementById('dailyCoffee').value=(db.dailyExpenses.find(x=>x.date===todayISO()&&x.name==='Rokok + kopi')?.amount)||0;document.getElementById('monthlyElec').value=db.settings.elecMonthly||0;document.getElementById('monthlyRent').value=db.settings.rentMonthly||0;document.getElementById('monthlyInternet').value=db.settings.internetMonthly||0;document.getElementById('dailyExpenseRows').innerHTML=db.dailyExpenses.map((x,i)=>`<div class="item"><span>${x.name}<br><span class="sub">${x.date}</span></span><div class="actions"><b>${rupiah(x.amount)}</b><button class="secondary danger" onclick="removeDaily(${i})">Hapus</button></div></div>`).join('');document.getElementById('monthlyExpenseRows').innerHTML=db.monthlyExpenses.map((x,i)=>`<div class="item"><span>${x.name}</span><div class="actions"><b>${rupiah(x.amount)}</b><button class="secondary danger" onclick="removeMonthly(${i})">Hapus</button></div></div>`).join('')}
-function renderProducts(){document.getElementById('productSettings').innerHTML=db.products.map((p,i)=>{const dr=isDrinkProduct(p),cm=isCostProduct(p),c=Number(p.cost)||0,pr=Number(p.price)||0,mg=pr-c;return `<div class="item" style="flex-wrap:wrap"><div><b>${escHtml(p.name)}</b><div class="sub">Harga jual</div></div><div class="actions"><input style="width:120px;padding:8px" type="number" min="0" value="${p.price}" onchange="updateProductPrice('${p.id}',this.value)"><button type="button" class="secondary danger" onclick="removeProduct('${p.id}')">Hapus</button></div><div style="width:100%;display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px"><label style="display:flex;align-items:center;gap:6px;margin:0;font-size:12px"><input type="checkbox" style="width:auto;margin:0" ${dr?'checked':''} onchange="toggleProductDrink('${p.id}',this.checked)">Minuman</label>${!dr?`<label style="display:flex;align-items:center;gap:6px;margin:0;font-size:12px"><input type="checkbox" style="width:auto;margin:0" ${cm?'checked':''} onchange="toggleProductModal('${p.id}',this.checked)">Pakai modal</label>`:''}${cm?`<span style="font-size:12px;opacity:.8">Modal / item</span><input style="width:100px;padding:8px" type="number" min="0" value="${c}" onchange="updateProductCost('${p.id}',this.value)"><span class="sub" style="margin:0">Profit / item: <b>${rupiah(mg)}</b>${pr>0?' ('+(mg/pr*100).toFixed(0)+'%)':''}</span>`:''}</div></div>`}).join('')}
+function renderProducts(){document.getElementById('productSettings').innerHTML=db.products.map((p,i)=>{const dr=isDrinkProduct(p),c=Number(p.cost)||0,pr=Number(p.price)||0,mg=pr-c;return `<div class="item" style="flex-wrap:wrap"><div><b>${escHtml(p.name)}</b><div class="sub">Harga jual</div></div><div class="actions"><input style="width:120px;padding:8px" type="number" min="0" value="${p.price}" onchange="updateProductPrice('${p.id}',this.value)"><button type="button" class="secondary danger" onclick="removeProduct('${p.id}')">Hapus</button></div><div style="width:100%;display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px"><label style="display:flex;align-items:center;gap:6px;margin:0;font-size:12px"><input type="checkbox" style="width:auto;margin:0" ${dr?'checked':''} onchange="toggleProductDrink('${p.id}',this.checked)">Minuman</label>${dr?`<span style="font-size:12px;opacity:.8">Modal / item</span><input style="width:100px;padding:8px" type="number" min="0" value="${c}" onchange="updateProductCost('${p.id}',this.value)"><span class="sub" style="margin:0">Profit / item: <b>${rupiah(mg)}</b>${pr>0?' ('+(mg/pr*100).toFixed(0)+'%)':''}</span>`:''}</div></div>`}).join('')}
 function updateProductCost(id,val){let p=db.products.find(x=>x.id===id);if(p){p.cost=Math.max(0,Number(val||0));save();renderAll()}}
-function toggleProductModal(id,on){let p=db.products.find(x=>x.id===id);if(p){p.modal=!!on;save();renderAll()}}
 function toggleProductDrink(id,on){let p=db.products.find(x=>x.id===id);if(p){p.drink=!!on;save();renderAll()}}
 function renderReport(){let m=monthlyData(getMonth());document.getElementById('rPorsi').textContent=m.items;document.getElementById('rOmzet').textContent=rupiah(m.om);document.getElementById('rProd').textContent=rupiah(m.prod);document.getElementById('rDaily').textContent=rupiah(m.daily);document.getElementById('rMonthly').textContent=rupiah(m.monthly);document.getElementById('rCost').textContent=rupiah(m.total);document.getElementById('rProfit').textContent=rupiah(m.profit);document.getElementById('rMargin').textContent=m.margin.toFixed(2)+'%';let records=db.productionRecords.filter(x=>ym(x.date)===getMonth()).sort((a,b)=>b.date.localeCompare(a.date));document.getElementById('monthlyProductionHistory').innerHTML=records.length?records.map(x=>`<div class="item"><span>${x.date}</span><b>${rupiah(recProd(x))}</b></div>`).join(''):'<div class="empty">Belum ada catatan produksi untuk bulan ini.</div>'}
 function updateProductPrice(id,val){let p=db.products.find(x=>x.id===id);if(p){p.price=Number(val||0);save();renderAll()}}
@@ -3381,7 +3456,7 @@ function dayExpenseBreakdown(date){
   const bahan=dailyProductionTotal(date)+legacyDailyProductionTotal(date);
   if(bahan>0)items.push({name:'Biaya Produksi',value:bahan});
   const modalMinum=drinkCostOf(db.sales.filter(x=>x.date===date));
-  if(modalMinum>0)items.push({name:'Modal Produk',value:modalMinum});
+  if(modalMinum>0)items.push({name:'Modal Minuman',value:modalMinum});
   const grouped={};
   db.dailyExpenses.filter(x=>x.date===date).forEach(x=>{
     const nm=String(x.name||'Lainnya').trim()||'Lainnya';const k=nm.toLowerCase();
@@ -3519,9 +3594,9 @@ function rangeData(from,to){
   const end=rpUtc(to);
   for(let c=rpUtc(from);c<=end;c.setUTCDate(c.getUTCDate()+1)){const k=c.toISOString().slice(0,7);cnt[k]=(cnt[k]||0)+1}
   let monthly=0;Object.entries(cnt).forEach(([k,n])=>{const a=k.split('-').map(Number);monthly+=per*n/new Date(Date.UTC(a[0],a[1],0)).getUTCDate()});
-  const drink=drinkCostOf(sales),drinkPure=pureDrinkCostOf(sales),drinkOm=drinkRevenueOf(sales);
+  const drink=drinkCostOf(sales),drinkOm=drinkRevenueOf(sales);
   const total=prod+drink+daily+monthly;
-  return{sales,items,om,prod,drink,drinkPure,drinkOm,daily,monthly,total,profit:om-total,margin:om?((om-total)/om*100):0}
+  return{sales,items,om,prod,drink,drinkOm,daily,monthly,total,profit:om-total,margin:om?((om-total)/om*100):0}
 }
 function rpTrend(from,to,sales){
   const n=rpDays(from,to),B=[];
@@ -3538,12 +3613,11 @@ function renderReport(){
   document.getElementById('rPorsi').textContent=m.sales.length;
   document.getElementById('rOmzet').textContent=rupiah(m.om);{const q=m.sales.filter(x=>x.method==='qris').reduce((a,x)=>a+Number(x.omzet||0),0);document.getElementById('rQris').textContent=rupiah(q);document.getElementById('rCash').textContent=rupiah(m.om-q);}
   document.getElementById('rAvg').textContent=rupiah(m.total);
-  document.getElementById('rProd').textContent=rupiah(m.prod);document.getElementById('rDaily').textContent=rupiah(m.daily);document.getElementById('rMonthly').textContent=rupiah(m.monthly);document.getElementById('rCost').textContent=rupiah(m.total);document.getElementById('rProfit').textContent=rupiah(m.profit);document.getElementById('rMargin').textContent=m.margin.toFixed(1)+'%';{const e1=document.getElementById('rDrink'),e2=document.getElementById('rDrinkOm'),e3=document.getElementById('rDrinkProfit');if(e1)e1.textContent=rupiah(m.drink);if(e2)e2.textContent=rupiah(m.drinkOm);if(e3)e3.textContent=rupiah(m.drinkOm-m.drinkPure);}
+  document.getElementById('rProd').textContent=rupiah(m.prod);document.getElementById('rDaily').textContent=rupiah(m.daily);document.getElementById('rMonthly').textContent=rupiah(m.monthly);document.getElementById('rCost').textContent=rupiah(m.total);document.getElementById('rProfit').textContent=rupiah(m.profit);document.getElementById('rMargin').textContent=m.margin.toFixed(1)+'%';{const e1=document.getElementById('rDrink'),e2=document.getElementById('rDrinkOm'),e3=document.getElementById('rDrinkProfit');if(e1)e1.textContent=rupiah(m.drink);if(e2)e2.textContent=rupiah(m.drinkOm);if(e3)e3.textContent=rupiah(m.drinkOm-m.drink);}
   const days=rpTrend(rb.from,rb.to,m.sales);
   const max=Math.max(...days.map(x=>x.omzet),1);
   const step=days.length>10?Math.ceil(days.length/6):1,showVal=days.length<=8;
-  {const n=days.length,tc=document.getElementById('reportTrend');tc.style.setProperty('gap',(n>14?'2px':n>8?'5px':'10px'),'important');
-  tc.innerHTML=days.map((d,i)=>`<div class="trend-col" style="min-width:0!important"><div class="trend-value">${showVal?fmtShort(d.omzet):''}</div><div class="trend-bar" title="${d.label}: ${rupiah(d.omzet)}" style="width:100%!important;max-width:${n>14?'12px':'28px'}!important;${d.omzet?`height:${Math.max(8,d.omzet/max*100)}%`:'height:3px;opacity:.35'}"></div><div class="trend-label" style="white-space:nowrap">${i%step===0?d.label:''}</div></div>`).join('');}
+  document.getElementById('reportTrend').innerHTML=days.map((d,i)=>`<div class="trend-col"><div class="trend-value">${showVal?fmtShort(d.omzet):''}</div><div class="trend-bar" title="${d.label}: ${rupiah(d.omzet)}" style="height:${d.omzet?Math.max(8,d.omzet/max*100):5}%"></div><div class="trend-label">${i%step===0?d.label:''}</div></div>`).join('');
   const pm={};m.sales.forEach(s=>s.items.forEach(i=>{let p=db.products.find(p=>p.id===i.productId);let k=p?.id||i.productId;if(!pm[k])pm[k]={name:p?.name||i.productId,qty:0,amount:0};pm[k].qty+=Number(i.qty)||0;pm[k].amount+=(Number(i.qty)||0)*(Number(i.price)||0)}));
   const parr=Object.values(pm).sort((a,b)=>b.amount-a.amount), pmax=parr[0]?.amount||1;
   document.getElementById('reportProducts').innerHTML=parr.length?parr.map((p,i)=>`<div class="rank-row"><div class="rank-no">${i+1}</div><div class="rank-img">${productIcon(p.name)}</div><div><div class="rank-name">${p.name}</div><div class="rank-amount">${rupiah(p.amount)} <span style="font-size:10px;opacity:.65;font-weight:600">• ${p.qty} porsi</span></div><div class="progress"><span style="width:${Math.max(5,p.amount/pmax*100)}%"></span></div></div><div style="font-size:10px;color:#8b969f">${m.om?Math.round(p.amount/m.om*100):0}%</div></div>`).join(''):'<div class="empty">Belum ada data produk.</div>';
@@ -3568,14 +3642,13 @@ function renderReport(){
 function renderReportDetail(from,to,m){
  const inR=d=>{d=String(d||'');return d>=from&&d<=to};
  const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v};
- const effTo=(to>todayISO()&&from<=todayISO())?todayISO():to;
- const days=rpDays(from,effTo);
+ const days=rpDays(from,to);
  const buys=(db.stockPurchases||[]).filter(x=>inR(x.date));
  const buyTotal=buys.reduce((t,x)=>t+(Number(x.totalCost)||0),0);
  const qris=m.sales.filter(x=>x.method==='qris').reduce((a,x)=>a+Number(x.omzet||0),0);
  // KPI & rincian
  set('rBuy',rupiah(buyTotal));set('rBuyCount',buys.length+' pembelian');
- set('rItems',m.items);set('rItemsAvg','Rata-rata '+(days?(m.items/days).toFixed(1).replace('.0',''):0)+' / hari');
+ set('rItems',m.mieItems);set('rItemsAvg','Rata-rata '+(days?(m.mieItems/days).toFixed(1).replace('.0',''):0)+' / hari');
  set('rFinOm',rupiah(m.om));set('rFinCash',rupiah(m.om-qris));set('rFinQris',rupiah(qris));
  set('rFinProfit',rupiah(m.profit));
  set('rAvgTrx',rupiah(m.sales.length?Math.round(m.om/m.sales.length):0));
@@ -3704,6 +3777,20 @@ window.addEventListener("mie-firebase-ready",function(){
   if(window.db) db=window.db;
   if(typeof renderAll==="function") renderAll();
 });
+</script>
+<script>
+/* ============================================================
+   AKTIVITAS ANTAR-HP
+   Dipanggil setelah data berhasil disimpan oleh aplikasi.
+   Untuk sekarang hanya menyiapkan pencatatan; Cloud Function
+   nantinya membaca collection activities dan mengirim FCM.
+   ============================================================ */
+window.__mieNotifyActivity = function(type, title, body){
+  if(typeof window.__mieLogActivity === "function"){
+    return window.__mieLogActivity(type, title, body);
+  }
+  return Promise.resolve();
+};
 </script>
 <script>
 document.addEventListener('DOMContentLoaded',function(){
