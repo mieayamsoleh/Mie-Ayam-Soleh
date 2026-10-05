@@ -2289,7 +2289,7 @@ requestAnimationFrame(frame);
   <div class="card section production-card">
     <div class="ref-section-title"><div class="ico">♨</div>Produksi Harian</div>
     <div class="production-intro">Masukkan jumlah bahan yang <b>benar-benar dipakai hari ini</b>. Stok akan berkurang otomatis dan biaya dihitung dari stok yang digunakan.</div>
-    <div class="production-date-row"><div class="date-icon">📅</div><div><label>Tanggal produksi</label><input id="stockProductionDate" type="date"></div></div>
+    <div class="production-date-row"><div class="date-icon">📅</div><div><label>Tanggal produksi</label><input id="stockProductionDate" type="date" onchange="renderStockProduction()"></div></div>
     <div class="stock-tools prod-tabs" id="prodCategoryTabs"></div>
     <div id="stockProductionRows"></div>
     <div class="production-summary"><div class="production-summary-grid"><div><div class="production-total-label">TOTAL PRODUKSI HARI INI</div><div class="production-total-value" id="stockProductionTotal">Rp0</div></div><div class="production-per">Biaya / porsi<b id="stockProductionPer">Rp0</b></div></div><div class="production-portions"><label>Jumlah porsi yang diproduksi</label><input id="stockProductionPortions" type="number" min="1" value="20" inputmode="numeric"></div></div>
@@ -3062,8 +3062,24 @@ function saveStockPurchase(){
  document.getElementById('purchaseQty').value='';document.getElementById('purchasePrice').value='';calcPurchaseTotal();
  alert('Pembelian stok tersimpan dan stok bertambah.');
 }
+function prodCostDate(){return document.getElementById('stockProductionDate')?.value||todayISO()}
+function unitCostMapAsOf(date){
+ const m={};db.ingredients.forEach(x=>{m[x.id]={q:0,c:0}});
+ const ev=[];
+ (db.stockPurchases||[]).forEach(p=>{if(String(p.date||'')<=date)ev.push({d:String(p.date||''),o:0,id:Number(p.id)||0,k:'b',v:p})});
+ (db.sales||[]).forEach(sl=>{if(String(sl.date||'')<date)ev.push({d:String(sl.date||''),o:1,id:Number(sl.id)||0,k:'s',v:sl})});
+ (db.productionRecords||[]).forEach(r=>{if(String(r.date||'')<date)ev.push({d:String(r.date||''),o:2,id:Number(r.id)||0,k:'p',v:r})});
+ ev.sort((a,b)=>a.d.localeCompare(b.d)||a.o-b.o||a.id-b.id);
+ for(const e of ev){
+  if(e.k==='b'){const p=e.v,t=m[p.ingredientId];if(!t)continue;const qty=Number(p.qty)||0,unit=qty>0?(Number(p.totalCost)||0)/qty:0;t.c=t.q>0?(t.q*t.c+qty*unit)/(t.q+qty):unit;t.q+=qty;}
+  else if(e.k==='s'){for(const it of (e.v.items||[])){const pr=db.products.find(a=>a.id===it.productId),lk=pr&&pr.stockLink;if(lk&&lk.ingredientId&&m[lk.ingredientId])m[lk.ingredientId].q-=(Number(it.qty)||0)*(Number(lk.perUnit)||0)}}
+  else{for(const it of (e.v.items||[])){if(m[it.ingredientId])m[it.ingredientId].q-=Number(it.qty)||0}}
+ }
+ return m;
+}
+function prodUnitCost(x){const d=prodCostDate();if(!window._ucm||window._ucm.d!==d||window._ucm.v!==(db.stockPurchases||[]).length+'|'+(db.productionRecords||[]).length)window._ucm={d,v:(db.stockPurchases||[]).length+'|'+(db.productionRecords||[]).length,m:unitCostMapAsOf(d)};const t=window._ucm.m[x.id];return (t&&t.c>0)?t.c:ingredientUnitCost(x)}
 function stockProductionDraft(){
- return db.ingredients.map(x=>{let qty=Number(document.getElementById('stockuse_'+x.id)?.value||0);qty=Math.round(qty*1e6)/1e6;return{ingredientId:x.id,qty,unitCost:ingredientUnitCost(x),cost:qty*ingredientUnitCost(x)}}).filter(x=>x.qty>1e-6);
+ return db.ingredients.map(x=>{let qty=Number(document.getElementById('stockuse_'+x.id)?.value||0);qty=Math.round(qty*1e6)/1e6;const uc=prodUnitCost(x);return{ingredientId:x.id,qty,unitCost:uc,cost:qty*uc}}).filter(x=>x.qty>1e-6);
 }
 function validateStockDraft(items,editingId){
  const available={};db.ingredients.forEach(x=>available[x.id]=Number(x.stockQty)||0);
@@ -3158,13 +3174,14 @@ function changeStockUnit(id,val){const x=db.ingredients.find(i=>i.id===id);if(x)
 const PROD_CATS=['Bahan Baku','Bumbu & Saus','Kemasan','Minuman','Kebersihan','Lainnya'];
 function prodCatOf(x){const c=x.category||'Lainnya';return PROD_CATS.includes(c)?c:'Lainnya'}
 function renderStockProduction(){
+ window._ucm=null;
  const dateEl=document.getElementById('stockProductionDate');if(dateEl&&!dateEl.value)dateEl.value=todayISO();
  const rows=document.getElementById('stockProductionRows');
  const cats=['Semua'].concat(PROD_CATS.filter(c=>db.ingredients.some(x=>prodCatOf(x)===c)));
  if(!cats.includes(window.prodCategory))window.prodCategory=cats[1]||cats[0]||'Semua';
  const tabs=document.getElementById('prodCategoryTabs');
  if(tabs)tabs.innerHTML=cats.map(c=>`<button type="button" class="chip${c===window.prodCategory?' active':''}" data-cat="${escHtml(c)}" onclick="setProdCategory(this.dataset.cat)">${escHtml(c)}<span class="prod-badge" hidden></span></button>`).join('');
- rows.innerHTML=db.ingredients.filter(x=>!x.hidden||(window.editingStockProductionId&&db.productionRecords.find(r=>r.id===window.editingStockProductionId)?.items?.some(i=>i.ingredientId===x.id))).map(x=>{const q=Number(x.stockQty)||0;const old=window.editingStockProductionId?db.productionRecords.find(r=>r.id===window.editingStockProductionId)?.items?.find(i=>i.ingredientId===x.id):null;const val=document.getElementById('stockuse_'+x.id)?.value ?? (old?.qty||'');const cost=Number(val||0)*ingredientUnitCost(x);const cat=prodCatOf(x);return `<div class="stock-production-row" data-cat="${escHtml(cat)}"${(window.prodCategory==='Semua'||cat===window.prodCategory)?'':' hidden'}><div class="stock-production-top"><div class="stock-production-name">${x.name}</div><div class="stock-available">tersedia: <b>${q} ${x.unit}</b></div></div><div class="stock-production-fields"><div><label>Dipakai (${x.unit})</label><input id="stockuse_${x.id}" type="number" min="0" step="any" value="${val}" placeholder="0" inputmode="decimal" oninput="updateStockProductionTotal()"></div><div><label>Harga rata-rata / ${x.unit}</label><input type="text" value="${rupiah(ingredientUnitCost(x))}" disabled></div></div><div class="stock-cost">${cat==='Minuman'?(linkedDrinkProducts(x.id).length?'Minuman • stok berkurang otomatis dari penjualan ('+linkedDrinkProducts(x.id).map(p=>escHtml(p.name)).join(', ')+'), tidak perlu diisi di sini':'Minuman • tidak dihitung ke biaya produksi'):'Biaya: '+rupiah(cost)+(Number(x.portions)>0?' • ≈ '+fmtQty(Number(val||0)*Number(x.portions))+' porsi • '+rupiah(Math.round(ingredientUnitCost(x)/Number(x.portions)))+'/porsi':'')}</div></div>`}).join('');
+ rows.innerHTML=db.ingredients.filter(x=>!x.hidden||(window.editingStockProductionId&&db.productionRecords.find(r=>r.id===window.editingStockProductionId)?.items?.some(i=>i.ingredientId===x.id))).map(x=>{const q=Number(x.stockQty)||0;const old=window.editingStockProductionId?db.productionRecords.find(r=>r.id===window.editingStockProductionId)?.items?.find(i=>i.ingredientId===x.id):null;const val=document.getElementById('stockuse_'+x.id)?.value ?? (old?.qty||'');const cost=Number(val||0)*prodUnitCost(x);const cat=prodCatOf(x);return `<div class="stock-production-row" data-cat="${escHtml(cat)}"${(window.prodCategory==='Semua'||cat===window.prodCategory)?'':' hidden'}><div class="stock-production-top"><div class="stock-production-name">${x.name}</div><div class="stock-available">tersedia: <b>${q} ${x.unit}</b></div></div><div class="stock-production-fields"><div><label>Dipakai (${x.unit})</label><input id="stockuse_${x.id}" type="number" min="0" step="any" value="${val}" placeholder="0" inputmode="decimal" oninput="updateStockProductionTotal()"></div><div><label>Harga rata-rata / ${x.unit}</label><input type="text" value="${rupiah(prodUnitCost(x))}" disabled></div></div><div class="stock-cost">${cat==='Minuman'?(linkedDrinkProducts(x.id).length?'Minuman • stok berkurang otomatis dari penjualan ('+linkedDrinkProducts(x.id).map(p=>escHtml(p.name)).join(', ')+'), tidak perlu diisi di sini':'Minuman • tidak dihitung ke biaya produksi'):'Biaya: '+rupiah(cost)+(Number(x.portions)>0?' • ≈ '+fmtQty(Number(val||0)*Number(x.portions))+' porsi • '+rupiah(Math.round(prodUnitCost(x)/Number(x.portions)))+'/porsi':'')}</div></div>`}).join('');
  updateStockProductionTotal();
 }
 function setProdCategory(cat){
