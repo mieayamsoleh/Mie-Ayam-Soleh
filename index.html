@@ -2977,7 +2977,7 @@ function show(id,btn){document.querySelectorAll('.view').forEach(x=>x.classList.
 function getMonth(){return document.getElementById('month').value||ym(todayISO())}
 function ingredientUnitCost(x){return Number(x.unitCost)||0}
 function productionTotal(){return db.ingredients.reduce((sum,x)=>sum+(Number(x.useQty)||0)*ingredientUnitCost(x),0)}
-function productionPerPortion(){return productionTotal()/(Number(db.settings.productionPortions)||1)}
+function productionPerPortion(){const r=(db.productionRecords||[]).slice().sort((a,b)=>String(b.date).localeCompare(String(a.date)))[0];if(!r)return 0;return recProd(r)/Math.max(1,Number(r.portions)||1)}
 function isDrinkProduct(p){if(!p)return false;if(p.drink===true)return true;if(p.drink===false)return false;return /\b(teh|kopi|susu|jus|minum\w*|es)\b/i.test(String(p.name||''))}
 function drinkItemCost(i){const p=db.products.find(a=>a.id===i.productId);if(!isDrinkProduct(p))return 0;const c=Number(i.cost)>0?Number(i.cost):(Number(p.cost)||0);return c*(Number(i.qty)||0)}
 function drinkItemRevenue(i){const p=db.products.find(a=>a.id===i.productId);return isDrinkProduct(p)?(Number(i.qty)||0)*(Number(i.price)||0):0}
@@ -3000,12 +3000,21 @@ function legacyDailyProductionTotal(date){
 function stockValue(){return db.ingredients.reduce((s,x)=>s+(Number(x.stockQty)||0)*ingredientUnitCost(x),0)}
 function stockUsageForRecord(record){return Array.isArray(record.items)?record.items:[]}
 function recalculateStockFromRecords(){
+ // Hitung ulang stok & harga rata-rata (moving average) secara KRONOLOGIS:
+ // pembelian -> penjualan (stok terhubung) -> produksi, urut tanggal.
+ // Biaya tiap bahan di produksi = harga rata-rata pada tanggal produksi itu.
  db.ingredients.forEach(x=>{x.stockQty=0;x.unitCost=0});
- const buys=db.stockPurchases.slice().sort((a,b)=>(a.date||'').localeCompare(b.date||'')||Number(a.id)-Number(b.id));
- for(const p of buys){const x=db.ingredients.find(i=>i.id===p.ingredientId);if(!x)continue;const qty=Number(p.qty)||0,cost=Number(p.totalCost)||0,oldQty=Number(x.stockQty)||0,oldCost=Number(x.unitCost)||0,unit=qty>0?cost/qty:0;x.unitCost=oldQty>0?(oldQty*oldCost+qty*unit)/(oldQty+qty):unit;x.stockQty=oldQty+qty;}
- for(const sl of (db.sales||[])){for(const it of (sl.items||[])){const pr=db.products.find(a=>a.id===it.productId);const lk=pr&&pr.stockLink;if(!lk||!lk.ingredientId)continue;const x=db.ingredients.find(i=>i.id===lk.ingredientId);if(x)x.stockQty=(Number(x.stockQty)||0)-(Number(it.qty)||0)*(Number(lk.perUnit)||0);}}
- const uses=db.productionRecords.slice().sort((a,b)=>(a.date||'').localeCompare(b.date||'')||Number(a.id)-Number(b.id));
- for(const r of uses){for(const it of stockUsageForRecord(r)){const x=db.ingredients.find(i=>i.id===it.ingredientId);if(x)x.stockQty=(Number(x.stockQty)||0)-Number(it.qty||0);}}
+ const ev=[];
+ (db.stockPurchases||[]).forEach(p=>ev.push({d:String(p.date||''),o:0,id:Number(p.id)||0,k:'b',v:p}));
+ (db.sales||[]).forEach(sl=>ev.push({d:String(sl.date||''),o:1,id:Number(sl.id)||0,k:'s',v:sl}));
+ (db.productionRecords||[]).forEach(r=>ev.push({d:String(r.date||''),o:2,id:Number(r.id)||0,k:'p',v:r}));
+ ev.sort((a,b)=>a.d.localeCompare(b.d)||a.o-b.o||a.id-b.id);
+ const rnd=n=>Math.round(n*1e6)/1e6;
+ for(const e of ev){
+  if(e.k==='b'){const p=e.v;const x=db.ingredients.find(i=>i.id===p.ingredientId);if(!x)continue;const qty=Number(p.qty)||0,cost=Number(p.totalCost)||0,oldQty=Number(x.stockQty)||0,oldCost=Number(x.unitCost)||0,unit=qty>0?cost/qty:0;x.unitCost=oldQty>0?(oldQty*oldCost+qty*unit)/(oldQty+qty):unit;x.stockQty=rnd(oldQty+qty);}
+  else if(e.k==='s'){for(const it of (e.v.items||[])){const pr=db.products.find(a=>a.id===it.productId);const lk=pr&&pr.stockLink;if(!lk||!lk.ingredientId)continue;const x=db.ingredients.find(i=>i.id===lk.ingredientId);if(x)x.stockQty=rnd((Number(x.stockQty)||0)-(Number(it.qty)||0)*(Number(lk.perUnit)||0));}}
+  else{const r=e.v;let total=0;for(const it of stockUsageForRecord(r)){const x=db.ingredients.find(i=>i.id===it.ingredientId);if(!x)continue;const q=Number(it.qty)||0;const uc=(Number(x.unitCost)>0)?Number(x.unitCost):(Number(it.unitCost)||0);it.unitCost=uc;it.cost=q*uc;x.stockQty=rnd((Number(x.stockQty)||0)-q);if(!isDrinkIngredient(it.ingredientId))total+=it.cost;}if(Array.isArray(r.items)&&r.items.length){r.amount=total;r.costPerPortion=total/Math.max(1,Number(r.portions)||1);}}
+ }
 }
 function captureLegacyProductionSettings(){
  db.settings.productionPortions=Number(document.getElementById('stockProductionPortions')?.value||db.settings.productionPortions||20);
@@ -3054,7 +3063,7 @@ function saveStockPurchase(){
  alert('Pembelian stok tersimpan dan stok bertambah.');
 }
 function stockProductionDraft(){
- return db.ingredients.map(x=>{const qty=Number(document.getElementById('stockuse_'+x.id)?.value||0);return{ingredientId:x.id,qty,unitCost:ingredientUnitCost(x),cost:qty*ingredientUnitCost(x)}}).filter(x=>x.qty>0);
+ return db.ingredients.map(x=>{let qty=Number(document.getElementById('stockuse_'+x.id)?.value||0);qty=Math.round(qty*1e6)/1e6;return{ingredientId:x.id,qty,unitCost:ingredientUnitCost(x),cost:qty*ingredientUnitCost(x)}}).filter(x=>x.qty>1e-6);
 }
 function validateStockDraft(items,editingId){
  const available={};db.ingredients.forEach(x=>available[x.id]=Number(x.stockQty)||0);
@@ -3070,11 +3079,11 @@ function saveStockProduction(){
  const editingId=window.editingStockProductionId||null;
  const bad=validateStockDraft(items,editingId);
  if(bad.length)return alert('Stok tidak cukup untuk: '+bad.map(b=>{const x=db.ingredients.find(i=>i.id===b.it.ingredientId);return `${x?.name||'bahan'} (tersedia ${b.available} ${x?.unit||'unit'})`}).join(', '));
- const amount=items.reduce((s,x)=>s+(isDrinkIngredient(x.ingredientId)?0:x.cost),0),portions=Number(document.getElementById('stockProductionPortions').value||1);
+ const amount=items.reduce((s,x)=>s+(isDrinkIngredient(x.ingredientId)?0:x.cost),0),portions=Math.max(1,Number(document.getElementById('stockProductionPortions').value||1));
  let record=editingId?db.productionRecords.find(x=>x.id===editingId):null;
  if(!record){record=db.productionRecords.find(x=>x.date===date);if(record)window.editingStockProductionId=record.id;}
- if(record){record.date=date;record.items=items;record.amount=amount;record.portions=portions;}
- else db.productionRecords.push({id:Date.now(),date,items,amount,portions});
+ if(record){record.date=date;record.items=items;record.amount=amount;record.portions=portions;record.costPerPortion=amount/portions;}
+ else db.productionRecords.push({id:Date.now(),date,items,amount,portions,costPerPortion:amount/portions});
  recalculateStockFromRecords();save();window.editingStockProductionId=null;renderAll();alert('Produksi tersimpan. Stok otomatis berkurang.');
 }
 function editStockProduction(id){const r=db.productionRecords.find(x=>x.id===id);if(!r)return;window.editingStockProductionId=id;const d=document.getElementById('stockProductionDate');if(d)d.value=r.date;document.getElementById('stockProductionPortions').value=r.portions||20;db.ingredients.forEach(x=>{const it=r.items?.find(i=>i.ingredientId===x.id);const el=document.getElementById('stockuse_'+x.id);if(el)el.value=it?.qty||''});const btn=document.getElementById('stockProductionSaveBtn');if(btn)btn.textContent='✓ Simpan Perubahan Produksi';goToSection('production');renderStockProduction();}
@@ -3168,7 +3177,7 @@ function updateProdTabBadges(){
  db.ingredients.forEach(x=>{const v=Number(document.getElementById('stockuse_'+x.id)?.value||0);if(v>0){const c=prodCatOf(x);filled[c]=(filled[c]||0)+1;filled['Semua']=(filled['Semua']||0)+1}});
  document.querySelectorAll('#prodCategoryTabs .chip').forEach(b=>{const n=filled[b.dataset.cat]||0,sp=b.querySelector('.prod-badge');if(sp){sp.hidden=!n;sp.textContent=n||''}});
 }
-function updateStockProductionTotal(){updateProdTabBadges();const items=stockProductionDraft();const total=items.reduce((s,x)=>s+(isDrinkIngredient(x.ingredientId)?0:x.cost),0);document.getElementById('stockProductionTotal').textContent=rupiah(total);const p=Number(document.getElementById('stockProductionPortions')?.value||1);document.getElementById('stockProductionPer').textContent=rupiah(total/p);const warnings=items.filter(it=>it.qty>(Number(db.ingredients.find(x=>x.id===it.ingredientId)?.stockQty)||0)&&!(window.editingStockProductionId));document.getElementById('stockProductionWarning').innerHTML=warnings.length?`<div class="stock-warning">⚠️ ${warnings.map(it=>{const x=db.ingredients.find(a=>a.id===it.ingredientId);return `${x.name}: pemakaian ${it.qty} ${x.unit}, stok ${x.stockQty||0} ${x.unit}`}).join('<br>')}</div>`:''}
+function updateStockProductionTotal(){updateProdTabBadges();const items=stockProductionDraft();const total=items.reduce((s,x)=>s+(isDrinkIngredient(x.ingredientId)?0:x.cost),0);document.getElementById('stockProductionTotal').textContent=rupiah(total);const p=Math.max(1,Number(document.getElementById('stockProductionPortions')?.value||1));document.getElementById('stockProductionPer').textContent=rupiah(Math.round(total/p));const warnings=items.filter(it=>it.qty>(Number(db.ingredients.find(x=>x.id===it.ingredientId)?.stockQty)||0)&&!(window.editingStockProductionId));document.getElementById('stockProductionWarning').innerHTML=warnings.length?`<div class="stock-warning">⚠️ ${warnings.map(it=>{const x=db.ingredients.find(a=>a.id===it.ingredientId);return `${x.name}: pemakaian ${it.qty} ${x.unit}, stok ${x.stockQty||0} ${x.unit}`}).join('<br>')}</div>`:''}
 function goProductionDetail(date){
   const btn=document.querySelector('#mainTabs button[onclick*="\'production\'"]');
   if(btn)show('production',btn);
@@ -3179,7 +3188,7 @@ function goProductionDetail(date){
     if(target!==card){target.style.transition='box-shadow .3s';target.style.boxShadow='0 0 0 2px #FEC440';setTimeout(()=>{target.style.boxShadow=''},2200)}
   },80);
 }
-function renderStockHistory(){const h=db.productionRecords.slice().sort((a,b)=>b.date.localeCompare(a.date));document.getElementById('stockProductionHistory').innerHTML=h.length?h.map(x=>`<div class="stock-history-item" data-date="${x.date}"><div class="stock-history-head"><div class="stock-history-date">${x.date}</div><div class="stock-history-amount">${rupiah(recProd(x))}</div></div><div class="stock-history-sub">${x.items?.map(it=>{const i=db.ingredients.find(a=>a.id===it.ingredientId);return `${i?.name||'Bahan'} ${it.qty} ${i?.unit||'unit'}`}).join(' • ')||((x.portions||'-')+' porsi')}</div><div class="stock-history-actions"><button class="secondary" onclick="editStockProduction(${x.id})">✏️ Edit</button><button class="secondary danger" onclick="removeStockProduction(${x.id})">🗑 Hapus</button></div></div>`).join(''):'<div class="empty">Belum ada produksi.</div>';}
+function renderStockHistory(){const h=db.productionRecords.slice().sort((a,b)=>b.date.localeCompare(a.date));document.getElementById('stockProductionHistory').innerHTML=h.length?h.map(x=>`<div class="stock-history-item" data-date="${x.date}"><div class="stock-history-head"><div class="stock-history-date">${x.date}</div><div class="stock-history-amount">${rupiah(recProd(x))}</div></div><div class="stock-history-sub">${x.items?.map(it=>{const i=db.ingredients.find(a=>a.id===it.ingredientId);return `${i?.name||'Bahan'} ${fmtQty(it.qty)} ${i?.unit||'unit'}`}).join(' • ')||((x.portions||'-')+' porsi')}</div><div class="stock-history-sub" style="margin-top:4px"><b>${x.portions||'-'} porsi • ${rupiah(Math.round(recProd(x)/Math.max(1,Number(x.portions)||1)))} / porsi</b></div><div class="stock-history-actions"><button class="secondary" onclick="editStockProduction(${x.id})">✏️ Edit</button><button class="secondary danger" onclick="removeStockProduction(${x.id})">🗑 Hapus</button></div></div>`).join(''):'<div class="empty">Belum ada produksi.</div>';}
 function purchaseDayLabel(iso){
  const D=['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'],M=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
  const p=String(iso||'').split('-').map(Number);if(p.length<3||!p[0])return iso||'-';
