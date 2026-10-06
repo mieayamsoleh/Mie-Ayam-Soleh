@@ -2335,7 +2335,7 @@ requestAnimationFrame(frame);
     <div style="height:10px"></div>
     <label>Listrik (dibayar)</label><input id="dailyElec" type="number" min="0" onchange="saveDailyNamed('Listrik','dailyElec')">
     <label>Sewa tempat (dibayar)</label><input id="dailyRent" type="number" min="0" onchange="saveDailyNamed('Sewa Tempat','dailyRent')">
-    <label>Internet (dibayar)</label><input id="dailyInternet" type="number" min="0" onchange="saveDailyNamed('Internet','dailyInternet')">
+    <label>Internet / WiFi (dibayar)</label><input id="dailyInternet" type="number" min="0" onchange="saveDailyNamed('Internet','dailyInternet')">
     <div id="monthlyExpenseRows"></div>
     <button class="add" onclick="addMonthlyExpensePrompt()">＋ Tambah pembayaran bulanan lain</button>
   </div>
@@ -2384,6 +2384,7 @@ requestAnimationFrame(frame);
       <div class="item"><span>Modal minuman (HPP)</span><b id="rDrink">Rp0</b></div>
       <div class="item"><span>Pengeluaran harian</span><b id="rDaily">Rp0</b></div>
       <div class="item"><span>Pengeluaran bulanan</span><b id="rMonthly">Rp0</b></div>
+      <div id="rMonthlyList"></div>
       <div class="item total-row"><span>Total semua biaya</span><b id="rCost">Rp0</b></div>
       <div class="item total-row"><span>Profit bersih</span><b id="rFinProfit">Rp0</b></div>
       <div class="item"><span>Margin profit</span><b id="rMargin">0%</b></div>
@@ -3239,6 +3240,7 @@ function renderProductionStats(){try{const t=todayISO(),mo=ym(t);const td=dailyP
 function renderStockTab(){recalculateStockFromRecords();renderStock();renderStockProduction();renderStockHistory();renderStockPurchases();renderProductionStats();}
 function dailyExpenseTotal(month){let dynamic=db.dailyExpenses.filter(x=>x.month===month).reduce((s,x)=>s+Number(x.amount||0),0);let legacy=db.sales.filter(x=>ym(x.date)===month).reduce((s,x)=>s+Number(x.dailyCoffee||0),0);return dynamic+legacy}
 function monthlyExpenseTotal(){return 0}
+function isMonthlyExp(e){if(!e)return false;if(e.monthly===true)return true;const n=String(e.name||'').trim().toLowerCase();return ['listrik','sewa tempat','sewa','internet','wifi','wi-fi','internet / wifi'].includes(n)}
 function monthlyData(month){let sales=db.sales.filter(x=>ym(x.date)===month),items=sales.reduce((a,x)=>a+x.items.reduce((s,i)=>s+Number(i.qty||0),0),0),mieItems=sales.reduce((a,x)=>a+x.items.filter(i=>i.productId==='mie').reduce((s,i)=>s+Number(i.qty||0),0),0),om=sales.reduce((a,x)=>a+Number(x.omzet||0),0);let prod=monthlyProductionTotal(month);let daily=dailyExpenseTotal(month);let monthly=monthlyExpenseTotal();let drink=drinkCostOf(sales),drinkOm=drinkRevenueOf(sales);let total=prod+drink+daily+monthly;return{sales,items,mieItems,om,prod,drink,drinkOm,daily,monthly,total,profit:om-total,margin:om?((om-total)/om*100):0}}
 function saveSale(method){
  method=(method==='qris')?'qris':'cash';
@@ -3362,12 +3364,12 @@ function removeProduct(id){
 function expenseDate(){return window.expDate||todayISO()}
 function setExpenseDate(v){if(v&&v>todayISO())v=todayISO();window.expDate=v||todayISO();renderAll()}
 function fmtDateID(iso){const a=String(iso).split('-').map(Number);return new Date(a[0],a[1]-1,a[2]).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})}
-function saveDailyNamed(name,inputId){let amount=Number(document.getElementById(inputId).value||0),idx=db.dailyExpenses.findIndex(x=>x.date===expenseDate()&&x.name===name);if(idx>=0)db.dailyExpenses[idx].amount=amount;else if(amount>0)db.dailyExpenses.push({name,amount,date:expenseDate(),month:ym(expenseDate())});save();renderAll()}
+function saveDailyNamed(name,inputId){let amount=Number(document.getElementById(inputId).value||0),idx=db.dailyExpenses.findIndex(x=>x.date===expenseDate()&&x.name===name);if(idx>=0)db.dailyExpenses[idx].amount=amount;else if(amount>0)db.dailyExpenses.push({name,amount,date:expenseDate(),month:ym(expenseDate()),monthly:['Listrik','Sewa Tempat','Internet'].includes(name)||undefined});save();renderAll()}
 function saveDailyGasToday(){let amount=Number(document.getElementById('dailyGas').value||0),idx=db.dailyExpenses.findIndex(x=>x.date===expenseDate()&&x.name==='Bensin');if(idx>=0)db.dailyExpenses[idx].amount=amount;else if(amount>0)db.dailyExpenses.push({name:'Bensin',amount,date:expenseDate(),month:ym(expenseDate())});save();renderAll()}
 function saveDailyCoffeeToday(){let amount=Number(document.getElementById('dailyCoffee').value||0),idx=db.dailyExpenses.findIndex(x=>x.date===expenseDate()&&x.name==='Rokok + kopi');if(idx>=0)db.dailyExpenses[idx].amount=amount;else if(amount>0)db.dailyExpenses.push({name:'Rokok + kopi',amount,date:expenseDate(),month:ym(expenseDate())});save();renderAll()}
 function addDailyExpensePrompt(){let name=prompt('Nama biaya harian:');if(!name)return;let amount=Number(prompt('Nominal:','0'));if(isNaN(amount))return;db.dailyExpenses.push({name:name.trim(),amount,date:expenseDate(),month:ym(expenseDate())});save();renderAll()}
 function removeDaily(i){if(!confirm('Hapus biaya ini?'))return;db.dailyExpenses.splice(i,1);save();renderAll()}
-function addMonthlyExpensePrompt(){let name=prompt('Nama pembayaran (misal: PDAM, Cicilan):');if(!name)return;let amount=Number(prompt('Nominal yang dibayar hari ini:','0'));if(isNaN(amount)||amount<=0)return;db.dailyExpenses.push({name:name.trim(),amount,date:todayISO(),month:ym(todayISO())});save();renderAll()}
+function addMonthlyExpensePrompt(){let name=prompt('Nama pembayaran (misal: PDAM, Cicilan):');if(!name)return;let amount=Number(prompt('Nominal yang dibayar hari ini:','0'));if(isNaN(amount)||amount<=0)return;db.dailyExpenses.push({name:name.trim(),amount,date:todayISO(),month:ym(todayISO()),monthly:true});save();renderAll()}
 function removeMonthly(i){if(!confirm('Hapus biaya ini?'))return;db.monthlyExpenses.splice(i,1);save();renderAll()}
 
 /* ===== REFERENCE UI RENDER OVERRIDES ===== */
@@ -3635,11 +3637,12 @@ function rangeData(from,to){
   const om=sales.reduce((a,x)=>a+Number(x.omzet||0),0);
   const recDates=new Set(db.productionRecords.map(x=>x.date));
   const prod=db.productionRecords.filter(x=>inR(x.date)).reduce((s,x)=>s+recProd(x),0)+sales.filter(x=>!recDates.has(x.date)).reduce((s,x)=>s+Number(x.prodCost||0),0);
-  const daily=db.dailyExpenses.filter(x=>inR(x.date||((x.month||'')+'-01'))).reduce((s,x)=>s+Number(x.amount||0),0)+sales.reduce((s,x)=>s+Number(x.dailyCoffee||0),0);
+  const daily=db.dailyExpenses.filter(x=>inR(x.date||((x.month||'')+'-01'))&&!isMonthlyExp(x)).reduce((s,x)=>s+Number(x.amount||0),0)+sales.reduce((s,x)=>s+Number(x.dailyCoffee||0),0);
+  const monthlyEntries=db.dailyExpenses.filter(x=>inR(x.date||((x.month||'')+'-01'))&&isMonthlyExp(x)).reduce((s,x)=>s+Number(x.amount||0),0);
   const per=monthlyExpenseTotal(),cnt={};
   const end=rpUtc(to);
   for(let c=rpUtc(from);c<=end;c.setUTCDate(c.getUTCDate()+1)){const k=c.toISOString().slice(0,7);cnt[k]=(cnt[k]||0)+1}
-  let monthly=0;Object.entries(cnt).forEach(([k,n])=>{const a=k.split('-').map(Number);monthly+=per*n/new Date(Date.UTC(a[0],a[1],0)).getUTCDate()});
+  let monthly=monthlyEntries;Object.entries(cnt).forEach(([k,n])=>{const a=k.split('-').map(Number);monthly+=per*n/new Date(Date.UTC(a[0],a[1],0)).getUTCDate()});
   const drink=drinkCostOf(sales),drinkOm=drinkRevenueOf(sales);
   const total=prod+drink+daily+monthly;
   return{sales,items,mieItems,om,prod,drink,drinkOm,daily,monthly,total,profit:om-total,margin:om?((om-total)/om*100):0}
@@ -3659,7 +3662,7 @@ function renderReport(){
   document.getElementById('rPorsi').textContent=m.sales.length;
   document.getElementById('rOmzet').textContent=rupiah(m.om);{const q=m.sales.filter(x=>x.method==='qris').reduce((a,x)=>a+Number(x.omzet||0),0);document.getElementById('rQris').textContent=rupiah(q);document.getElementById('rCash').textContent=rupiah(m.om-q);}
   document.getElementById('rAvg').textContent=rupiah(m.total);
-  document.getElementById('rProd').textContent=rupiah(m.prod);document.getElementById('rDaily').textContent=rupiah(m.daily);document.getElementById('rMonthly').textContent=rupiah(m.monthly);document.getElementById('rCost').textContent=rupiah(m.total);document.getElementById('rProfit').textContent=rupiah(m.profit);document.getElementById('rMargin').textContent=m.margin.toFixed(1)+'%';{const e1=document.getElementById('rDrink'),e2=document.getElementById('rDrinkOm'),e3=document.getElementById('rDrinkProfit');if(e1)e1.textContent=rupiah(m.drink);if(e2)e2.textContent=rupiah(m.drinkOm);if(e3)e3.textContent=rupiah(m.drinkOm-m.drink);}
+  document.getElementById('rProd').textContent=rupiah(m.prod);document.getElementById('rDaily').textContent=rupiah(m.daily);document.getElementById('rMonthly').textContent=rupiah(m.monthly);{const g={};db.dailyExpenses.filter(x=>{const d=x.date||((x.month||'')+'-01');return d>=rb.from&&d<=rb.to&&isMonthlyExp(x)}).forEach(x=>{const k=String(x.name||'Lainnya').trim();g[k]=(g[k]||0)+Number(x.amount||0)});const L=document.getElementById('rMonthlyList');if(L)L.innerHTML=Object.entries(g).sort((a,b)=>b[1]-a[1]).map(([n,v])=>`<div class="item sub-row"><span>🧾 ${escHtml(n)}</span><b>${rupiah(v)}</b></div>`).join('')}document.getElementById('rCost').textContent=rupiah(m.total);document.getElementById('rProfit').textContent=rupiah(m.profit);document.getElementById('rMargin').textContent=m.margin.toFixed(1)+'%';{const e1=document.getElementById('rDrink'),e2=document.getElementById('rDrinkOm'),e3=document.getElementById('rDrinkProfit');if(e1)e1.textContent=rupiah(m.drink);if(e2)e2.textContent=rupiah(m.drinkOm);if(e3)e3.textContent=rupiah(m.drinkOm-m.drink);}
   const days=rpTrend(rb.from,rb.to,m.sales);
   const max=Math.max(...days.map(x=>x.omzet),1);
   const step=days.length>10?Math.ceil(days.length/6):1,showVal=days.length<=8;
@@ -3701,7 +3704,7 @@ function renderReportDetail(from,to,m){
  set('rAvgDay',rupiah(days?Math.round(m.om/days):0));
  set('rFinBuy',rupiah(buyTotal));{const bd2=buys.filter(x=>isDrinkIngredient(x.ingredientId)).reduce((t,x)=>t+(Number(x.totalCost)||0),0);set('rFinBuyDrink',rupiah(bd2));set('rFinBuyFood',rupiah(buyTotal-bd2));}set('rCashflow',rupiah(m.om-buyTotal));
  // pengeluaran per kategori
- const bd=hpSumBD(from,to);if(m.monthly>0){bd.items.push({name:'Biaya Bulanan (prorata)',value:Math.round(m.monthly)});bd.total+=Math.round(m.monthly)}const items=bd.items.slice().sort((a,b)=>b.value-a.value);
+ const bd=hpSumBD(from,to),items=bd.items.slice().sort((a,b)=>b.value-a.value);
  document.getElementById('reportExpCats').innerHTML=items.length?items.map(x=>`<div class="rp-cat"><div class="rp-cat-top"><span>${escHtml(x.name)}</span><b>${rupiah(x.value)}</b></div><div class="rp-bar"><span style="width:${Math.max(4,bd.total?x.value/bd.total*100:0)}%"></span></div><div class="rp-cat-sub">${bd.total?Math.round(x.value/bd.total*100):0}% dari total pengeluaran</div></div>`).join('')+`<div class="item" style="margin-top:8px"><span>Total pengeluaran</span><b>${rupiah(bd.total)}</b></div>`:'<div class="empty">Belum ada pengeluaran pada periode ini.</div>';
  // pembelian per bahan
  const byIng={};buys.forEach(x=>{const g=db.ingredients.find(i=>i.id===x.ingredientId);const k=x.ingredientId;if(!byIng[k])byIng[k]={name:g?.name||'Bahan',unit:g?.unit||'unit',qty:0,total:0,n:0};byIng[k].qty+=Number(x.qty)||0;byIng[k].total+=Number(x.totalCost)||0;byIng[k].n++});
