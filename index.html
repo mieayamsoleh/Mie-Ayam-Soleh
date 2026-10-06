@@ -2026,6 +2026,12 @@ html body #mainTabs.tabs.tabs button svg{width:23px!important;height:23px!import
 .production-date-row>.date-icon{flex:0 0 38px!important;width:38px!important;height:38px!important;font-size:17px}
 @media(max-width:420px){html body #mainTabs.tabs.tabs button{font-size:9px!important}}
 
+
+/* Fix grafik Tren Penjualan (Laporan): kolom harus menyusut agar 28-31 hari muat di layar HP */
+html body #report .trend-chart{gap:clamp(1px,.7vw,8px)!important;overflow:hidden!important;padding-left:2px!important;padding-right:2px!important}
+html body #report .trend-col{flex:1 1 0!important;min-width:0!important}
+html body #report .trend-bar{width:100%!important;max-width:28px!important;min-width:3px!important}
+html body #report .trend-label,html body #report .trend-value{white-space:nowrap}
 </style>
 </head>
 
@@ -3418,7 +3424,7 @@ function renderStockProduction(){
  if(!cats.includes(window.prodCategory))window.prodCategory=cats[1]||cats[0]||'Semua';
  const tabs=document.getElementById('prodCategoryTabs');
  if(tabs)tabs.innerHTML=cats.map(c=>`<button type="button" class="chip${c===window.prodCategory?' active':''}" data-cat="${escHtml(c)}" onclick="setProdCategory(this.dataset.cat)">${escHtml(c)}<span class="prod-badge" hidden></span></button>`).join('');
- rows.innerHTML=db.ingredients.filter(x=>!x.hidden||(window.editingStockProductionId&&db.productionRecords.find(r=>r.id===window.editingStockProductionId)?.items?.some(i=>i.ingredientId===x.id))).map(x=>{const q=Number(x.stockQty)||0;const old=window.editingStockProductionId?db.productionRecords.find(r=>r.id===window.editingStockProductionId)?.items?.find(i=>i.ingredientId===x.id):null;const val=document.getElementById('stockuse_'+x.id)?.value ?? (old?.qty||'');const cost=Number(val||0)*prodUnitCost(x);const cat=prodCatOf(x);return `<div class="stock-production-row" data-cat="${escHtml(cat)}"${(window.prodCategory==='Semua'||cat===window.prodCategory)?'':' hidden'}><div class="stock-production-top"><div class="stock-production-name">${x.name}</div><div class="stock-available">tersedia: <b>${q} ${x.unit}</b></div></div><div class="stock-production-fields"><div><label>Dipakai (${x.unit})</label><input id="stockuse_${x.id}" type="number" min="0" step="any" value="${val}" placeholder="0" inputmode="decimal" oninput="updateStockProductionTotal()"></div><div><label>Harga rata-rata / ${x.unit}</label><input type="text" value="${rupiah(prodUnitCost(x))}" disabled></div></div><div class="stock-cost">${cat==='Minuman'?(linkedDrinkProducts(x.id).length?'Minuman • stok berkurang otomatis dari penjualan ('+linkedDrinkProducts(x.id).map(p=>escHtml(p.name)).join(', ')+'), tidak perlu diisi di sini':'Minuman • tidak dihitung ke biaya produksi'):'Biaya: '+rupiah(cost)+(Number(x.portions)>0?' • ≈ '+fmtQty(Number(val||0)*Number(x.portions))+' porsi • '+rupiah(Math.round(prodUnitCost(x)/Number(x.portions)))+'/porsi':'')}</div></div>`}).join('');
+ rows.innerHTML=db.ingredients.filter(x=>!x.hidden||(window.editingStockProductionId&&db.productionRecords.find(r=>r.id===window.editingStockProductionId)?.items?.some(i=>i.ingredientId===x.id))).map(x=>{const q=Number(x.stockQty)||0;const old=window.editingStockProductionId?db.productionRecords.find(r=>r.id===window.editingStockProductionId)?.items?.find(i=>i.ingredientId===x.id):null;const val=document.getElementById('stockuse_'+x.id)?.value ?? (old?.qty||'');const cost=Number(val||0)*prodUnitCost(x);const cat=prodCatOf(x);return `<div class="stock-production-row" data-cat="${escHtml(cat)}"${(window.prodCategory==='Semua'||cat===window.prodCategory)?'':' hidden'}><div class="stock-production-top"><div class="stock-production-name">${x.name}</div><div class="stock-available">tersedia: <b>${q} ${x.unit}</b></div></div><div class="stock-production-fields"><div><label>Dipakai (${x.unit})</label><input id="stockuse_${x.id}" type="number" min="0" step="any" value="${val}" placeholder="0" inputmode="decimal" oninput="updateStockProductionTotal()"></div><div><label>Harga rata-rata / ${x.unit}</label><input type="text" value="${rupiah(prodUnitCost(x))}" disabled></div></div><div class="stock-cost">${(cat==='Minuman'||cat==='Dijual Terpisah')?(linkedDrinkProducts(x.id).length?cat+' • stok berkurang otomatis dari penjualan ('+linkedDrinkProducts(x.id).map(p=>escHtml(p.name)).join(', ')+'), tidak masuk biaya produksi, tidak perlu diisi di sini':cat+' • tidak masuk biaya produksi'):'Biaya: '+rupiah(cost)+(Number(x.portions)>0?' • ≈ '+fmtQty(Number(val||0)*Number(x.portions))+' porsi • '+rupiah(Math.round(prodUnitCost(x)/Number(x.portions)))+'/porsi':'')}</div></div>`}).join('');
  updateStockProductionTotal();
 }
 function setProdCategory(cat){
@@ -4045,6 +4051,18 @@ function renderAll(){
   renderHome();renderInput();renderStockTab();renderExpenses();renderProducts();renderReport()
 }
 window.renderAll=renderAll;
+(function dataFixV5(){try{
+ // Hubungkan otomatis produk jual ke stok bahan bila namanya sama persis
+ // (kategori Minuman / Dijual Terpisah). Hanya untuk produk yang belum punya tautan.
+ const norm=t=>String(t||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+ (db.products||[]).forEach(p=>{
+  if(p.stockLink&&p.stockLink.ingredientId)return;
+  if(p.noAutoLink)return;
+  const n=norm(p.name);if(!n)return;
+  const ing=(db.ingredients||[]).find(x=>{const c=prodCatOf(x);return (c==='Minuman'||c==='Dijual Terpisah')&&norm(x.name)===n});
+  if(ing){p.stockLink={ingredientId:ing.id,perUnit:1};p.drink=true}
+ });
+}catch(e){console.error('dataFixV5',e)}})();
 (function dataFixV4(){try{
  normalizeSeparateIngredients();db.__sepFixV4=true;recalculateStockFromRecords();save();
 }catch(e){console.error('dataFixV4',e)}})();
