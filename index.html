@@ -2454,10 +2454,55 @@ window.addEventListener("load",()=>setTimeout(()=>{window.__splash.minDone=true;
 setTimeout(()=>{if(window.__splash.auth==='pending'){window.__splash.auth='skip';window.__splash.minDone=true;window.__tryHideSplash()}},9000);
 </script>
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
-  import { getFirestore, doc, getDoc, setDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
-  import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
-  import { getMessaging, getToken, onMessage, isSupported as messagingIsSupported } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-messaging.js";
+  // ---- Bar status global + penangkap error (tampil di layar) ----
+  function __bar(msg, bad, ms) {
+    try {
+      let el = document.getElementById("mieSyncBar");
+      if (!el) {
+        el = document.createElement("div");
+        el.id = "mieSyncBar";
+        el.style.cssText = "position:fixed;left:8px;right:8px;top:calc(env(safe-area-inset-top,0px) + 6px);z-index:99999;padding:9px 11px;border-radius:10px;font:12px/1.4 system-ui,sans-serif;word-break:break-word;box-shadow:0 4px 14px rgba(0,0,0,.25);display:none;color:#fff";
+        el.addEventListener("click", () => { el.style.display = "none"; });
+        document.body.appendChild(el);
+      }
+      el.style.background = bad ? "#b94a48" : "#3f7d58";
+      el.textContent = msg + (bad ? "  (ketuk untuk tutup)" : "");
+      el.style.display = "block";
+      if (!bad) setTimeout(() => { if (el.textContent === msg) el.style.display = "none"; }, ms || 2500);
+    } catch (_) {}
+  }
+  window.addEventListener("error", ev => {
+    if (/ResizeObserver/.test(ev.message || "")) return;
+    __bar("Error: " + (ev.message || "") + (ev.filename ? " (" + ev.filename.split("/").pop() + ":" + ev.lineno + ")" : ""), true);
+  });
+  window.addEventListener("unhandledrejection", ev => {
+    __bar("Error: " + ((ev.reason && ev.reason.message) || ev.reason), true);
+  });
+  __bar("Cek sinkron v2 aktif", false, 4000);
+
+  // ---- Muat Firebase SDK (dibungkus try/catch supaya kegagalan terlihat) ----
+  let sdkOk = false;
+  let initializeApp, getFirestore, doc, getDoc, setDoc, onSnapshot, serverTimestamp;
+  let getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut;
+  let getMessaging, getToken, onMessage, messagingIsSupported;
+  try {
+    const B = "https://www.gstatic.com/firebasejs/12.18.0/";
+    const [m1, m2, m3, m4] = await Promise.all([
+      import(B + "firebase-app.js"),
+      import(B + "firebase-firestore.js"),
+      import(B + "firebase-auth.js"),
+      import(B + "firebase-messaging.js")
+    ]);
+    ({ initializeApp } = m1);
+    ({ getFirestore, doc, getDoc, setDoc, onSnapshot, serverTimestamp } = m2);
+    ({ getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } = m3);
+    ({ getMessaging, getToken, onMessage } = m4);
+    messagingIsSupported = m4.isSupported;
+    sdkOk = true;
+  } catch (e) {
+    console.warn("Gagal memuat Firebase SDK", e);
+    __bar("GAGAL memuat Firebase SDK: " + (e.message || e), true);
+  }
 
   // ============================================================
   // FIREBASE CONFIG
@@ -2478,7 +2523,7 @@ setTimeout(()=>{if(window.__splash.auth==='pending'){window.__splash.auth='skip'
       firebaseConfig.projectId !== "PASTE_PROJECT_ID" &&
       firebaseConfig.appId !== "PASTE_APP_ID";
 
-    if (validConfig) {
+    if (validConfig && sdkOk) {
       const firebaseApp = initializeApp(firebaseConfig);
       const firestore = getFirestore(firebaseApp);
       const dataRef = doc(firestore, "mieAyamSoleh", "data");
