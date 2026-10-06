@@ -2549,6 +2549,20 @@ setTimeout(()=>{if(window.__splash.auth==='pending'){window.__splash.auth='skip'
       // Cloud Messaging > Web Push certificates.
       // ============================================================
       const FCM_VAPID_KEY = "BE2PjR806JjeKPh7iF5g55TTTad2bZ6CM7MES-D5SVbv9d_G1w9WQrDg4_EDK_26KQTTtdi0ZYaYx0w86A5ENMU";
+      const PUSH_WORKER = "https://proud-flower-d61a.agusnursoleh77.workers.dev";
+      let myPushToken = "";
+      async function callWorker(path, payload) {
+        const u = auth.currentUser; if (!u) return null;
+        const idToken = await u.getIdToken();
+        const r = await fetch(PUSH_WORKER + path, {
+          method: "POST",
+          headers: { "Authorization": "Bearer " + idToken, "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        let d = null; try { d = await r.json(); } catch (_) {}
+        if (!r.ok) console.warn("Worker " + path + " gagal:", r.status, d);
+        return d;
+      }
       const DEVICE_ID_KEY = "mieAyamSoleh_deviceId_v1";
       const DEVICE_NAME_KEY = "mieAyamSoleh_deviceName_v1";
       const getDeviceId = () => {
@@ -2605,6 +2619,8 @@ setTimeout(()=>{if(window.__splash.auth==='pending'){window.__splash.auth='skip'
           }
 
           const name = getDeviceName() || "HP";
+          myPushToken = token;
+          try { await callWorker("/register", { token, name }); } catch (e) { console.warn("Daftar token ke Worker gagal:", e); }
           await setDoc(
             doc(firestore, "mieAyamSoleh", "devices", user.uid, deviceId),
             {
@@ -2632,8 +2648,8 @@ setTimeout(()=>{if(window.__splash.auth==='pending'){window.__splash.auth='skip'
           if (!messaging) return;
           if (pushUnsub) pushUnsub();
           pushUnsub = onMessage(messaging, payload => {
-            const title = payload?.notification?.title || "Mie Ayam Soleh";
-            const body = payload?.notification?.body || "Ada aktivitas baru.";
+            const title = payload?.notification?.title || payload?.data?.title || "Mie Ayam Soleh";
+            const body = payload?.notification?.body || payload?.data?.body || "Ada aktivitas baru.";
             try {
               if (Notification.permission === "granted") new Notification(title, {
                 body,
@@ -2831,7 +2847,33 @@ setTimeout(()=>{if(window.__splash.auth==='pending'){window.__splash.auth='skip'
       async function saveFirebaseData(localDb) { // dipanggil save(): tandai belum terkirim, lalu kirim (dengan kirim ulang otomatis)
         if (!localDb) return;
         if (base && eq(localDb, base)) return;
+        queueActivity(localDb);
         saveVer++; setDirty(true); info("Menunggu kirim..."); schedulePush(600);
+      }
+
+      // ---- Notifikasi antar-HP: setiap ada perubahan data, catat aktivitas (dibaca Cloud Function -> push FCM) ----
+      let actBefore = null, actTimer = null;
+      function queueActivity(localDb) {
+        try {
+          if (actBefore === null) actBefore = J(base || {});
+          clearTimeout(actTimer);
+          actTimer = setTimeout(() => {
+            try {
+              let prev = {}; try { prev = JSON.parse(actBefore) || {}; } catch (_) {}
+              actBefore = null;
+              const cur = db || localDb || {}, parts = [];
+              const L = [["sales", "pemasukan"], ["dailyExpenses", "pengeluaran"], ["stockPurchases", "belanja stok"], ["productionRecords", "produksi"]];
+              L.forEach(([k, lbl]) => {
+                const a = (prev[k] || []).length, b = (cur[k] || []).length;
+                if (b > a) parts.push((b - a) + " " + lbl + " baru");
+                else if (b < a) parts.push((a - b) + " " + lbl + " dihapus");
+              });
+              const body = parts.length ? parts.join(", ") : "Data diperbarui";
+              const title = "Mie Ayam Soleh - " + (getDeviceName() || userName() || "HP");
+              callWorker("/notify", { title, body, exclude: myPushToken }).catch(e => console.warn("Notifikasi gagal dikirim:", e));
+            } catch (e) { console.warn("Aktivitas tidak dicatat:", e); }
+          }, 4000);
+        } catch (_) {}
       }
 
       // ===== TOMBOL CADANGAN (Pengaturan > Cadangan Data) =====
