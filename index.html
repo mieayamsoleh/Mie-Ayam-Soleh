@@ -2590,6 +2590,25 @@ setTimeout(()=>{if(window.__splash.auth==='pending'){window.__splash.auth='skip'
       const userName = () => auth.currentUser ? (auth.currentUser.displayName || (auth.currentUser.email || "").split("@")[0]) : "";
       window.__mieUserName = userName;
 
+      // ---- Indikator status sinkron (tampil di layar) ----
+      function syncStatus(msg, bad) {
+        try {
+          let el = document.getElementById("mieSyncBar");
+          if (!el) {
+            el = document.createElement("div");
+            el.id = "mieSyncBar";
+            el.style.cssText = "position:fixed;left:8px;right:8px;top:calc(env(safe-area-inset-top,0px) + 6px);z-index:99999;padding:9px 11px;border-radius:10px;font:12px/1.4 system-ui,sans-serif;word-break:break-word;box-shadow:0 4px 14px rgba(0,0,0,.25);display:none;color:#fff";
+            el.addEventListener("click", () => { el.style.display = "none"; });
+            document.body.appendChild(el);
+          }
+          el.style.background = bad ? "#b94a48" : "#3f7d58";
+          el.textContent = msg + (bad ? "  (ketuk untuk tutup)" : "");
+          el.style.display = "block";
+          if (!bad) setTimeout(() => { if (el.textContent === msg) el.style.display = "none"; }, 2500);
+        } catch (_) {}
+      }
+      window.__mieSyncStatus = syncStatus;
+
       function applyRemote(remote) {
         db = remote; window.db = db;
         if (!Array.isArray(db.ingredients)) db.ingredients = [];
@@ -2623,16 +2642,22 @@ setTimeout(()=>{if(window.__splash.auth==='pending'){window.__splash.auth='skip'
             if (cleaned && first) await setDoc(dataRef, { data: db, updatedAt: serverTimestamp(), updatedBy: userName() });
             rerender();
           } catch (e) { console.warn("Sinkronisasi gagal.", e); }
-        }, e => console.warn("Firebase tidak bisa dibaca. Data lokal tetap digunakan.", e));
+        }, e => { console.warn("Firebase tidak bisa dibaca. Data lokal tetap digunakan.", e); syncStatus("GAGAL BACA dari server: " + (e.code || "") + " - " + (e.message || e), true); });
       }
 
       async function loadFirebaseData() { /* sinkronisasi kini realtime (startRealtime) */ }
       async function saveFirebaseData(localDb) {
-        if (!localDb || !ready || !auth.currentUser) return;
+        if (!localDb) return;
+        if (!auth.currentUser) { syncStatus("Tidak bisa kirim ke server: belum login.", true); return; }
+        if (!ready) { syncStatus("Tidak bisa kirim ke server: data server belum berhasil dibaca.", true); return; }
+        let kb = 0;
+        try { kb = Math.round(JSON.stringify(localDb).length / 1024); } catch (_) {}
         try {
           await setDoc(dataRef, { data: localDb, updatedAt: serverTimestamp(), updatedBy: userName() });
+          syncStatus("Tersimpan ke server (" + kb + " KB)" + (kb > 800 ? " - HAMPIR PENUH (batas ~1024 KB)" : ""), kb > 800);
         } catch (e) {
           console.warn("Firebase tidak bisa disimpan. Data lokal tetap tersimpan.", e);
+          syncStatus("GAGAL KIRIM ke server (" + kb + " KB): " + (e.code || "") + " - " + (e.message || e), true);
         }
       }
 
