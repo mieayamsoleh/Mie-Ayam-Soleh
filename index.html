@@ -2251,6 +2251,7 @@ requestAnimationFrame(frame);
     <button class="chip" data-category="Bumbu &amp; Saus" onclick="setStockCategory('Bumbu &amp; Saus',this)">Bumbu &amp; Saus</button>
     <button class="chip" data-category="Kemasan" onclick="setStockCategory('Kemasan',this)">Kemasan</button>
     <button class="chip" data-category="Minuman" onclick="setStockCategory('Minuman',this)">Minuman</button>
+    <button class="chip" data-category="Dijual Terpisah" onclick="setStockCategory('Dijual Terpisah',this)">Dijual Terpisah</button>
     <button class="chip" data-category="Kebersihan" onclick="setStockCategory('Kebersihan',this)">Kebersihan</button>
     <button class="chip" data-category="Lainnya" onclick="setStockCategory('Lainnya',this)">Lainnya</button>
   </div>
@@ -2381,19 +2382,19 @@ requestAnimationFrame(frame);
       <div class="item sub-row"><span>💵 Cash</span><b id="rFinCash">Rp0</b></div>
       <div class="item sub-row"><span>📱 QRIS</span><b id="rFinQris">Rp0</b></div>
       <div class="item"><span>Biaya produksi (bahan terpakai)</span><b id="rProd">Rp0</b></div>
-      <div class="item"><span>Modal minuman (HPP)</span><b id="rDrink">Rp0</b></div>
+      <div class="item"><span>Modal minuman &amp; dijual terpisah (HPP)</span><b id="rDrink">Rp0</b></div>
       <div class="item"><span>Pengeluaran harian</span><b id="rDaily">Rp0</b></div>
       <div class="item"><span>Pengeluaran bulanan</span><b id="rMonthly">Rp0</b></div>
       <div id="rMonthlyList"></div>
       <div class="item total-row"><span>Total semua biaya</span><b id="rCost">Rp0</b></div>
       <div class="item total-row"><span>Profit bersih</span><b id="rFinProfit">Rp0</b></div>
       <div class="item"><span>Margin profit</span><b id="rMargin">0%</b></div>
-      <div class="item sub-row"><span>🥤 Penjualan minuman</span><b id="rDrinkOm">Rp0</b></div>
-      <div class="item sub-row"><span>🥤 Profit minuman</span><b id="rDrinkProfit">Rp0</b></div>
+      <div class="item sub-row"><span>🥤 Penjualan minuman &amp; terpisah</span><b id="rDrinkOm">Rp0</b></div>
+      <div class="item sub-row"><span>🥤 Profit minuman &amp; terpisah</span><b id="rDrinkProfit">Rp0</b></div>
       <div class="item"><span>Rata-rata penjualan / transaksi</span><b id="rAvgTrx">Rp0</b></div>
       <div class="item"><span>Rata-rata penjualan / hari</span><b id="rAvgDay">Rp0</b></div>
       <div class="item"><span>Pembelian stok (tidak masuk profit)</span><b id="rFinBuy">Rp0</b></div>
-      <div class="item sub-row"><span>🥤 Pembelian bahan minuman</span><b id="rFinBuyDrink">Rp0</b></div>
+      <div class="item sub-row"><span>🥤 Pembelian bahan minuman &amp; terpisah</span><b id="rFinBuyDrink">Rp0</b></div>
       <div class="item sub-row"><span>🍜 Pembelian bahan makanan &amp; lainnya</span><b id="rFinBuyFood">Rp0</b></div>
       <div class="item"><span>Penjualan dikurangi pembelian stok</span><b id="rCashflow">Rp0</b></div>
     </div>
@@ -2981,13 +2982,13 @@ function getMonth(){return document.getElementById('month').value||ym(todayISO()
 function ingredientUnitCost(x){return Number(x.unitCost)||0}
 function productionTotal(){return db.ingredients.reduce((sum,x)=>sum+(Number(x.useQty)||0)*ingredientUnitCost(x),0)}
 function productionPerPortion(){const all=(db.productionRecords||[]);if(!all.length)return 0;const d=all.map(r=>String(r.date)).sort().pop();const day=all.filter(r=>String(r.date)===d);return day.reduce((s,r)=>s+recProd(r),0)/Math.max(1,day.reduce((s,r)=>s+(Number(r.portions)||0),0))}
-function isDrinkProduct(p){if(!p)return false;if(p.drink===true)return true;if(p.drink===false)return false;return /\b(teh|kopi|susu|jus|minum\w*|es)\b/i.test(String(p.name||''))}
+function isDrinkProduct(p){if(!p)return false;if(p.drink===true)return true;if(p.drink===false)return false;const nm=String(p.name||'');return /\b(teh|kopi|susu|jus|minum\w*|es)\b/i.test(nm)||/^(bakso|kerupuk|pangsit)\b/i.test(nm.trim())}
 function drinkLiveCost(p){const lk=p&&p.stockLink;if(lk&&lk.ingredientId){const x=db.ingredients.find(i=>i.id===lk.ingredientId);const c=x?(Number(lk.perUnit)||0)*ingredientUnitCost(x):0;if(c>0)return Math.round(c*100)/100}return Number(p&&p.cost)||0}
 function drinkItemCost(i){const p=db.products.find(a=>a.id===i.productId);if(!isDrinkProduct(p))return 0;const c=Number(i.cost)>0?Number(i.cost):(Number(p.cost)||0);return c*(Number(i.qty)||0)}
 function drinkItemRevenue(i){const p=db.products.find(a=>a.id===i.productId);return isDrinkProduct(p)?(Number(i.qty)||0)*(Number(i.price)||0):0}
 function drinkCostOf(sales){return sales.reduce((t,x)=>t+(x.items||[]).reduce((a,i)=>a+drinkItemCost(i),0),0)}
 function drinkRevenueOf(sales){return sales.reduce((t,x)=>t+(x.items||[]).reduce((a,i)=>a+drinkItemRevenue(i),0),0)}
-function isDrinkIngredient(id){const i=db.ingredients.find(a=>a.id===id);return !!i&&prodCatOf(i)==='Minuman'}
+function isDrinkIngredient(id){const i=db.ingredients.find(a=>a.id===id);if(!i)return false;const c=prodCatOf(i);return c==='Minuman'||c==='Dijual Terpisah'}
 function recProd(r){return Array.isArray(r.items)&&r.items.length?r.items.reduce((s,it)=>s+(isDrinkIngredient(it.ingredientId)?0:Number(it.cost!=null?it.cost:(Number(it.qty||0)*Number(it.unitCost||0)))),0):Number(r.amount||0)}
 function dailyProductionTotal(date){return db.productionRecords.filter(x=>x.date===date).reduce((s,x)=>s+recProd(x),0)}
 function monthlyProductionTotal(month){
@@ -3186,7 +3187,7 @@ function changeStockUnit(id,val){
  }else if(!confirm('Satuan '+x.unit+' ke '+val+' tidak bisa dikonversi otomatis. Hanya labelnya yang berubah, angka stok/harga/riwayat TIDAK ikut berubah. Lanjutkan?')){renderAll();return}
  x.unit=val;recalculateStockFromRecords();save();renderAll();
 }
-const PROD_CATS=['Bahan Baku','Bumbu & Saus','Kemasan','Minuman','Kebersihan','Lainnya'];
+const PROD_CATS=['Bahan Baku','Bumbu & Saus','Kemasan','Minuman','Dijual Terpisah','Kebersihan','Lainnya'];
 function prodCatOf(x){const c=x.category||'Lainnya';return PROD_CATS.includes(c)?c:'Lainnya'}
 function renderStockProduction(){
  window._ucm=null;
@@ -3344,7 +3345,7 @@ function renderInput(){
 }
 function renderProduction(){renderStockProduction()}
 function renderExpenses(){document.getElementById('dailyCoffee').value=(db.dailyExpenses.find(x=>x.date===todayISO()&&x.name==='Rokok + kopi')?.amount)||0;document.getElementById('monthlyElec').value=db.settings.elecMonthly||0;document.getElementById('monthlyRent').value=db.settings.rentMonthly||0;document.getElementById('monthlyInternet').value=db.settings.internetMonthly||0;document.getElementById('dailyExpenseRows').innerHTML=db.dailyExpenses.map((x,i)=>`<div class="item"><span>${x.name}<br><span class="sub">${x.date}</span></span><div class="actions"><b>${rupiah(x.amount)}</b><button class="secondary danger" onclick="removeDaily(${i})">Hapus</button></div></div>`).join('');document.getElementById('monthlyExpenseRows').innerHTML=db.monthlyExpenses.map((x,i)=>`<div class="item"><span>${x.name}</span><div class="actions"><b>${rupiah(x.amount)}</b><button class="secondary danger" onclick="removeMonthly(${i})">Hapus</button></div></div>`).join('')}
-function renderProducts(){document.getElementById('productSettings').innerHTML=db.products.map((p,i)=>{const dr=isDrinkProduct(p),c=Number(p.cost)||0,pr=Number(p.price)||0,mg=pr-((dr&&p.stockLink&&p.stockLink.ingredientId)?drinkLiveCost(p):c);return `<div class="item" style="flex-wrap:wrap"><div><b>${escHtml(p.name)}</b><div class="sub">Harga jual</div></div><div class="actions"><input style="width:120px;padding:8px" type="number" min="0" value="${p.price}" onchange="updateProductPrice('${p.id}',this.value)"><button type="button" class="secondary danger" onclick="removeProduct('${p.id}')">Hapus</button></div><div style="width:100%;display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px"><label style="display:flex;align-items:center;gap:6px;margin:0;font-size:12px"><input type="checkbox" style="width:auto;margin:0" ${dr?'checked':''} onchange="toggleProductDrink('${p.id}',this.checked)">Minuman</label>${dr?`<div style="width:100%;display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span style="font-size:12px;opacity:.8">Kurangi stok</span><select style="max-width:170px;padding:8px" onchange="updateProductLink('${p.id}',this.value,null)"><option value="">— tidak dikaitkan —</option>${db.ingredients.filter(g=>!g.hidden||(p.stockLink&&p.stockLink.ingredientId===g.id)).map(g=>`<option value="${escHtml(g.id)}" ${p.stockLink&&p.stockLink.ingredientId===g.id?'selected':''}>${escHtml(g.name)} (${escHtml(g.unit)})</option>`).join('')}</select>${p.stockLink&&p.stockLink.ingredientId?`<span style="font-size:12px;opacity:.8">Per 1 item</span><input style="width:80px;padding:8px" type="number" min="0" step="any" inputmode="decimal" value="${Number(p.stockLink.perUnit)||1}" onchange="updateProductLink('${p.id}',null,this.value)">`:''}</div>`:''}${dr?`<span style="font-size:12px;opacity:.8">Modal / item</span><input style="width:100px;padding:8px" type="number" min="0" value="${c}" onchange="updateProductCost('${p.id}',this.value)">${(dr&&p.stockLink&&p.stockLink.ingredientId)?'<span class="sub" style="width:100%;margin:0">🔄 Modal otomatis dari harga rata-rata stok: <b>'+rupiah(Math.round(drinkLiveCost(p)))+'</b> / item (angka manual hanya dipakai bila stok belum punya harga)</span>':''}<span class="sub" style="margin:0">Profit / item: <b>${rupiah(mg)}</b>${pr>0?' ('+(mg/pr*100).toFixed(0)+'%)':''}</span>`:''}</div></div>`}).join('')}
+function renderProducts(){document.getElementById('productSettings').innerHTML=db.products.map((p,i)=>{const dr=isDrinkProduct(p),c=Number(p.cost)||0,pr=Number(p.price)||0,mg=pr-((dr&&p.stockLink&&p.stockLink.ingredientId)?drinkLiveCost(p):c);return `<div class="item" style="flex-wrap:wrap"><div><b>${escHtml(p.name)}</b><div class="sub">Harga jual</div></div><div class="actions"><input style="width:120px;padding:8px" type="number" min="0" value="${p.price}" onchange="updateProductPrice('${p.id}',this.value)"><button type="button" class="secondary danger" onclick="removeProduct('${p.id}')">Hapus</button></div><div style="width:100%;display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px"><label style="display:flex;align-items:center;gap:6px;margin:0;font-size:12px"><input type="checkbox" style="width:auto;margin:0" ${dr?'checked':''} onchange="toggleProductDrink('${p.id}',this.checked)">Dijual terpisah (minuman/bakso/dll)</label>${dr?`<div style="width:100%;display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span style="font-size:12px;opacity:.8">Kurangi stok</span><select style="max-width:170px;padding:8px" onchange="updateProductLink('${p.id}',this.value,null)"><option value="">— tidak dikaitkan —</option>${db.ingredients.filter(g=>!g.hidden||(p.stockLink&&p.stockLink.ingredientId===g.id)).map(g=>`<option value="${escHtml(g.id)}" ${p.stockLink&&p.stockLink.ingredientId===g.id?'selected':''}>${escHtml(g.name)} (${escHtml(g.unit)})</option>`).join('')}</select>${p.stockLink&&p.stockLink.ingredientId?`<span style="font-size:12px;opacity:.8">Per 1 item</span><input style="width:80px;padding:8px" type="number" min="0" step="any" inputmode="decimal" value="${Number(p.stockLink.perUnit)||1}" onchange="updateProductLink('${p.id}',null,this.value)">`:''}</div>`:''}${dr?`<span style="font-size:12px;opacity:.8">Modal / item</span><input style="width:100px;padding:8px" type="number" min="0" value="${c}" onchange="updateProductCost('${p.id}',this.value)">${(dr&&p.stockLink&&p.stockLink.ingredientId)?'<span class="sub" style="width:100%;margin:0">🔄 Modal otomatis dari harga rata-rata stok: <b>'+rupiah(Math.round(drinkLiveCost(p)))+'</b> / item (angka manual hanya dipakai bila stok belum punya harga)</span>':''}<span class="sub" style="margin:0">Profit / item: <b>${rupiah(mg)}</b>${pr>0?' ('+(mg/pr*100).toFixed(0)+'%)':''}</span>`:''}</div></div>`}).join('')}
 function updateProductLink(id,ingId,per){let p=db.products.find(x=>x.id===id);if(!p)return;const lk=p.stockLink||{ingredientId:'',perUnit:1};if(ingId!==null){lk.ingredientId=ingId;if(!(Number(lk.perUnit)>0))lk.perUnit=1}if(per!==null){lk.perUnit=Math.max(0,Number(per)||0)}p.stockLink=lk.ingredientId?lk:null;save();renderAll()}
 function linkedDrinkProducts(ingId){return db.products.filter(p=>p.stockLink&&p.stockLink.ingredientId===ingId)}
 function updateProductCost(id,val){let p=db.products.find(x=>x.id===id);if(p){p.cost=Math.max(0,Number(val||0));save();renderAll()}}
@@ -3502,7 +3503,7 @@ function dayExpenseBreakdown(date){
   const bahan=dailyProductionTotal(date)+legacyDailyProductionTotal(date);
   if(bahan>0)items.push({name:'Biaya Produksi',value:bahan});
   const modalMinum=drinkCostOf(db.sales.filter(x=>x.date===date));
-  if(modalMinum>0)items.push({name:'Modal Minuman',value:modalMinum});
+  if(modalMinum>0)items.push({name:'Modal Minuman & Terpisah',value:modalMinum});
   const grouped={};
   db.dailyExpenses.filter(x=>x.date===date).forEach(x=>{
     const nm=String(x.name||'Lainnya').trim()||'Lainnya';const k=nm.toLowerCase();
@@ -3564,8 +3565,8 @@ function addIngredientPrompt(){
   const name=(prompt('Nama bahan/stok baru:')||'').trim();
   if(!name)return;
   if(db.ingredients.some(x=>String(x.name).trim().toLowerCase()===name.toLowerCase()))return alert('Bahan dengan nama tersebut sudah ada.');
-  const categoryInput=(prompt('Kategori: Bahan Baku / Bumbu & Saus / Kemasan / Minuman / Kebersihan / Lainnya','Bahan Baku')||'Bahan Baku').trim();
-  const allowed=['Bahan Baku','Bumbu & Saus','Kemasan','Minuman','Kebersihan','Lainnya'];
+  const categoryInput=(prompt('Kategori: Bahan Baku / Bumbu & Saus / Kemasan / Minuman / Dijual Terpisah / Kebersihan / Lainnya','Bahan Baku')||'Bahan Baku').trim();
+  const allowed=['Bahan Baku','Bumbu & Saus','Kemasan','Minuman','Dijual Terpisah','Kebersihan','Lainnya'];
   const category=allowed.includes(categoryInput)?categoryInput:'Lainnya';
   const unit=(prompt('Satuan stok (kg, liter, pcs, pack, unit, dll):','unit')||'unit').trim()||'unit';
   const initialQty=Math.max(0,Number(prompt(`Stok awal ${name} (boleh 0):`,'0')||0));
@@ -3819,6 +3820,11 @@ function renderAll(){
   renderHome();renderInput();renderStockTab();renderExpenses();renderProducts();renderReport()
 }
 window.renderAll=renderAll;
+(function dataFixV4(){try{
+ if(db.__sepFixV4)return;
+ db.ingredients.forEach(x=>{if(/^(bakso|kerupuk|pangsit)\b/i.test(String(x.name||'').trim()))x.category='Dijual Terpisah'});
+ db.__sepFixV4=true;recalculateStockFromRecords();save();
+}catch(e){console.error('dataFixV4',e)}})();
 (function dataFixV3(){try{
  let changed=false;
  db.productionRecords=(db.productionRecords||[]).filter(r=>{
