@@ -2285,6 +2285,7 @@ requestAnimationFrame(frame);
   <div class="stock-stats">
     <div class="card stock-stat-card s-gold"><div class="s-icon">♨</div><div class="sx-stat-body"><div class="s-label">Produksi Hari Ini</div><div class="s-value" id="prodStatToday" style="font-size:19px">Rp0</div><div class="sx-stat-note">biaya bahan</div></div></div>
     <div class="card stock-stat-card s-green"><div class="s-icon">▣</div><div class="sx-stat-body"><div class="s-label">Produksi Bulan Ini</div><div class="s-value" id="prodStatMonth" style="font-size:19px">Rp0</div><div class="sx-stat-note ok" id="prodStatDays">0 hari produksi</div></div></div>
+    <div class="card stock-stat-card s-gold" style="grid-column:1/-1"><div class="s-icon">Σ</div><div class="sx-stat-body"><div class="s-label">Rata-rata Biaya Produksi / Porsi</div><div class="s-value" id="prodStatAvg" style="font-size:19px">-</div><div class="sx-stat-note" id="prodStatAvgNote">belum ada produksi bulan ini</div></div></div>
   </div>
 
   <div class="card section production-card">
@@ -2297,8 +2298,7 @@ requestAnimationFrame(frame);
     <div id="stockProductionWarning"></div><button class="primary production-save" id="stockProductionSaveBtn" onclick="saveStockProduction()">💾 Simpan Produksi Hari Ini</button>
   </div>
 
-  <div class="card section" id="prodAvgCard"><div class="ref-section-title"><div class="ico">Σ</div>Rata-rata Biaya Produksi / Porsi</div><div id="prodAvgBody"></div><div class="sub" style="font-size:10px;opacity:.65;margin-top:6px">Total biaya produksi dibagi total porsi yang diproduksi pada periode itu. Bahan minuman dan yang dijual terpisah tidak dihitung.</div></div>
-  <div class="card section" id="productionHistoryCard"><div class="ref-section-title"><div class="ico">◷</div>Riwayat Produksi</div><div id="stockProductionHistory"></div></div>
+    <div class="card section" id="productionHistoryCard"><div class="ref-section-title"><div class="ico">◷</div>Riwayat Produksi</div><div id="stockProductionHistory"></div></div>
 </section>
 
 <section id="expense" class="view">
@@ -3007,7 +3007,9 @@ function legacyDailyProductionTotal(date){
 }
 function stockValue(){return db.ingredients.reduce((s,x)=>s+(Number(x.stockQty)||0)*ingredientUnitCost(x),0)}
 function stockUsageForRecord(record){return Array.isArray(record.items)?record.items:[]}
+function normalizeSeparateIngredients(){(db.ingredients||[]).forEach(x=>{const n=String(x.name||'').trim();if(/\b(bakso|kerupuk|krupuk|pangsit)\b/i.test(n)&&!/\bmie\b/i.test(n)&&(!x.category||x.category==='Bahan Baku'||x.category==='Lainnya'))x.category='Dijual Terpisah'})}
 function recalculateStockFromRecords(){
+ normalizeSeparateIngredients();
  // Hitung ulang stok & harga rata-rata (moving average) secara KRONOLOGIS:
  // pembelian -> penjualan (stok terhubung) -> produksi, urut tanggal.
  // Biaya tiap bahan di produksi = harga rata-rata pada tanggal produksi itu.
@@ -3244,7 +3246,7 @@ function renderStockPurchases(){
   return `<div class="ph-day"><div class="ph-head"><span>${purchaseDayLabel(d)}</span><b>${rupiah(sum)}</b></div>`+rows.map(x=>{const i=db.ingredients.find(a=>a.id===x.ingredientId);return `<div class="item"><span>${i?.name||'Bahan'}<br><span class="sub">+${x.qty} ${i?.unit||'unit'} • ${rupiah(x.unitCost)}/${i?.unit||'unit'}</span></span><div class="actions"><b>${rupiah(x.totalCost)}</b><button class="secondary danger" onclick="deleteStockPurchase(${x.id})">Hapus</button></div></div>`}).join('')+`</div>`;
  }).join(''):'<div class="empty">Belum ada pembelian stok.</div>';
 }
-function renderProductionStats(){try{const t=todayISO(),mo=ym(t);const td=dailyProductionTotal(t)+legacyDailyProductionTotal(t);const mp=monthlyData(mo).prod;const days=new Set(db.productionRecords.filter(r=>ym(r.date)===mo).map(r=>r.date)).size;const a=document.getElementById('prodStatToday'),b=document.getElementById('prodStatMonth'),c=document.getElementById('prodStatDays');if(a)a.textContent=rupiah(td);if(b)b.textContent=rupiah(mp);if(c)c.textContent=days+' hari produksi'}catch(e){}}
+function renderProductionStats(){try{const t=todayISO(),mo=ym(t);const td=dailyProductionTotal(t)+legacyDailyProductionTotal(t);const mp=monthlyData(mo).prod;const days=new Set(db.productionRecords.filter(r=>ym(r.date)===mo).map(r=>r.date)).size;const a=document.getElementById('prodStatToday'),b=document.getElementById('prodStatMonth'),c=document.getElementById('prodStatDays');if(a)a.textContent=rupiah(td);if(b)b.textContent=rupiah(mp);if(c)c.textContent=days+' hari produksi';const bk=n=>{const d=rpUtc(t);d.setUTCDate(d.getUTCDate()-(n-1));return d.toISOString().slice(0,10)};const am=prodAvgStats(mo+'-01',t),a7=prodAvgStats(bk(7),t);const av=document.getElementById('prodStatAvg'),an=document.getElementById('prodStatAvgNote');if(av)av.textContent=am.portions>0?rupiah(Math.round(am.avg))+' / porsi':'-';if(an)an.textContent=am.portions>0?('bulan ini ('+am.portions+' porsi)'+(a7.portions>0?' • 7 hari: '+rupiah(Math.round(a7.avg)):'')):'belum ada produksi bulan ini'}catch(e){}}
 function renderStockTab(){recalculateStockFromRecords();renderStock();renderStockProduction();renderStockHistory();renderStockPurchases();renderProductionStats();}
 function dailyExpenseTotal(month){let dynamic=db.dailyExpenses.filter(x=>x.month===month).reduce((s,x)=>s+Number(x.amount||0),0);let legacy=db.sales.filter(x=>ym(x.date)===month).reduce((s,x)=>s+Number(x.dailyCoffee||0),0);return dynamic+legacy}
 function monthlyExpenseTotal(){return 0}
@@ -3828,9 +3830,7 @@ function renderAll(){
 }
 window.renderAll=renderAll;
 (function dataFixV4(){try{
- if(db.__sepFixV4)return;
- db.ingredients.forEach(x=>{if(/^(bakso|kerupuk|pangsit)\b/i.test(String(x.name||'').trim()))x.category='Dijual Terpisah'});
- db.__sepFixV4=true;recalculateStockFromRecords();save();
+ normalizeSeparateIngredients();db.__sepFixV4=true;recalculateStockFromRecords();save();
 }catch(e){console.error('dataFixV4',e)}})();
 (function dataFixV3(){try{
  let changed=false;
