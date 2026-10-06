@@ -2426,6 +2426,13 @@ requestAnimationFrame(frame);
     <div class="item"><span>Masuk sebagai <b id="accName">-</b></span><button type="button" class="secondary danger" onclick="window.__mieLogout&&window.__mieLogout()">Keluar</button></div>
   </div>
 <div class="card section">
+    <div class="ref-section-title"><div class="ico">💾</div>Cadangan Data</div>
+    <div class="item"><span>Status sinkron: <b id="syncInfo">-</b></span></div>
+    <div class="item"><span>Simpan semua data ke file</span><button type="button" class="secondary" onclick="window.__mieBackup&&window.__mieBackup.download()">Unduh</button></div>
+    <div class="item"><span>Pulihkan dari cadangan otomatis</span><button type="button" class="secondary" onclick="window.__mieBackup&&window.__mieBackup.restoreAuto()">Pilih</button></div>
+    <div class="item"><span>Pulihkan dari file</span><button type="button" class="secondary" onclick="document.getElementById('bkFile').click()">Buka</button><input id="bkFile" type="file" accept="application/json,.json" style="display:none" onchange="if(this.files[0]){window.__mieBackup.importFile(this.files[0]);this.value=''}"></div>
+  </div>
+<div class="card section">
     <div class="ref-section-title"><div class="ico">⚙</div>Harga Jual Produk</div>
     <div id="productSettings"></div>
     <button class="add" onclick="addProductPrompt()">＋ Tambah produk</button>
@@ -2482,7 +2489,7 @@ setTimeout(()=>{if(window.__splash.auth==='pending'){window.__splash.auth='skip'
 
   // ---- Muat Firebase SDK (dibungkus try/catch supaya kegagalan terlihat) ----
   let sdkOk = false;
-  let initializeApp, getFirestore, doc, getDoc, setDoc, onSnapshot, serverTimestamp;
+  let initializeApp, getFirestore, doc, getDoc, setDoc, onSnapshot, serverTimestamp, runTransaction;
   let getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut;
   let getMessaging, getToken, onMessage, messagingIsSupported;
   try {
@@ -2494,7 +2501,7 @@ setTimeout(()=>{if(window.__splash.auth==='pending'){window.__splash.auth='skip'
       import(B + "firebase-messaging.js")
     ]);
     ({ initializeApp } = m1);
-    ({ getFirestore, doc, getDoc, setDoc, onSnapshot, serverTimestamp } = m2);
+    ({ getFirestore, doc, getDoc, setDoc, onSnapshot, serverTimestamp, runTransaction } = m2);
     ({ getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } = m3);
     ({ getMessaging, getToken, onMessage } = m4);
     messagingIsSupported = m4.isSupported;
@@ -2657,15 +2664,88 @@ setTimeout(()=>{if(window.__splash.auth==='pending'){window.__splash.auth='skip'
       }
       window.__mieSyncStatus = syncStatus;
 
-      function applyRemote(remote) {
-        db = remote; window.db = db;
+      // ===== PENGGABUNGAN 3 ARAH: dasar (versi server terakhir) + lokal + server =====
+      const J = JSON.stringify;
+      const clone = o => JSON.parse(J(o)); // sekaligus membuang nilai undefined (ditolak Firestore)
+      const canon = o => J(o, (k, v) => v && typeof v === "object" && !Array.isArray(v) ? Object.keys(v).sort().reduce((a, x) => (a[x] = v[x], a), {}) : v);
+      const eq = (a, b) => canon(a) === canon(b);
+      const KEYED = {
+        products: x => x.id, ingredients: x => x.id, sales: x => x.id, stockPurchases: x => x.id,
+        stockMovements: x => x.id, productionRecords: x => x.id,
+        dailyExpenses: x => x.id != null ? "i" + x.id : x.date + "|" + x.name + "|" + (x.monthly ? 1 : 0),
+        monthlyExpenses: x => x.id != null ? "i" + x.id : null
+      };
+      function mkMap(a, fn) {
+        const m = new Map(), seen = {};
+        (Array.isArray(a) ? a : []).forEach(x => { let k = fn(x); k = String(k == null ? canon(x) : k); seen[k] = (seen[k] || 0) + 1; if (seen[k] > 1) k += "#" + seen[k]; m.set(k, x); });
+        return m;
+      }
+      function mergeArr(B, L, R, fn) {
+        if (!Array.isArray(L)) return R; if (!Array.isArray(R)) return L;
+        const mb = mkMap(B, fn), ml = mkMap(L, fn), mr = mkMap(R, fn), out = [];
+        new Set([...mr.keys(), ...ml.keys()]).forEach(k => {
+          const hl = ml.has(k), hr = mr.has(k), hb = mb.has(k), l = ml.get(k), r = mr.get(k), b = mb.get(k);
+          let v;
+          if (hl && hr) v = eq(l, r) ? l : (hb && eq(l, b)) ? r : l;      // sama-sama ada: yang diubah menang, bentrok -> lokal
+          else if (hl) v = (hb && eq(l, b)) ? undefined : l;               // hilang di server (dihapus) / baru di lokal
+          else v = (hb && eq(r, b)) ? undefined : r;                       // dihapus di lokal / baru di server
+          if (v !== undefined) out.push(v);
+        });
+        return out;
+      }
+      function mergeDb(B, L, R) {
+        B = B || {}; const out = {};
+        new Set([...Object.keys(R), ...Object.keys(L)]).forEach(k => {
+          const l = L[k], r = R[k], b = B[k];
+          if (KEYED[k] && (Array.isArray(l) || Array.isArray(r))) { out[k] = mergeArr(b, l, r, KEYED[k]); return; }
+          if (k === "removedProducts") { out[k] = [...new Set([...(r || []), ...(l || [])])]; return; }
+          if (k === "settings" && l && r && typeof l === "object" && typeof r === "object") {
+            const o = {}, bs = b || {};
+            new Set([...Object.keys(r), ...Object.keys(l)]).forEach(f => { const v = eq(l[f], bs[f]) ? r[f] : l[f]; if (v !== undefined) o[f] = v; });
+            out[k] = o; return;
+          }
+          if (l === undefined) out[k] = r;
+          else if (r === undefined) { if (!(b !== undefined && eq(l, b))) out[k] = l; }
+          else out[k] = eq(l, b) ? r : l;
+        });
+        return out;
+      }
+
+      // ===== CADANGAN (IndexedDB, 15 terakhir) =====
+      const BK_MAX = 15, BASE_KEY = "mieAyamSoleh_base_v1", DIRTY_KEY = "mieAyamSoleh_dirty_v1", BK_TS_KEY = "mieAyamSoleh_bkTs_v1";
+      const bkOpen = () => new Promise((res, rej) => { const q = indexedDB.open("mieAyamSolehBackup", 1); q.onupgradeneeded = () => q.result.createObjectStore("snaps", { keyPath: "t" }); q.onsuccess = () => res(q.result); q.onerror = () => rej(q.error); });
+      async function bkAdd(reason, data) {
+        try {
+          const json = J(data), d = await bkOpen(), st = d.transaction("snaps", "readwrite").objectStore("snaps");
+          st.put({ t: Date.now(), reason, json });
+          const ks = st.getAllKeys(); ks.onsuccess = () => ks.result.slice(0, Math.max(0, ks.result.length - BK_MAX)).forEach(x => st.delete(x));
+        } catch (e) { console.warn("Cadangan lokal gagal", e); }
+      }
+      async function bkList() {
+        const d = await bkOpen();
+        return new Promise(res => { const q = d.transaction("snaps").objectStore("snaps").getAll(); q.onsuccess = () => res(q.result.reverse()); q.onerror = () => res([]); });
+      }
+      function autoBackup() {
+        try { if (Date.now() - Number(localStorage.getItem(BK_TS_KEY) || 0) > 6 * 3600e3) { localStorage.setItem(BK_TS_KEY, String(Date.now())); bkAdd("otomatis", db); } } catch (_) {}
+      }
+
+      // ===== STATUS DASAR / BELUM TERKIRIM =====
+      let base = null; try { base = JSON.parse(localStorage.getItem(BASE_KEY) || "null"); } catch (_) {}
+      const isDirty = () => !!localStorage.getItem(DIRTY_KEY);
+      const setDirty = v => { try { v ? localStorage.setItem(DIRTY_KEY, localStorage.getItem(DIRTY_KEY) || String(Date.now())) : localStorage.removeItem(DIRTY_KEY); } catch (_) {} };
+      const setBase = b => { base = b; try { localStorage.setItem(BASE_KEY, J(b)); } catch (_) {} };
+      const info = t => { const e = document.getElementById("syncInfo"); if (e) e.textContent = t; };
+      const hhmm = () => new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
+
+      function adopt(newDb, newBase) {
+        db = newDb; window.db = db;
         if (!Array.isArray(db.ingredients)) db.ingredients = [];
         migrateStockListV2(); normalizeTeaProducts();
-        const deduped = dedupeKerupuk();
-        const cleaned = removeTestIngredients() || window.__stockMigratedNow || window.__teaPriceMigrated || deduped;
+        dedupeKerupuk(); removeTestIngredients();
         normalizeIngredientCategories(); normalizeTeaProducts();
-        localStorage.setItem("mieAyamSoleh_v2", JSON.stringify(db));
-        return cleaned;
+        try { recalculateStockFromRecords(); } catch (_) {}
+        try { localStorage.setItem("mieAyamSoleh_v2", J(db)); } catch (_) {}
+        setBase(newBase);
       }
       function rerender() {
         const a = document.activeElement;
@@ -2675,39 +2755,101 @@ setTimeout(()=>{if(window.__splash.auth==='pending'){window.__splash.auth='skip'
       }
       document.addEventListener("focusout", () => setTimeout(() => { if (pendingRender) rerender(); }, 150));
 
+      // ===== KIRIM + KIRIM ULANG OTOMATIS =====
+      let pushing = false, again = false, pushTimer = null, retryTimer = null, retryN = 0, saveVer = 0;
+      const RETRY = [5, 15, 30, 60, 120, 300];
+      const schedulePush = ms => { clearTimeout(pushTimer); pushTimer = setTimeout(pushNow, ms == null ? 600 : ms); };
+
+      async function pushNow() {
+        if (pushing) { again = true; return; }
+        if (!isDirty()) return;
+        if (base && eq(db, base)) { setDirty(false); info("Tersinkron"); return; }
+        if (!auth.currentUser) return; // dikirim otomatis setelah login
+        if (navigator.onLine === false) { info("Offline - " + "data aman di HP, dikirim otomatis saat online"); return; }
+        pushing = true; clearTimeout(retryTimer); info("Mengirim...");
+        const ver = saveVer, L = clone(db);
+        try {
+          let written = null;
+          await Promise.race([
+            runTransaction(firestore, async tx => { // baca server -> gabung -> tulis (tidak menimpa perubahan HP lain)
+              const s = await tx.get(dataRef), R = s.exists() ? s.data()?.data : null;
+              const M = clone(R && typeof R === "object" ? mergeDb(base, L, R) : L);
+              tx.set(dataRef, { data: M, updatedAt: serverTimestamp(), updatedBy: userName() });
+              written = M;
+            }),
+            new Promise((_, rej) => setTimeout(() => rej(Object.assign(new Error("waktu habis"), { code: "timeout" })), 20000))
+          ]);
+          retryN = 0;
+          const before = canon(db), kb = Math.round(J(written).length / 1024);
+          adopt(clone(mergeDb(L, db, written)), written); // masukkan perubahan HP lain + edit baru selama proses kirim
+          setDirty(ver !== saveVer || !eq(db, written));
+          if (canon(db) !== before) rerender();
+          info("Tersinkron " + hhmm() + " (" + kb + " KB)");
+          syncStatus("Tersimpan ke server (" + kb + " KB)" + (kb > 800 ? " - HAMPIR PENUH (batas ~1024 KB)" : ""), kb > 800);
+          if (isDirty()) schedulePush(300);
+        } catch (e) {
+          const code = e.code || "error", perm = /permission-denied|invalid-argument|resource-exhausted/.test(code);
+          info("Belum terkirim - dicoba lagi otomatis");
+          syncStatus(perm ? "GAGAL KIRIM: " + code + " - " + (e.message || e) : "Belum terkirim (" + code + "). Data aman di HP, dicoba lagi otomatis.", perm);
+          retryTimer = setTimeout(pushNow, RETRY[Math.min(retryN++, RETRY.length - 1)] * 1000);
+        } finally {
+          pushing = false;
+          if (again) { again = false; schedulePush(300); }
+        }
+      }
+      window.addEventListener("online", () => { retryN = 0; schedulePush(500); });
+      document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && isDirty()) schedulePush(500); });
+
       function startRealtime() {
         if (unsub) return;
-        unsub = onSnapshot(dataRef, async snap => {
+        unsub = onSnapshot(dataRef, snap => {
           try {
-            if (!snap.exists()) { ready = true; await setDoc(dataRef, { data: db, updatedAt: serverTimestamp(), updatedBy: userName() }); return; }
+            if (!snap.exists()) { ready = true; setDirty(true); schedulePush(0); return; }
             if (snap.metadata.hasPendingWrites) return;
             const remote = snap.data()?.data;
             if (!remote || typeof remote !== "object") { ready = true; return; }
-            if (ready && JSON.stringify(remote) === JSON.stringify(db)) return;
-            const first = !ready;
-            ready = true;
-            const cleaned = applyRemote(remote);
-            if (cleaned && first) await setDoc(dataRef, { data: db, updatedAt: serverTimestamp(), updatedBy: userName() });
-            rerender();
+            const first = !ready; ready = true;
+            const dirty = isDirty();
+            if (first) autoBackup();
+            if (!dirty && !eq(remote, db)) bkAdd("sebelum-ganti-dari-server", db);
+            if (dirty && !eq(remote, db)) bkAdd("sebelum-gabung", db);
+            const before = canon(db);
+            adopt(clone(dirty ? mergeDb(base, clone(db), remote) : remote), remote);
+            if (eq(db, remote)) { setDirty(false); info("Tersinkron " + hhmm()); } else { setDirty(true); schedulePush(300); }
+            if (canon(db) !== before) rerender();
           } catch (e) { console.warn("Sinkronisasi gagal.", e); }
         }, e => { console.warn("Firebase tidak bisa dibaca. Data lokal tetap digunakan.", e); syncStatus("GAGAL BACA dari server: " + (e.code || "") + " - " + (e.message || e), true); });
       }
 
       async function loadFirebaseData() { /* sinkronisasi kini realtime (startRealtime) */ }
-      async function saveFirebaseData(localDb) {
+      async function saveFirebaseData(localDb) { // dipanggil save(): tandai belum terkirim, lalu kirim (dengan kirim ulang otomatis)
         if (!localDb) return;
-        if (!auth.currentUser) { syncStatus("Tidak bisa kirim ke server: belum login.", true); return; }
-        if (!ready) { syncStatus("Tidak bisa kirim ke server: data server belum berhasil dibaca.", true); return; }
-        let kb = 0;
-        try { kb = Math.round(JSON.stringify(localDb).length / 1024); } catch (_) {}
-        try {
-          await setDoc(dataRef, { data: localDb, updatedAt: serverTimestamp(), updatedBy: userName() });
-          syncStatus("Tersimpan ke server (" + kb + " KB)" + (kb > 800 ? " - HAMPIR PENUH (batas ~1024 KB)" : ""), kb > 800);
-        } catch (e) {
-          console.warn("Firebase tidak bisa disimpan. Data lokal tetap tersimpan.", e);
-          syncStatus("GAGAL KIRIM ke server (" + kb + " KB): " + (e.code || "") + " - " + (e.message || e), true);
-        }
+        if (base && eq(localDb, base)) return;
+        saveVer++; setDirty(true); info("Menunggu kirim..."); schedulePush(600);
       }
+
+      // ===== TOMBOL CADANGAN (Pengaturan > Cadangan Data) =====
+      function restoreData(obj) {
+        if (!obj || typeof obj !== "object" || !Array.isArray(obj.sales) || !Array.isArray(obj.ingredients) || !Array.isArray(obj.products)) { alert("File cadangan tidak valid."); return; }
+        if (!confirm("Pulihkan data ke cadangan ini? Data sekarang dicadangkan dulu, lalu semua HP akan mengikuti hasil pemulihan.")) return;
+        bkAdd("sebelum-pulihkan", db);
+        adopt(clone(obj), base);
+        save(); rerender();
+      }
+      window.__mieBackup = {
+        download() {
+          const name = "cadangan-mie-ayam-soleh-" + new Date().toISOString().slice(0, 10) + ".json", blob = new Blob([J(db)], { type: "application/json" });
+          try { const f = new File([blob], name, { type: "application/json" }); if (navigator.canShare && navigator.canShare({ files: [f] })) { navigator.share({ files: [f], title: "Cadangan Mie Ayam Soleh" }).catch(() => {}); return; } } catch (_) {}
+          const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click();
+          setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+        },
+        async restoreAuto() {
+          const list = await bkList(); if (!list.length) { alert("Belum ada cadangan otomatis."); return; }
+          const n = Number(prompt("Pilih nomor cadangan:\n" + list.slice(0, 8).map((x, i) => (i + 1) + ". " + new Date(x.t).toLocaleString("id-ID") + " (" + x.reason + ")").join("\n")));
+          if (list[n - 1]) restoreData(JSON.parse(list[n - 1].json));
+        },
+        importFile(file) { const r = new FileReader(); r.onload = () => { try { restoreData(JSON.parse(r.result)); } catch (e) { alert("File cadangan tidak valid."); } }; r.readAsText(file); }
+      };
 
       // Mencatat aktivitas perangkat. Pengiriman push antar-HP dilakukan
       // oleh backend/Cloud Function setelah FCM dipasang.
@@ -2770,6 +2912,7 @@ setTimeout(()=>{if(window.__splash.auth==='pending'){window.__splash.auth='skip'
           window.__splash.auth = "in"; window.__tryHideSplash();
           const n = $("accName"); if (n) n.textContent = userName();
           startRealtime();
+          if (isDirty()) schedulePush(1500);
           await listenForegroundPush();
           await registerPushForDevice(user);
         } else {
