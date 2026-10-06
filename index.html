@@ -2478,7 +2478,7 @@ setTimeout(()=>{if(window.__splash.auth==='pending'){window.__splash.auth='skip'
   window.addEventListener("unhandledrejection", ev => {
     __bar("Error: " + ((ev.reason && ev.reason.message) || ev.reason), true);
   });
-  __bar("Cek sinkron v2 aktif", false, 4000);
+  __bar("Cek sinkron v3 aktif", false, 4000);
 
   // ---- Muat Firebase SDK (dibungkus try/catch supaya kegagalan terlihat) ----
   let sdkOk = false;
@@ -2634,6 +2634,9 @@ setTimeout(()=>{if(window.__splash.auth==='pending'){window.__splash.auth='skip'
       const $ = id => document.getElementById(id);
       const userName = () => auth.currentUser ? (auth.currentUser.displayName || (auth.currentUser.email || "").split("@")[0]) : "";
       window.__mieUserName = userName;
+
+      // Variabel status sinkron (sebelumnya tidak dideklarasikan -> ReferenceError)
+      let unsub = null, ready = false, pendingRender = false;
 
       // ---- Indikator status sinkron (tampil di layar) ----
       function syncStatus(msg, bad) {
