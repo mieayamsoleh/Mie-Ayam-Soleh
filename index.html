@@ -2033,6 +2033,29 @@ html body #report .trend-col{flex:1 1 0!important;min-width:0!important}
 html body #report .trend-bar{width:100%!important;max-width:28px!important;min-width:3px!important}
 html body #report .trend-label,html body #report .trend-value{white-space:nowrap}
 </style>
+<style id="report-pct-style">
+#report .pct-sum{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+#report .pct-sum div{background:rgba(0,0,0,.2);border:1px solid rgba(254,196,64,.2);border-radius:12px;padding:9px 11px;font-size:11px;opacity:.95}
+#report .pct-sum b{display:block;font-size:14px;margin-top:2px}
+#report .pct-row{border-bottom:1px solid rgba(254,196,64,.15);padding:9px 0}
+#report .pct-row:last-of-type{border-bottom:0}
+#report .pct-head{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;cursor:pointer}
+#report .pct-head .pct-name{flex:1;min-width:0}
+#report .pct-head .pct-val{white-space:nowrap;font-weight:700}
+#report .pct-head .pct-pill{background:rgba(254,196,64,.16);color:#FEC440;border-radius:999px;padding:2px 8px;font-size:11px;font-weight:800;white-space:nowrap}
+#report .pct-head .pct-chev{opacity:.6;font-size:12px;transition:transform .2s}
+#report .pct-row.open .pct-chev{transform:rotate(90deg)}
+#report .pct-bar{height:6px;border-radius:9px;background:rgba(254,196,64,.14);overflow:hidden;margin-top:6px}
+#report .pct-bar span{display:block;height:100%;border-radius:9px;background:linear-gradient(90deg,#E9A11C,#FEC440)}
+#report .pct-bar.green span{background:linear-gradient(90deg,#5DB872,#7ED08B)}
+#report .pct-detail{display:none;margin-top:8px;background:rgba(0,0,0,.2);border-radius:10px;padding:6px 10px;font-size:11px}
+#report .pct-row.open .pct-detail{display:block}
+#report .pct-detail .pd{display:flex;justify-content:space-between;gap:8px;padding:4px 0;border-bottom:1px dashed rgba(254,196,64,.12)}
+#report .pct-detail .pd:last-child{border-bottom:0}
+#report .pct-detail .pd em{font-style:normal;opacity:.7;margin-left:6px}
+#report .pct-total{border-top:1px solid rgba(254,196,64,.3);margin-top:6px;padding-top:6px}
+#report .pct-note{font-size:10px;opacity:.65;margin-top:8px}
+</style>
 </head>
 
 <body>
@@ -2413,6 +2436,11 @@ requestAnimationFrame(frame);
   <div class="card section">
     <div class="ref-section-title"><div class="ico">◫</div>Pengeluaran per Kategori</div>
     <div id="reportExpCats"></div>
+  </div>
+
+  <div class="card section" id="reportPctCard">
+    <div class="ref-section-title"><div class="ico">%</div>Pengeluaran vs Omset</div>
+    <div id="reportPct"></div>
   </div>
 
   <div class="card section">
@@ -4169,6 +4197,53 @@ document.addEventListener('DOMContentLoaded',function(){
 var n=db.ingredients.filter(function(x){return stockState(x)!=='safe'}).length;b.classList.toggle('has-alert',n>0);
 b.setAttribute('aria-label',n>0?'Notifikasi: '+n+' bahan stok menipis atau habis':'Notifikasi: stok aman')}catch(e){}}
 setInterval(upd,2000);window.addEventListener('load',upd)})();
+</script>
+<script>
+/* Laporan: pengeluaran sebagai persentase dari omset + detail per hari (tambahan, tidak mengubah fungsi lama) */
+(function(){
+  function pctTxt(v,om){if(!(om>0))return '-';const p=v/om*100;return (Math.round(p*10)/10).toString().replace('.',',')+'%'}
+  function renderReportPct(){
+    const box=document.getElementById('reportPct');if(!box)return;
+    const rb=reportBounds(),from=rb.from,to=rb.to;
+    const m=rangeData(from,to),om=m.om;
+    const days=[];const end=rpUtc(to);let g=0;
+    for(let c=rpUtc(from);c<=end&&g<800;c.setUTCDate(c.getUTCDate()+1),g++)days.push(c.toISOString().slice(0,10));
+    const omDay={};m.sales.forEach(x=>{omDay[x.date]=(omDay[x.date]||0)+Number(x.omzet||0)});
+    const map={};
+    days.forEach(d=>{dayExpenseBreakdown(d).items.forEach(x=>{
+      const k=String(x.name).toLowerCase();
+      if(!map[k])map[k]={name:x.name,value:0,days:[]};
+      map[k].value+=x.value;map[k].days.push({d,v:x.value});
+    })});
+    const rows=Object.values(map).filter(x=>x.value>0).sort((a,b)=>b.value-a.value);
+    const listed=rows.reduce((a,x)=>a+x.value,0);
+    const gap=m.total-listed;
+    if(gap>0.5)rows.push({name:'Pengeluaran bulanan (prorata)',value:gap,days:null});
+    if(!rows.length){box.innerHTML='<div class="empty">Belum ada pengeluaran pada periode ini.</div>';return}
+    const bar=(v,cls)=>'<div class="pct-bar '+(cls||'')+'"><span style="width:'+(om>0?Math.min(100,Math.max(2,v/om*100)):0)+'%"></span></div>';
+    let h='<div class="pct-sum"><div>Omset<b>'+rupiah(om)+'</b></div><div>Total pengeluaran<b>'+rupiah(Math.round(m.total))+' · '+pctTxt(m.total,om)+'</b></div></div>';
+    h+=rows.map(x=>{
+      let det='';
+      if(x.days){
+        det=x.days.slice().sort((a,b)=>b.d.localeCompare(a.d)).map(y=>'<div class="pd"><span>'+rpFmt(y.d)+'</span><span><b>'+rupiah(Math.round(y.v))+'</b><em>'+pctTxt(y.v,omDay[y.d]||0)+' dari omset hari itu</em></span></div>').join('');
+        det='<div class="pct-detail">'+det+'<div class="pd"><span><b>Total</b></span><span><b>'+rupiah(Math.round(x.value))+'</b><em>'+pctTxt(x.value,om)+' dari omset</em></span></div></div>';
+      }else{
+        det='<div class="pct-detail"><div class="pd"><span>Pembayaran bulanan tetap yang dibagi rata per hari sesuai periode laporan.</span></div></div>';
+      }
+      return '<div class="pct-row"><div class="pct-head" onclick="this.parentNode.classList.toggle(\'open\')"><span class="pct-name">'+escHtml(x.name)+'<br><span class="sub" style="font-size:10px;opacity:.7">'+rupiah(Math.round(x.value))+'</span></span><span class="pct-pill">'+pctTxt(x.value,om)+'</span><span class="pct-chev">›</span></div>'+bar(x.value)+det+'</div>';
+    }).join('');
+    h+='<div class="pct-row pct-total"><div class="pct-head" style="cursor:default"><span class="pct-name"><b>Total semua biaya</b><br><span class="sub" style="font-size:10px;opacity:.7">'+rupiah(Math.round(m.total))+'</span></span><span class="pct-pill">'+pctTxt(m.total,om)+'</span></div>'+bar(m.total)+'</div>';
+    h+='<div class="pct-row"><div class="pct-head" style="cursor:default"><span class="pct-name"><b>Profit bersih</b><br><span class="sub" style="font-size:10px;opacity:.7">'+rupiah(Math.round(m.profit))+'</span></span><span class="pct-pill" style="background:rgba(126,208,139,.16);color:#7ED08B">'+pctTxt(m.profit,om)+'</span></div>'+bar(Math.max(0,m.profit),'green')+'</div>';
+    h+='<div class="pct-note">Persentase = pengeluaran ÷ omset (total penjualan) pada periode yang dipilih. Ketuk satu pengeluaran untuk melihat rincian per hari.</div>';
+    box.innerHTML=h;
+  }
+  const _orig=window.renderReport||renderReport;
+  window.renderReport=renderReport=function(){
+    const r=_orig.apply(this,arguments);
+    try{renderReportPct()}catch(e){console.error(e)}
+    return r;
+  };
+})();
 </script>
 </body>
 </html>
